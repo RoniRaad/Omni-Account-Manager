@@ -1,4 +1,5 @@
-﻿using AccountManager.Core.Interfaces;
+﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ namespace AccountManager.Core.ViewModels
     {
         public string Name { get; set; }
         public Account Account { get; set; }
+        public AccountType AccountType { get; set; }
         public ILoginService LoginService { get; set; }
     }
 }

@@ -1,27 +1,112 @@
 ﻿@page "/"
 @using AccountManager.Components
+@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.ViewModels
 @using AccountManager.Infrastructure.Services
+@inject IJSRuntime JS
 
 <div class="container-fluid" style="font-family:Roboto; background-color:var(--primary-light); color:var(--secondary-light)">
+    @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
+    {
         <AccountListItem ListViewModel="viewModel"></AccountListItem>
+    }
+
+    <div class="row">
+        <div class="col-sm" style="display:flex; justify-content:flex-end; padding-right:0px; align-content:flex-start; font-size:24px; gap:24px; padding-bottom:20px">
+            <span style="cursor:pointer" @onclick="StartAddAccount" class="oi oi-plus"> </span>
+        </div>
+    </div>
+
+    @if (_viewModel.AddAccountPromptShow)
+    {
+        <div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <EditForm Model="@NewAccount">
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Name</label>
+                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Name" placeholder="Name"></InputText>
+   
+                    <label for="exampleInputEmail1">Username</label>
+                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Username" placeholder="Username"></InputText>
+\
+                    <label for="exampleInputPassword1">Password</label>
+                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Password" placeholder="Password"></InputText>
+                  </div>
+                     <div class="form-group">
+                        <InputSelect @onclick="CallJSMethod" id="accountTypeSelect" class="form-select" @bind-Value="NewAccount.AccountType">
+                            @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
+                            {
+                                <option value="@accountType">@accountType</option>
+                            }
+                        </InputSelect>
+                  </div>
+
+                </EditForm>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="FinishAddAccount">Add Account</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="CloseModal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    }
+
 </div>
 
 @code{
-    private AccountListItemViewModel viewModel {get; set;}
-
+    private readonly AccountPageViewModel _viewModel = new AccountPageViewModel();
+    public AccountListItemViewModel NewAccount;
     protected override async Task OnInitializedAsync()
     {
-        viewModel = new AccountListItemViewModel()
+                NewAccount = new AccountListItemViewModel()
         {
-            Name = "***REMOVED***",
-            Account = new Core.Models.Account
+            Name = "",
+            Account = new()
             {
-                Password = "***REMOVED***",
-                Username = "***REMOVED***"
+                Username = "",
+                Password = ""
             }
         };
-        viewModel.LoginService = new LeagueLoginService();
+    }
+
+    protected void CallJSMethod()
+    {
+        JS.InvokeAsync<bool>("openDropdown");
+    }
+
+    public void StartAddAccount()
+    {
+        NewAccount = new AccountListItemViewModel()
+        {
+            Name = "",
+            Account = new()
+            {
+                Username = "",
+                Password = ""
+            }
+        };
+
+        _viewModel.AddAccountPromptShow = true;
+    }
+
+    private void CloseModal()
+    {
+        _viewModel.AddAccountPromptShow = false;
+    }
+
+    private void FinishAddAccount()
+    {
+        _viewModel.AccountLists.Add(NewAccount);
+        _viewModel.AddAccountPromptShow = false;
     }
 }

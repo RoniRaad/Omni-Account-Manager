@@ -31,10 +31,6 @@
 
     public async Task LoginTest()
     {
-        ListViewModel.LoginService.Login(new Core.Models.Account
-            {
-                Username = "***REMOVED***",
-                Password = "***REMOVED***"
-            });
+        await ListViewModel.LoginService.Login(ListViewModel.Account);
     }
 }
