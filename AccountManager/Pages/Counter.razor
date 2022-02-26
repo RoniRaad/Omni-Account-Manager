@@ -1,16 +1,65 @@
 ﻿@page "/counter"
+@using AccountManager.Core.Services
+@inject AuthService _authService
 
-<h1>Counter</h1>
+<button class="btn btn-primary" @onclick=ToggleChangePassword>Change Password</button>
 
-<p role="status">Current count: @currentCount</p>
+@if (showChangePasswordPrompt)
+{
+	<div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <EditForm Model="@passwordChangeRequest">
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Current Password</label>
+                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.OldPassword" placeholder="Current Password"></InputText>
+   
+                    <label for="exampleInputEmail1">New Password</label>
+                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.NewPassword" placeholder="New Password"></InputText>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+                    <label for="exampleInputPassword1">Confirm New Password</label>
+                    <InputText style="margin-bottom:12px" type="password"  class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.NewPasswordConfirm" placeholder="Confirm New Password"></InputText>
+                  </div>
+
+                </EditForm>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="ChangePassword">Change Password</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ToggleChangePassword">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+}
 
 @code {
-	private int currentCount = 0;
+    public class PasswordChangeRequest
+    {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string NewPasswordConfirm { get; set; }
+    }
+    private PasswordChangeRequest passwordChangeRequest = new();
+    private bool showChangePasswordPrompt = false;
+    public void ToggleChangePassword()
+    {
+        showChangePasswordPrompt = !showChangePasswordPrompt;
+    }
+    public void ChangePassword()
+    {
+        if (passwordChangeRequest.NewPassword != passwordChangeRequest.NewPasswordConfirm)
+            return; // TODO: Show error for them not being equal
+        if (StringEncryption.Hash(passwordChangeRequest.OldPassword) != _authService.PasswordHash)
+            return; // TODO: Show error for password being wrong
 
-	private void IncrementCount()
-	{
-		currentCount++;
-	}
+        _authService.ChangePassword(passwordChangeRequest.OldPassword, passwordChangeRequest.NewPassword);
+        ToggleChangePassword();
+    }
 }

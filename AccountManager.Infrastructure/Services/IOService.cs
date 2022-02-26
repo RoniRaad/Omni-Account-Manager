@@ -15,7 +15,7 @@ namespace AccountManager.Infrastructure.Services
             ValidateData();
         }
 
-        private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Account Manager";
+        private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
 
@@ -60,6 +60,25 @@ namespace AccountManager.Infrastructure.Services
             string decryptedData = StringEncryption.DecryptString(password, encryptedData);
             return JsonSerializer.Deserialize<T>(decryptedData);
         }
+
+        public string ReadDataAsString(string password)
+        {
+            if (!File.Exists($"{_dataPath}\\data.dat"))
+            {
+                return "";
+            }
+
+            string encryptedData = File.ReadAllText($"{_dataPath}\\data.dat");
+            string decryptedData = StringEncryption.DecryptString(password, encryptedData);
+            return decryptedData;
+        }
+
+        public void WriteDataAsString(string password, string data)
+        {
+            string encryptedData = StringEncryption.EncryptString(password, data);
+            File.WriteAllText($"{_dataPath}\\data.dat", encryptedData);
+        }
+
         public void InitializeData(string password)
         {
             File.WriteAllText($"{_dataPath}\\data.dat", StringEncryption.EncryptString(password, "[]"));
