@@ -2,9 +2,11 @@
 @using AccountManager.Components
 @using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
+@using AccountManager.Core.Services
 @using AccountManager.Core.ViewModels
 @using AccountManager.Infrastructure.Services
-@inject IJSRuntime JS
+@inject IIOService _iOService
+@inject AuthService _authService
 
 <div class="container-fluid" style="font-family:Roboto; background-color:var(--primary-light); color:var(--secondary-light)">
     @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
@@ -24,7 +26,7 @@
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">Modal title</h5>
+                <h5 class="modal-title">Create Account</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -33,16 +35,17 @@
                 <EditForm Model="@NewAccount">
                   <div class="form-group">
                     <label for="exampleInputEmail1">Name</label>
-                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Name" placeholder="Name"></InputText>
+                    <InputText style="margin-bottom:12px" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Name" placeholder="Name"></InputText>
    
                     <label for="exampleInputEmail1">Username</label>
-                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Username" placeholder="Username"></InputText>
-\
+                    <InputText style="margin-bottom:12px" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Username" placeholder="Username"></InputText>
+
                     <label for="exampleInputPassword1">Password</label>
-                    <InputText type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Password" placeholder="Password"></InputText>
+                    <InputText style="margin-bottom:12px" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="NewAccount.Account.Password" placeholder="Password"></InputText>
                   </div>
                      <div class="form-group">
-                        <InputSelect @onclick="CallJSMethod" id="accountTypeSelect" class="form-select" @bind-Value="NewAccount.AccountType">
+                        <label for="accountTypeSelect">Account Type</label>
+                        <InputSelect style="margin-bottom:12px" id="accountTypeSelect" class="form-select" @bind-Value="NewAccount.AccountType">
                             @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
                             {
                                 <option value="@accountType">@accountType</option>
@@ -68,20 +71,22 @@
     public AccountListItemViewModel NewAccount;
     protected override async Task OnInitializedAsync()
     {
-                NewAccount = new AccountListItemViewModel()
+        var accounts = _iOService.ReadData<List<AccountListItemViewModel>>(_authService.PasswordHash);
+        _viewModel.AccountLists = new List<AccountListItemViewModel>();
+        foreach (var account in accounts)
         {
-            Name = "",
-            Account = new()
-            {
-                Username = "",
-                Password = ""
-            }
-        };
+            SetLoginService(account);
+            account.Delete = () => RemoveAccount(account);
+        }
+
+        _viewModel.AccountLists = accounts;
     }
 
-    protected void CallJSMethod()
+    public void RemoveAccount(AccountListItemViewModel account)
     {
-        JS.InvokeAsync<bool>("openDropdown");
+        _viewModel.AccountLists.Remove(account);
+        _iOService.UpdateData(_viewModel.AccountLists, _authService.PasswordHash);
+        InvokeAsync(() => StateHasChanged());
     }
 
     public void StartAddAccount()
@@ -104,9 +109,33 @@
         _viewModel.AddAccountPromptShow = false;
     }
 
+    private AccountListItemViewModel SetLoginService(AccountListItemViewModel viewModel)
+    {
+        ILoginService loginService = null;
+        switch (viewModel.AccountType)
+        {
+            case AccountType.League:
+                loginService = new LeagueLoginService();
+                break;
+            case AccountType.Steam:
+                loginService = new SteamLoginService();
+                break;
+            case AccountType.Valorant:
+                loginService = new ValorantLoginService();
+                break;
+            default:
+                loginService = new LeagueLoginService();
+                break;
+        }
+        viewModel.LoginService = loginService;
+        return viewModel;
+    }
+
     private void FinishAddAccount()
     {
+        SetLoginService(NewAccount);
         _viewModel.AccountLists.Add(NewAccount);
+        _iOService.UpdateData(_viewModel.AccountLists, _authService.PasswordHash);
         _viewModel.AddAccountPromptShow = false;
     }
 }

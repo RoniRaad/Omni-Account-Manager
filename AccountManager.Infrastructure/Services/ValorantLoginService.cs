@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class LeagueLoginService : ILoginService
+    public class ValorantLoginService : ILoginService
     {
         private string GetRiotExePath()
         {
@@ -27,16 +27,10 @@ namespace AccountManager.Infrastructure.Services
                     process.Kill();
                 }
             }
-
-            for (int i = 0 ; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++) {
-                System.Threading.Thread.Sleep(1000);
-            }
-
             Process.Start(@"C:\Riot Games\Riot Client\RiotClientServices.exe");
 
-            for (int i = 0; !Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
+            while (!Process.GetProcessesByName("RiotClientUx").Any())
             {
-                System.Threading.Thread.Sleep(1000);
             }
 
             var queryProcess = "RiotClientUx.exe";
@@ -77,7 +71,7 @@ namespace AccountManager.Infrastructure.Services
             var responseText = response.Content.ReadAsStringAsync();
 
 
-            var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
+            var startLeagueCommandline = "--launch-product=valorant --launch-patchline=live";
             var startLeague = new ProcessStartInfo
             {
                 FileName = GetRiotExePath(),

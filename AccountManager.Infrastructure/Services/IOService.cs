@@ -1,13 +1,20 @@
-﻿using System;
+﻿using AccountManager.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class IOService
+    public class IOService : IIOService
     {
+        public IOService()
+        {
+            ValidateData();
+        }
+
         private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Account Manager";
         public bool ValidateData()
         {
@@ -23,23 +30,35 @@ namespace AccountManager.Infrastructure.Services
 
         }
 
-        public void UpdateData(string data, string password)
+        public bool TryLogin(string password)
         {
-            File.WriteAllText($"{_dataPath}\\data.dat", StringEncryption.EncryptString(password, data));
+            try
+            {
+                StringEncryption.DecryptString(password, File.ReadAllText($"{_dataPath}\\data.dat"));
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public string ReadData(string password)
+        public void UpdateData<T>(T data, string password)
+        {
+            File.WriteAllText($"{_dataPath}\\data.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(data)));
+        }
+
+        public T ReadData<T>(string password) where T : new()
         {
             if (!File.Exists($"{_dataPath}\\data.dat"))
             {
                 InitializeData(password);
-                return "[]";
-
+                return new T();
             }
 
             string encryptedData = File.ReadAllText($"{_dataPath}\\data.dat");
             string decryptedData = StringEncryption.DecryptString(password, encryptedData);
-            return StringEncryption.DecryptString(password, encryptedData);
+            return JsonSerializer.Deserialize<T>(decryptedData);
         }
         public void InitializeData(string password)
         {

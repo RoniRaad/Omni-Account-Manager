@@ -1,13 +1,40 @@
-﻿@inherits LayoutComponentBase
+﻿@using AccountManager.Core.Services
+@inherits LayoutComponentBase
+@inject AuthService _authSerivce; 
 
-<div class="page">
-	<div class="sidebar">
-		<NavMenu />
+@if (_authSerivce.LoggedIn){
+    <div class="page">
+		<div class="sidebar">
+			<NavMenu />
+		</div>
+
+		<main>
+			<article class="content px-4">
+				@Body
+			</article>
+		</main>
 	</div>
+}
+else
+{
+	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh;">
+		<div style="display: flex; align-items: center; flex-direction: column;">
+			<span class="oi oi-lock-locked" style="font-size:120px; padding-bottom: 20px"></span>
+			<h3>Enter Passcode</h3>
+			<div class="form-group">
+				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
+			</div>
+			<button type="submit" class="btn btn-primary" @onclick=Login>Login</button>
+		</div>
+	</form>
+}
 
-	<main>
-		<article class="content px-4">
-			@Body
-		</article>
-	</main>
-</div>
+@code{
+	public string Password { get; set; }
+
+	public async Task Login()
+	{
+		_authSerivce.Login(Password);
+        await InvokeAsync(() => StateHasChanged());
+	}
+}
