@@ -12,12 +12,21 @@ namespace AccountManager.Core.ViewModels
 {
     public class AccountListItemViewModel
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public bool IsEditing = false;
         public Account Account { get; set; }
         public AccountType AccountType { get; set; }
         [JsonIgnore]
         public ILoginService LoginService { get; set; }
         [JsonIgnore]
         public Action Delete { get; set; }
+        public async Task ToggleEdit()
+        {
+            IsEditing = !IsEditing;
+        }
+        public async Task Login()
+        {
+            Task.Factory.StartNew(() => LoginService.Login(Account).ConfigureAwait(false));
+        }
     }
 }

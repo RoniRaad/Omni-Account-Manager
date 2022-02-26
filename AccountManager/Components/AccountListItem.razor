@@ -41,12 +41,12 @@
     <div class="col-sm">
     </div>
     <div class="col-sm" style="display:flex; justify-content:flex-end; padding-right:0px; align-content:flex-start; font-size:24px; gap:24px">
-        <span style="cursor:pointer" @onclick=Delete class="oi oi-trash"></span>
-        <span style="cursor:pointer" @onclick=Edit class="oi oi-wrench"></span>
-        <span style="cursor:pointer" @onclick=Login class="oi oi-account-login"> </span>
+        <span style="cursor:pointer" @onclick=ListViewModel.Delete class="oi oi-trash"></span>
+        <span style="cursor:pointer" @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
+        <span style="cursor:pointer" @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
     </div>
     <hr class="solid">
-    @if (IsEditing)
+    @if (ListViewModel.IsEditing)
     {
         <div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
             <div class="modal-dialog" role="document">
@@ -82,7 +82,7 @@
                     </EditForm>
                 </div>
                 <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick=Close >Save</button>
+                <button type="button" class="btn btn-primary" @onclick=ListViewModel.ToggleEdit >Save</button>
                 </div>
             </div>
             </div>
@@ -93,33 +93,4 @@
 @code {
     [Parameter]
     public AccountListItemViewModel ListViewModel { get; set; }
-
-    public bool IsEditing = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        //TestInterface.TestMethod();
-
-    }
-
-    public async Task Login()
-    {
-        Task.Factory.StartNew(() => ListViewModel.LoginService.Login(ListViewModel.Account).ConfigureAwait(false));
-    }
-
-    public async Task Edit()
-    {
-        IsEditing = true;
-    }
-
-    public async Task Close()
-    {
-        IsEditing = false;
-    }    
-
-    public async Task Delete()
-    {
-        ListViewModel.Delete();
-        InvokeAsync(() => StateHasChanged());
-    }
 }

@@ -15,7 +15,7 @@
 		</main>
 	</div>
 }
-else
+else if (_authSerivce.AuthInitialized)
 {
 	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh;">
 		<div style="display: flex; align-items: center; flex-direction: column;">
@@ -28,6 +28,18 @@ else
 		</div>
 	</form>
 }
+else {
+	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh;">
+		<div style="display: flex; align-items: center; flex-direction: column;">
+			<span class="oi oi-lock-unlocked" style="font-size:120px; padding-bottom: 20px"></span>
+			<h3>Create Passcode</h3>
+			<div class="form-group">
+				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
+			</div>
+			<button type="submit" class="btn btn-primary" @onclick=Register>Register</button>
+		</div>
+	</form>
+}
 
 @code{
 	public string Password { get; set; }
@@ -35,6 +47,12 @@ else
 	public async Task Login()
 	{
 		_authSerivce.Login(Password);
+        await InvokeAsync(() => StateHasChanged());
+	}
+
+	public async Task Register()
+	{
+		_authSerivce.Register(Password);
         await InvokeAsync(() => StateHasChanged());
 	}
 }
