@@ -1,8 +1,14 @@
 ﻿@using AccountManager.Core.Services
 @inherits LayoutComponentBase
-@inject AuthService _authSerivce; 
+@inject AuthService _authService; 
 
-@if (_authSerivce.LoggedIn){
+<style>
+.btn-dark{
+	background-color: var(--primary-dark) !important;
+}
+</style>
+
+@if (_authService.LoggedIn){
     <div class="page">
 		<div class="sidebar">
 			<NavMenu />
@@ -15,28 +21,28 @@
 		</main>
 	</div>
 }
-else if (_authSerivce.AuthInitialized)
+else if (_authService.AuthInitialized)
 {
-	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh;">
-		<div style="display: flex; align-items: center; flex-direction: column;">
+	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh; gap:10px">
+		<div style="display: flex; align-items: center; flex-direction: column; gap:10px">
 			<span class="oi oi-lock-locked" style="font-size:120px; padding-bottom: 20px"></span>
 			<h3>Enter Passcode</h3>
 			<div class="form-group">
 				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
 			</div>
-			<button type="submit" class="btn btn-primary" @onclick=Login>Login</button>
+			<button type="submit" class="btn btn-dark" @onclick=Login>Login</button>
 		</div>
 	</form>
 }
 else {
 	<form style="padding:50px; background-color:var(--primary-light); display:flex; flex-flow:wrap; flex-direction:column; align-content:center; justify-content:center; height:85vh;">
-		<div style="display: flex; align-items: center; flex-direction: column;">
-			<span class="oi oi-lock-unlocked" style="font-size:120px; padding-bottom: 20px"></span>
+		<div style="display: flex; align-items: center; flex-direction: column; gap:10px ">
+			<span class="oi oi-lock-unlocked" style="font-size:120px; padding-bottom: 20px;"></span>
 			<h3>Create Passcode</h3>
 			<div class="form-group">
 				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
 			</div>
-			<button type="submit" class="btn btn-primary" @onclick=Register>Register</button>
+			<button type="submit" class="btn btn-dark" @onclick=Register>Register</button>
 		</div>
 	</form>
 }
@@ -46,13 +52,13 @@ else {
 
 	public async Task Login()
 	{
-		_authSerivce.Login(Password);
+		_authService.Login(Password);
         await InvokeAsync(() => StateHasChanged());
 	}
 
 	public async Task Register()
 	{
-		_authSerivce.Register(Password);
+		_authService.Register(Password);
         await InvokeAsync(() => StateHasChanged());
 	}
 }
