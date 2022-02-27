@@ -1,8 +1,8 @@
-﻿@page "/counter"
+﻿@page "/settings"
 @using AccountManager.Core.Services
 @inject AuthService _authService
 
-<button class="btn btn-primary" @onclick=ToggleChangePassword>Change Password</button>
+<button class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
 
 @if (showChangePasswordPrompt)
 {
@@ -11,9 +11,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title">Change Password</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close btn-close-white" @onclick="ToggleChangePassword" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <EditForm Model="@passwordChangeRequest">

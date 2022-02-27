@@ -14,6 +14,15 @@
 	--secondary-light: #e6e6e6;
 }
 
+.modal-content {
+	background-color: var(--primary-light)
+}
+
+.modal {
+	color: var(--secondary-light) !important;
+	background-color: rgb(36 36 36 / 66%)
+}
+
 html, body {
 	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	color: white;

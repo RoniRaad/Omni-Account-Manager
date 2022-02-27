@@ -20,29 +20,26 @@
             <span style="cursor:pointer" @onclick="_viewModel.StartAddAccount" class="oi oi-plus"> </span>
         </div>
     </div>
-
     @if (_viewModel.AddAccountPromptShow)
     {
-        <div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
+        <div class="modal fade show d-block" style="display:block;" tabindex="-1" role="dialog">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title">Create Account</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
+                 <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.CancelAddAccount" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <EditForm Model="@_viewModel.NewAccount">
                   <div class="form-group">
-                    <label for="exampleInputEmail1">Name</label>
-                    <InputText style="margin-bottom:12px" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="_viewModel.NewAccount.Name" placeholder="Name"></InputText>
+                    <label for="newAccountName">Name</label>
+                    <InputText style="margin-bottom:12px" id="newAccountName" class="form-control" @bind-Value="_viewModel.NewAccount.Name" placeholder="Name"></InputText>
    
-                    <label for="exampleInputEmail1">Username</label>
-                    <InputText style="margin-bottom:12px" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="_viewModel.NewAccount.Account.Username" placeholder="Username"></InputText>
+                    <label for="newAccountUsername">Username</label>
+                    <InputText style="margin-bottom:12px" id="newAccountUsername" class="form-control" @bind-Value="_viewModel.NewAccount.Account.Username" placeholder="Username"></InputText>
 
-                    <label for="exampleInputPassword1">Password</label>
-                    <InputText style="margin-bottom:12px"  class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="_viewModel.NewAccount.Account.Password" placeholder="Password"></InputText>
+                    <label for="newAccountPass">Password</label>
+                    <InputText style="margin-bottom:12px" id="newAccountPass"  class="form-control" @bind-Value="_viewModel.NewAccount.Account.Password" placeholder="Password"></InputText>
                   </div>
                      <div class="form-group">
                         <label for="accountTypeSelect">Account Type</label>
