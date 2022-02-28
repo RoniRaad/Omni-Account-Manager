@@ -13,6 +13,7 @@ namespace AccountManager.Core.ViewModels
     public class AccountListItemViewModel
     {
         public string Name { get; set; } = string.Empty;
+        public string Rank { get; set; }
         public bool IsEditing = false;
         public Account Account { get; set; }
         public AccountType AccountType { get; set; }

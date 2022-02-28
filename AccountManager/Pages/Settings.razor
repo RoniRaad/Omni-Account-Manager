@@ -1,6 +1,8 @@
 ﻿@page "/settings"
 @using AccountManager.Core.Services
+@using AccountManager.Infrastructure.Services.RankingServices
 @inject AuthService _authService
+@inject LeagueRankingService test
 
 <button class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
 
@@ -46,9 +48,9 @@
     }
     private PasswordChangeRequest passwordChangeRequest = new();
     private bool showChangePasswordPrompt = false;
-    public void ToggleChangePassword()
+    public async Task ToggleChangePassword()
     {
-        showChangePasswordPrompt = !showChangePasswordPrompt;
+        await test.TryFetchRanks();
     }
     public void ChangePassword()
     {

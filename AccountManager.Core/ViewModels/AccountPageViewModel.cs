@@ -66,8 +66,6 @@ namespace AccountManager.Core.ViewModels
         {
             AddAccountPromptShow = false;
         }
-
-
         public void FinishAddAccount()
         {
             AddAccount(NewAccount);
