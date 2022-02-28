@@ -6,6 +6,8 @@ using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.UI.Extensions;
 using AccountManager.Core.ViewModels;
+using AccountManager.Infrastructure.Services.RankingServices;
+using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager;
 
@@ -25,6 +27,9 @@ public static class MauiProgram
 		builder.Services.AddBlazorWebView();
 		builder.Services.AddSingleton<IIOService, IOService>();
 		builder.Services.AddSingleton<AuthService>();
+		builder.Services.AddSingleton<LeagueRankingService>();
+		builder.Services.AddSingleton<LeagueClient>();
+		builder.Services.AddSingleton<LeagueTokenService>();
 		builder.Services.AddSingleton<AccountPageViewModel>();
 		builder.Services.AddFactory<AccountType, ILoginService>()
 			.AddImplementation<SteamLoginService>(AccountType.Steam)
@@ -32,6 +37,8 @@ public static class MauiProgram
 			.AddImplementation<ValorantLoginService>(AccountType.Valorant)
 			.Build();
 
-		return builder.Build();
+		var app = builder.Build();
+		app.Services.GetService<LeagueRankingService>();
+		return app;
 	}
 }
