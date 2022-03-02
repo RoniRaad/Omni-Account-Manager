@@ -1,17 +1,10 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class SteamLoginService : ILoginService
+    public class SteamPlatformService : IPlatformService
     {
         public void StopSteam()
         {
@@ -20,7 +13,6 @@ namespace AccountManager.Infrastructure.Services
                 steamProcess.Kill();
             }
         }
-
         public void StartSteam(string args)
         {
             StopSteam();
@@ -51,13 +43,20 @@ namespace AccountManager.Infrastructure.Services
         {
             await LoginAsync(account.Username, account.Password, "");
         }
-
         public string GetCommandLineValue(string commandline , string key)
         {
             key += "=";
             var valueStart = commandline.IndexOf(key) + key.Length;
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
+        }
+        public async Task<string> TryFetchRank(Account account)
+        {
+            return "";
+        }
+        public async Task<string> TryFetchId(Account account)
+        {
+            return "";
         }
     }
 }
