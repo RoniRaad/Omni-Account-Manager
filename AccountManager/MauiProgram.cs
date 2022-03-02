@@ -27,8 +27,9 @@ public static class MauiProgram
 		builder.Services.AddBlazorWebView();
 		builder.Services.AddSingleton<IIOService, IOService>();
 		builder.Services.AddSingleton<AuthService>();
-		builder.Services.AddSingleton<LeagueRankingService>();
+		builder.Services.AddSingleton<IRankingService, RiotRankingService>();
 		builder.Services.AddSingleton<LeagueClient>();
+		builder.Services.AddSingleton<IRiotClient, RiotClient>();
 		builder.Services.AddSingleton<LeagueTokenService>();
 		builder.Services.AddSingleton<AccountPageViewModel>();
 		builder.Services.AddFactory<AccountType, ILoginService>()
@@ -38,7 +39,6 @@ public static class MauiProgram
 			.Build();
 
 		var app = builder.Build();
-		app.Services.GetService<LeagueRankingService>();
 		return app;
 	}
 }

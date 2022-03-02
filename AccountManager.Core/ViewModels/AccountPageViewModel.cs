@@ -1,13 +1,11 @@
 ﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 using AccountManager.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using AccountManager.Infrastructure.Clients;
+using AccountManager.Infrastructure.Services.RankingServices;
 using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AccountManager.Core.ViewModels
 {
@@ -18,27 +16,50 @@ namespace AccountManager.Core.ViewModels
         public Action UpdateView { get; set; }
         public bool AddAccountPromptShow = false;
         private IIOService _iOService;
+        private IRiotClient _riotClient;
+        private IRankingService _rankingService;
         private AuthService _authService;
         private GenericFactory<AccountType, ILoginService> _loginServiceFactory;
-        public AccountPageViewModel(IIOService iOService, AuthService authService, GenericFactory<AccountType, ILoginService> loginServiceFactory)
+        public AccountPageViewModel(IIOService iOService, AuthService authService, GenericFactory<AccountType, ILoginService> loginServiceFactory, IRiotClient riotClient, IRankingService rankingService)
         {
             _iOService = iOService;
             _authService = authService;
             _loginServiceFactory = loginServiceFactory;
+            _riotClient = riotClient;
+            _rankingService = rankingService;
+        }
+
+        public async Task InitializeView()
+        {
             var accounts = _iOService.ReadData<List<AccountListItemViewModel>>(_authService.PasswordHash);
             AccountLists = new List<AccountListItemViewModel>();
             foreach (var account in accounts)
             {
+                if (account.AccountType != AccountType.Steam)
+                {
+                    if (string.IsNullOrEmpty(account.Account.Id))
+                        account.Account.Id = await _riotClient.GetPuuId(account.Account.Username, account.Account.Password);
+                }
+                
                 account.LoginService = _loginServiceFactory.CreateImplementation(account.AccountType);
                 account.Delete = () => RemoveAccount(account);
-            }
+}
+            _iOService.UpdateData(accounts, _authService.PasswordHash);
+
             AccountLists = accounts;
+            _ = Task.Factory.StartNew(async () =>
+            {
+                AccountLists = await _rankingService.TryFetchRanks(accounts);
+                UpdateView();
+            });
         }
 
-        public void AddAccount(AccountListItemViewModel account)
+        public async Task AddAccount(AccountListItemViewModel account)
         {
             account.LoginService = _loginServiceFactory.CreateImplementation(account.AccountType);
             account.Delete = () => RemoveAccount(account);
+            if (account.AccountType != AccountType.Steam)
+                account.Account.Id = await _riotClient.GetPuuId(account.Account.Username, account.Account.Password);
             AccountLists.Add(account);
         }
 

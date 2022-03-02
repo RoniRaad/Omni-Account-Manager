@@ -2,7 +2,7 @@
 @using AccountManager.Core.Services
 @using AccountManager.Infrastructure.Services.RankingServices
 @inject AuthService _authService
-@inject LeagueRankingService test
+@inject RiotRankingService test
 
 <button class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
 
@@ -50,7 +50,7 @@
     private bool showChangePasswordPrompt = false;
     public async Task ToggleChangePassword()
     {
-        await test.TryFetchRanks();
+        showChangePasswordPrompt = true;
     }
     public void ChangePassword()
     {

@@ -5,6 +5,7 @@
 @using AccountManager.Core.Services
 @using AccountManager.Core.ViewModels
 @using AccountManager.Infrastructure.Services
+@using AccountManager.Infrastructure.Services.RankingServices
 @inject IIOService _iOService
 @inject AuthService _authService
 @inject AccountPageViewModel _viewModel
@@ -66,6 +67,7 @@
 @code{
     protected override async Task OnInitializedAsync()
     {
+        await _viewModel.InitializeView();
         _viewModel.UpdateView = () => InvokeAsync(() => StateHasChanged());
     }
 }
