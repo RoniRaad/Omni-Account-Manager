@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.ViewModels
 {
-    public class AccountListItemViewModel
+    public class AccountListItemViewModel : IAccountListItemViewModel
     {
         public string Name { get; set; } = string.Empty;
         public string Rank { get; set; }
@@ -13,7 +13,7 @@ namespace AccountManager.Core.ViewModels
         public Account Account { get; set; }
         public AccountType AccountType { get; set; }
         [JsonIgnore]
-        public ILoginService LoginService { get; set; }
+        public IPlatformService PlatformService { get; set; }
         [JsonIgnore]
         public Action Delete { get; set; }
         public async Task ToggleEdit()
@@ -22,7 +22,7 @@ namespace AccountManager.Core.ViewModels
         }
         public async Task Login()
         {
-            Task.Factory.StartNew(() => LoginService.Login(Account).ConfigureAwait(false));
+            Task.Factory.StartNew(() => PlatformService.Login(Account).ConfigureAwait(false));
         }
     }
 }

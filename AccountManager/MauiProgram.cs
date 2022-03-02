@@ -32,10 +32,10 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IRiotClient, RiotClient>();
 		builder.Services.AddSingleton<LeagueTokenService>();
 		builder.Services.AddSingleton<AccountPageViewModel>();
-		builder.Services.AddFactory<AccountType, ILoginService>()
-			.AddImplementation<SteamLoginService>(AccountType.Steam)
-			.AddImplementation<LeagueLoginService>(AccountType.League)
-			.AddImplementation<ValorantLoginService>(AccountType.Valorant)
+		builder.Services.AddFactory<AccountType, IPlatformService>()
+			.AddImplementation<SteamPlatformService>(AccountType.Steam)
+			.AddImplementation<LeaguePlatformService>(AccountType.League)
+			.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
 			.Build();
 
 		var app = builder.Build();

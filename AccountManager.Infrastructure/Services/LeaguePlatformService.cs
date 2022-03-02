@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Infrastructure.Clients;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +12,16 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class ValorantLoginService : ILoginService
+    public class LeaguePlatformService : IPlatformService
     {
+        private readonly LeagueClient _leagueClient;
+        private readonly IRiotClient _riotClient;
+
+        public LeaguePlatformService(LeagueClient leagueClient, IRiotClient riotClient)
+        {
+            _leagueClient = leagueClient;
+            _riotClient = riotClient;
+        }
         private string GetRiotExePath()
         {
             return @"C:\Riot Games\Riot Client\RiotClientServices.exe";
@@ -27,10 +36,16 @@ namespace AccountManager.Infrastructure.Services
                     process.Kill();
                 }
             }
+
+            for (int i = 0 ; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++) {
+                System.Threading.Thread.Sleep(1000);
+            }
+
             Process.Start(@"C:\Riot Games\Riot Client\RiotClientServices.exe");
 
-            while (!Process.GetProcessesByName("RiotClientUx").Any())
+            for (int i = 0; !Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
+                System.Threading.Thread.Sleep(1000);
             }
 
             var queryProcess = "RiotClientUx.exe";
@@ -71,7 +86,7 @@ namespace AccountManager.Infrastructure.Services
             var responseText = response.Content.ReadAsStringAsync();
 
 
-            var startLeagueCommandline = "--launch-product=valorant --launch-patchline=live";
+            var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
             var startLeague = new ProcessStartInfo
             {
                 FileName = GetRiotExePath(),
@@ -79,13 +94,40 @@ namespace AccountManager.Infrastructure.Services
             };
             Process.Start(startLeague);
         }
-
         public string GetCommandLineValue(string commandline , string key)
         {
             key += "=";
             var valueStart = commandline.IndexOf(key) + key.Length;
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
+        }
+        public async Task<string> TryFetchRank(Account account)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(account.Id))
+                    account.Id = await _riotClient.GetPuuId(account.Username, account.Password);
+
+                return await _leagueClient.GetRankByPuuidAsync(account.Id);
+            }
+            catch
+            {
+                return "";
+            }
+        }
+        public async Task<string> TryFetchId(Account account)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(account.Id))
+                    return account.Id;
+
+                return await _riotClient.GetPuuId(account.Username, account.Password);
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }
