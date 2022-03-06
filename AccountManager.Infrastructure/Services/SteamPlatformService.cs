@@ -50,13 +50,13 @@ namespace AccountManager.Infrastructure.Services
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
         }
-        public async Task<string> TryFetchRank(Account account)
+        public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            return "";
+            return new (true, new Rank());
         }
-        public async Task<string> TryFetchId(Account account)
+        public async Task<(bool, string)> TryFetchId(Account account)
         {
-            return "";
+            return new(true, string.Empty);
         }
     }
 }

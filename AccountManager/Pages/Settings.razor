@@ -1,10 +1,32 @@
 ﻿@page "/settings"
 @using AccountManager.Core.Services
-@using AccountManager.Infrastructure.Services.RankingServices
 @inject AuthService _authService
-@inject RiotRankingService test
 
-<button class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
+<div class="container" style="width:75%">
+    <div class="row">
+        <div class="col">
+            <p style="width:auto; font-size:20px">Use account credentials to get current ranking</p>
+        </div>
+        <div class="col" style="display: flex;justify-content:flex-end;padding-right:0px;align-content:flex-start;align-items: center;">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="credentialsCheckBox">
+              <label class="form-check-label" for="credentialsCheckBox">
+                Use Credentials
+              </label>
+            </div>
+        </div>
+        <hr />
+    </div>
+    <div class="row">
+        <div class="col">
+            <p style="width:auto; font-size:20px">Change your account manager password</p>
+        </div>
+        <div class="col" style="display: flex;justify-content:flex-end;padding-right:0px;align-content:flex-start;align-items: center;">
+            <button style="width:auto" class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
+        </div>
+        <hr />
+    </div>
+</div>
 
 @if (showChangePasswordPrompt)
 {

@@ -1,4 +1,7 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -20,5 +23,19 @@ public partial class App : MauiWinUIApplication
     }
 
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        base.OnLaunched(args);
+
+        Microsoft.Maui.Essentials.Platform.OnLaunched(args);
+
+        var currentWindow = Application.Windows[0].Handler.NativeView;
+        IntPtr _windowHandle = WindowNative.GetWindowHandle(currentWindow);
+        var windowId = Win32Interop.GetWindowIdFromWindow(_windowHandle);
+
+        AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+        appWindow.Title = "Account Manager!";
+    }
 }
 

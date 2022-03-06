@@ -22,20 +22,7 @@
 	</div>
 
 	<script src="_framework/blazor.webview.js" autostart="false"></script>
-		<script>
-        window.openDropdown = () => {
-            const keyboardEvent = new KeyboardEvent('keydown', {
-                code: 'Enter',
-                key: 'Enter',
-                charCode: 13,
-                keyCode: 13,
-                view: window,
-                bubbles: true
-            });
-			document.getElementById("accountTypeSelect").focus();
-            document.getElementById("accountTypeSelect").dispatchEvent(keyboardEvent)
-        }
-    </script>
+
 </body>
 
 </html>

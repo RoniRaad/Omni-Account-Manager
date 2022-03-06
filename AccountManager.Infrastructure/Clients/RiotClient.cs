@@ -78,9 +78,9 @@ namespace AccountManager.Infrastructure.Clients
             var response = await client.GetFromJsonAsync<UserInfoResponse>("https://auth.riotgames.com/userinfo");
             return response.PuuId;
         }
-        public async Task<string> GetValorantRank(Account account)
+        public async Task<Rank> GetValorantRank(Account account)
         {
-            int rank;
+            int rankNumber;
             await GetAuth(account.Username, account.Password);
             var client = GenerateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
@@ -88,37 +88,32 @@ namespace AccountManager.Infrastructure.Clients
 
             var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
             var responses = await client.GetAsync($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
-            
+
             if (response?.QueueSkills?.Competitive?.TotalGamesNeededForRating > 0)
-                return $"PLACEMENTS {response?.QueueSkills?.Competitive?.TotalGamesNeededForRating - 5}/5";
+                return new Rank() {
+                    Tier = "PLACEMENTS",
+                    Ranking = $"{response?.QueueSkills?.Competitive?.TotalGamesNeededForRating - 5}/5"
+                };
             else
-                rank = response.LatestCompetitiveUpdate.TierAfterUpdate.Value;
+                rankNumber = response.LatestCompetitiveUpdate.TierAfterUpdate.Value;
 
             var valorantRanking = new List<string>() {
-                "IRON I",
-                "IRON II",
-                "IRON III",
-                "BRONZE I",
-                "BRONZE II",
-                "BRONZE III",
-                "SILVER I" ,
-                "SILVER II" ,
-                "SILVER III" ,
-                "GOLD I" ,
-                "GOLD II" ,
-                "GOLD III" ,
-                "PLATINUM I" ,
-                "PLATINUM II" ,
-                "PLATINUM III" ,
-                "DIAMOND I" ,
-                "DIAMOND II" ,
-                "DIAMOND III" ,
-                "IMMORTAL I" ,
-                "IMMORTAL II" ,
-                "IMMORTAL III"
+                "IRON",
+                "BRONZE",
+                "SILVER" ,
+                "GOLD" ,
+                "PLATINUM" ,
+                "DIAMOND" ,
+                "IMMORTAL" ,
             };
 
-            return valorantRanking[rank];
+            var rank = new Rank()
+            {
+                Tier = valorantRanking[rankNumber / 3],
+                Ranking = new string('I', rankNumber % 3 + 1)
+            };
+
+            return rank;
         }
     }
 }
@@ -148,25 +143,21 @@ internal class TokenResponseWrapper
     [JsonPropertyName("response")]
     public TokenResponse Response { get; set; }
 }
-
 internal class TokenResponse
 {
     [JsonPropertyName("parameters")]
     public TokenParameters Parameters { get; set; }
 }
-
 internal class TokenParameters
 {
     [JsonPropertyName("uri")]
     public string Uri { get; set; }
 }
-
 internal class EntitlementTokenResponse
 {
     [JsonPropertyName("entitlements_token")]
     public string EntitlementToken { get; set; }
 }
-
 internal class UserInfoResponse
 {
     [JsonPropertyName("sub")]

@@ -8,6 +8,6 @@ namespace AccountManager.Infrastructure.Clients
         Task<string> GetEntitlementToken(string token);
         Task<string> GetPuuId(string username, string password);
         Task<string> GetToken(string username, string pass);
-        Task<string> GetValorantRank(Account account);
+        Task<Rank> GetValorantRank(Account account);
     }
 }

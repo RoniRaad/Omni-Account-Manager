@@ -15,7 +15,16 @@ namespace AccountManager.Infrastructure.Services
     public class ValorantPlatformService : IPlatformService
     {
         private readonly IRiotClient _riotClient;
-
+        private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
+        {
+            {"iron", "#3a3a3a"},
+            {"bronze", "#816539"},
+            {"silver", "#999c9b"},
+            {"gold", "#e2cd5f"},
+            {"platinum", "#308798"},
+            {"diamond", "#f195f4"},
+            {"immortal", "#ac3654"},
+        };
         public ValorantPlatformService(IRiotClient riotClient)
         {
             _riotClient = riotClient;
@@ -94,33 +103,48 @@ namespace AccountManager.Infrastructure.Services
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
         }
-        public async Task<string> TryFetchRank(Account account)
+        public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
+            Rank rank = new Rank();
+
             try
             {
                 if (string.IsNullOrEmpty(account.Id))
                     account.Id = await _riotClient.GetPuuId(account.Username, account.Password);
 
-                return await _riotClient.GetValorantRank(account);
+                rank = await _riotClient.GetValorantRank(account);
+                SetRankColor(rank);
+                return new(true, rank);
             }
             catch
             {
-                return "";
+                return new(false, rank);
             }
         }
-        public async Task<string> TryFetchId(Account account)
+        public async Task<(bool, string)> TryFetchId(Account account)
         {
+            string id = "";
+
             try
             {
                 if (!string.IsNullOrEmpty(account.Id))
-                    return account.Id;
+                {
+                    return new (true, account.Id);
+                }
 
-                return await _riotClient.GetPuuId(account.Username, account.Password);
+                id = await _riotClient.GetPuuId(account.Username, account.Password);
+                return new(true, id);
             }
             catch
             {
-                return "";
+                return new (false, id);
             }
+        }
+        private void SetRankColor(Rank rank)
+        {
+            foreach (KeyValuePair<string, string> kvp in RankColorMap)
+                if (rank.Tier.ToLower().Equals(kvp.Key))
+                    rank.Color = kvp.Value;
         }
     }
 }

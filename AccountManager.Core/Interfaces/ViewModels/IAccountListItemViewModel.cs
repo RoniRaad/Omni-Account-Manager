@@ -11,7 +11,7 @@ namespace AccountManager.Core.ViewModels
         Action Delete { get; set; }
         IPlatformService PlatformService { get; set; }
         string Name { get; set; }
-        string Rank { get; set; }
+        Rank Rank { get; set; }
 
         Task Login();
         Task ToggleEdit();
