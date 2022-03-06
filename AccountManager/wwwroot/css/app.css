@@ -7,6 +7,10 @@
 	src: url('../fonts/Roboto-Regular.ttf') format('truetype');
 }
 
+.sidebar {
+	width: 155px;
+}
+
 :root {
 	--primary-dark: #202020;
 	--primary-light: #3d3c3c;

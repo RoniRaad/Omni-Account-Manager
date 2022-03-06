@@ -5,16 +5,17 @@
 @using AccountManager.Core.Services
 @using AccountManager.Core.ViewModels
 @using AccountManager.Infrastructure.Services
-@using AccountManager.Infrastructure.Services.RankingServices
-@inject IIOService _iOService
-@inject AuthService _authService
 @inject AccountPageViewModel _viewModel
 
 <div class="container-fluid" style="font-family:Roboto; background-color:var(--primary-light); color:var(--secondary-light)">
-    @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
-    {
-        <AccountListItem ListViewModel="viewModel"></AccountListItem>
-    }
+    <div class="row">
+        @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
+        {
+            <AccountListItem ListViewModel="viewModel"></AccountListItem>
+        }
+        <div class="w-100"></div>
+    </div>
+
 
     <div class="row">
         <div class="col-sm" style="display:flex; justify-content:flex-end; padding-right:0px; align-content:flex-start; font-size:24px; gap:24px; padding-bottom:20px">
@@ -24,15 +25,15 @@
     @if (_viewModel.AddAccountPromptShow)
     {
         <div class="modal fade show d-block" style="display:block;" tabindex="-1" role="dialog">
-          <div class="modal-dialog" role="document">
+            <div class="modal-dialog" role="document">
             <div class="modal-content">
-              <div class="modal-header">
+                <div class="modal-header">
                 <h5 class="modal-title">Create Account</h5>
-                 <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.CancelAddAccount" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
+                    <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.CancelAddAccount" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
                 <EditForm Model="@_viewModel.NewAccount">
-                  <div class="form-group">
+                    <div class="form-group">
                     <label for="newAccountName">Name</label>
                     <InputText style="margin-bottom:12px" id="newAccountName" class="form-control" @bind-Value="_viewModel.NewAccount.Name" placeholder="Name"></InputText>
    
@@ -41,8 +42,8 @@
 
                     <label for="newAccountPass">Password</label>
                     <InputText style="margin-bottom:12px" id="newAccountPass"  class="form-control" @bind-Value="_viewModel.NewAccount.Account.Password" placeholder="Password"></InputText>
-                  </div>
-                     <div class="form-group">
+                    </div>
+                        <div class="form-group">
                         <label for="accountTypeSelect">Account Type</label>
                         <InputSelect style="margin-bottom:12px" id="accountTypeSelect" class="form-select" @bind-Value="_viewModel.NewAccount.AccountType">
                             @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
@@ -50,16 +51,15 @@
                                 <option value="@accountType">@accountType</option>
                             }
                         </InputSelect>
-                  </div>
-
+                    </div>
                 </EditForm>
-              </div>
-              <div class="modal-footer">
+                </div>
+                <div class="modal-footer">
                 <button type="button" class="btn btn-primary" @onclick="_viewModel.FinishAddAccount">Add Account</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="_viewModel.CancelAddAccount">Close</button>
-              </div>
+                </div>
             </div>
-          </div>
+            </div>
         </div>
     }
 </div>
@@ -67,7 +67,6 @@
 @code{
     protected override async Task OnInitializedAsync()
     {
-        await _viewModel.InitializeView();
         _viewModel.UpdateView = () => InvokeAsync(() => StateHasChanged());
     }
 }

@@ -9,18 +9,36 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using AccountManager.Core.Interfaces;
+using AccountManager.Core.Enums;
+using AccountManager.Core.Factories;
 
 namespace AccountManager.Infrastructure.Services
 {
     public class LeaguePlatformService : IPlatformService
     {
-        private readonly LeagueClient _leagueClient;
+        private readonly ITokenService _leagueService;
+        private readonly ITokenService _riotService;
+        private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-
-        public LeaguePlatformService(LeagueClient leagueClient, IRiotClient riotClient)
+        private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
+        {
+            {"iron", "#372826"},
+            {"bronze", "#532210"},
+            {"silver", "#7e878b"},
+            {"gold", "#FFD700"},
+            {"platinum", "#25cb6e"},
+            {"diamond", "#9e7ad6"},
+            {"master", "#f359f9"},
+            {"grandmaster", "#f8848f"},
+            {"challenger", "#4ee1ff"},
+        };
+        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
+            _leagueService = tokenServiceFactory.CreateImplementation(AccountType.League);
+            _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
         }
         private string GetRiotExePath()
         {
@@ -49,23 +67,11 @@ namespace AccountManager.Infrastructure.Services
             }
 
             var queryProcess = "RiotClientUx.exe";
-
-            var StartInfo = new ProcessStartInfo
+            for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
-                FileName = "wmic",
-                Arguments = $"PROCESS WHERE name='{queryProcess}' GET commandline",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            };
-
-            var wmicQuery = Process.Start(StartInfo);
-            wmicQuery.WaitForExit();
-            var wmicResponse = wmicQuery.StandardOutput.ReadToEnd();
-            string token = GetCommandLineValue(wmicResponse, "--remoting-auth-token");
-            string port = GetCommandLineValue(wmicResponse, "--app-port");
-
-
+                System.Threading.Thread.Sleep(1000);
+            }
+            _riotService.TryGetPortAndToken(out string token, out string port);
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
             {
@@ -101,33 +107,44 @@ namespace AccountManager.Infrastructure.Services
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
         }
-        public async Task<string> TryFetchRank(Account account)
+        public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
+            Rank rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.Id))
                     account.Id = await _riotClient.GetPuuId(account.Username, account.Password);
 
-                return await _leagueClient.GetRankByPuuidAsync(account.Id);
+                rank = await _leagueClient.GetRankByPuuidAsync(account);
+                SetRankColor(rank);
+                return (true, rank);
             }
             catch
             {
-                return "";
+                return (false, rank);
             }
         }
-        public async Task<string> TryFetchId(Account account)
+        public async Task<(bool, string)> TryFetchId(Account account)
         {
+            var id = "";
             try
             {
                 if (!string.IsNullOrEmpty(account.Id))
-                    return account.Id;
+                    return (true, account.Id);
 
-                return await _riotClient.GetPuuId(account.Username, account.Password);
+                id = await _riotClient.GetPuuId(account.Username, account.Password);
+                return (true, id);
             }
             catch
             {
-                return "";
+                return (false, id);
             }
+        }
+        private void SetRankColor(Rank rank)
+        {
+            foreach (KeyValuePair<string, string> kvp in RankColorMap)
+                if (rank.Tier.ToLower().Equals(kvp.Key))
+                     rank.Color = kvp.Value;
         }
     }
 }

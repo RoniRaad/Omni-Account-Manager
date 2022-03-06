@@ -3,8 +3,7 @@
 @using AccountManager.Core.ViewModels
 @inherits LayoutComponentBase
 
-<div class="row">
-    <div class="col-md" style="display:flex">
+    <div class="col-3 col-md-2 col-xl-1" style="display:flex">
         @if (ListViewModel.AccountType == Core.Enums.AccountType.League)
         {
             <img src="./logos/league-logo.png" style="margin-right:10px; height:34px; width:34px" />
@@ -37,19 +36,21 @@
                     style="margin-right:10px; fill:#000000;"><path d="M1.756 5.345C1.482 5.029 1.042 4.915.65 5.063.259 5.209 0 5.583 0 6v7c0 .242.088.477.248.658l7 8C7.438 21.876 7.711 22 8 22h6c.392 0 .747-.229.91-.585.163-.355.103-.774-.154-1.07L1.756 5.345zM23.325 6.054c-.404-.138-.852-.005-1.114.332l-7 9c-.234.302-.276.711-.109 1.054C15.27 16.782 15.618 17 16 17h5c.334 0 .646-.167.832-.445l2-3C23.941 13.391 24 13.197 24 13V7C24 6.573 23.729 6.192 23.325 6.054z"></path></svg>
             </div>
         }
-        <h3 style="font-family:Roboto">
-            @ListViewModel.Name
-        </h3>
-        <div class="container">
+        <p style="font-family:Roboto; font-size:25px">
+            @ListViewModel?.Name
+        </p>
+    </div>
+    <div class="col-2">
+        <div style="margin-left:40px">
             <div class="row">
-                <span style="font-size:10px;font-weight:100;text-align:left" class="badge badge-secondary">@ListViewModel.Rank</span>
+                <span style="font-size:10px;font-weight:100;text-align:left;color:@ListViewModel?.Rank?.Color" class="badge badge-secondary">@ListViewModel?.Rank?.Tier @ListViewModel?.Rank?.Ranking</span>
             </div>
             <div class="row">
                 <span style="font-size:10px;font-weight:100;text-align:left" class="badge badge-secondary">@ListViewModel.Account.Username</span>
             </div>
         </div>
     </div>
-    <div class="col-sm" style="display:flex; justify-content:flex-end; padding-right:0px; align-content:flex-start; font-size:24px; gap:24px">
+    <div class="col-7 col-sm" style="display:flex; justify-content:flex-end; padding-right:0px; align-content:flex-start; font-size:24px; gap:24px">
         <span style="cursor:pointer" @onclick=ListViewModel.Delete class="oi oi-trash"></span>
         <span style="cursor:pointer" @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
         <span style="cursor:pointer" @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
@@ -95,9 +96,9 @@
             </div>
         </div>
     }
-</div>
 
 @code {
     [Parameter]
     public AccountListItemViewModel ListViewModel { get; set; }
+
 }

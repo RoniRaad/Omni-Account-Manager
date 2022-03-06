@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AccountManager.Infrastructure.Services.RankingServices
+namespace AccountManager.Core.Models.League
 {
     public class LeagueSummonerRank
     {

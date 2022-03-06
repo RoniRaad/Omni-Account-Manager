@@ -5,7 +5,7 @@ namespace AccountManager.Core.Interfaces
     public interface IPlatformService
     {
         Task Login(Account account);
-        Task<string> TryFetchId(Account account);
-        Task<string> TryFetchRank(Account account);
+        Task<(bool, string)> TryFetchId(Account account);
+        Task<(bool, Rank)> TryFetchRank(Account account);
     }
 }

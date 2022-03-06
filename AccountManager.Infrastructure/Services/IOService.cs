@@ -18,7 +18,6 @@ namespace AccountManager.Infrastructure.Services
         private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
-
             if (!Directory.Exists(_dataPath))
             {
                 Directory.CreateDirectory(_dataPath);
