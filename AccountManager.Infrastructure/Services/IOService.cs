@@ -1,10 +1,7 @@
-﻿using AccountManager.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Static;
+using AccountManager.Core.ViewModels;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
@@ -26,14 +23,13 @@ namespace AccountManager.Infrastructure.Services
                 return false;
             else
                 return true;
-
         }
 
         public bool TryLogin(string password)
         {
             try
             {
-                StringEncryption.DecryptString(password, File.ReadAllText($"{_dataPath}\\data.dat"));
+                ReadData<List<AccountListItemViewModel>>(password);
                 return true;
             }
             catch
@@ -44,43 +40,39 @@ namespace AccountManager.Infrastructure.Services
 
         public void UpdateData<T>(T data, string password)
         {
-            File.WriteAllText($"{_dataPath}\\data.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(data)));
+            var fileName = StringEncryption.Hash(typeof(T).Name);
+            File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(data)));
+        }
+        public void UpdateData<T>(T data)
+        {
+            var fileName = StringEncryption.Hash(typeof(T).Name);
+            File.WriteAllText($"{_dataPath}\\{fileName}.dat", JsonSerializer.Serialize(data));
         }
 
         public T ReadData<T>(string password) where T : new()
         {
-            if (!File.Exists($"{_dataPath}\\data.dat"))
+            var fileName = StringEncryption.Hash(typeof(T).Name);
+            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
             {
-                InitializeData(password);
+                File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
                 return new T();
             }
 
-            string encryptedData = File.ReadAllText($"{_dataPath}\\data.dat");
+            string encryptedData = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
             string decryptedData = StringEncryption.DecryptString(password, encryptedData);
             return JsonSerializer.Deserialize<T>(decryptedData);
         }
-
-        public string ReadDataAsString(string password)
+        public T ReadData<T>() where T : new()
         {
-            if (!File.Exists($"{_dataPath}\\data.dat"))
+            var fileName = StringEncryption.Hash(typeof(T).Name);
+            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
             {
-                return "";
+                File.WriteAllText($"{_dataPath}\\{fileName}.dat", JsonSerializer.Serialize(new T()));
+                return new T();
             }
 
-            string encryptedData = File.ReadAllText($"{_dataPath}\\data.dat");
-            string decryptedData = StringEncryption.DecryptString(password, encryptedData);
-            return decryptedData;
-        }
-
-        public void WriteDataAsString(string password, string data)
-        {
-            string encryptedData = StringEncryption.EncryptString(password, data);
-            File.WriteAllText($"{_dataPath}\\data.dat", encryptedData);
-        }
-
-        public void InitializeData(string password)
-        {
-            File.WriteAllText($"{_dataPath}\\data.dat", StringEncryption.EncryptString(password, "[]"));
+            string data = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
+            return JsonSerializer.Deserialize<T>(data);
         }
 
         public string GetEncryptedUsername()
@@ -117,22 +109,6 @@ namespace AccountManager.Infrastructure.Services
             return File.ReadAllText(filePath);
         }
 
-        public void SaveConfig(string contents)
-        {
-            WriteFile($"{_dataPath}\\config.conf", contents);
-        }
-
-        public string GetConfig()
-        {
-            try
-            {
-                return ReadFile($"{_dataPath}\\config.conf");
-            }
-            catch
-            {
-                return "null";
-            }
-        }
         public List<string[]> GetInstalledGamesManifest()
         {
             string[] steamAppFiles = Directory.GetFiles($"{FindSteamDrive()}\\Program Files (x86)\\Steam\\steamapps");

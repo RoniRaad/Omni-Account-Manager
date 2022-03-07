@@ -1,7 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using System.Diagnostics;
 
-namespace AccountManager.Infrastructure.Services
+namespace AccountManager.Infrastructure.Services.Token
 {
     public class RiotTokenService : BaseRiotService, ITokenService
     {

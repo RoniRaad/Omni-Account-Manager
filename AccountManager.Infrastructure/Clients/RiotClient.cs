@@ -1,21 +1,19 @@
-﻿using AccountManager.Core.Models;
+﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using CloudFlareUtilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class RiotClient : IRiotClient
+    public partial class RiotClient : IRiotClient
     {
         private string bearerToken = "";
         private string entitlementToken = "";
+        private HttpClient _httpClient;
         private HttpClient GenerateClient()
         {
             var handler = new ClearanceHandler
@@ -28,6 +26,11 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", "release-04.03-shipping-6-671292");
 
             return client;
+        }
+        public async Task<string> GetExpectedClientVersion()
+        {
+            var response = await _httpClient.GetFromJsonAsync<ExpectedClientVersionResponse>("https://valorant-api.com/v1/version");
+            return response.Data.RiotClientVersion;
         }
         public async Task<string> GetToken(string username, string pass)
         {
@@ -87,12 +90,17 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
-            var responses = await client.GetAsync($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
 
             if (response?.QueueSkills?.Competitive?.TotalGamesNeededForRating > 0)
                 return new Rank() {
                     Tier = "PLACEMENTS",
-                    Ranking = $"{response?.QueueSkills?.Competitive?.TotalGamesNeededForRating - 5}/5"
+                    Ranking = $"{5 - response?.QueueSkills?.Competitive?.TotalGamesNeededForRating}/5"
+                };
+            else if (response?.QueueSkills?.Competitive?.CurrentSeasonGamesNeededForRating > 0)
+                return new Rank()
+                {
+                    Tier = "PLACEMENTS",
+                    Ranking = $"{1 - response?.QueueSkills?.Competitive?.CurrentSeasonGamesNeededForRating}/1"
                 };
             else
                 rankNumber = response.LatestCompetitiveUpdate.TierAfterUpdate.Value;
@@ -116,68 +124,4 @@ namespace AccountManager.Infrastructure.Clients
             return rank;
         }
     }
-}
-internal class AuthRequestPostResponse
-{
-    [JsonPropertyName("client_id")]
-    public string Id { get; set; }
-    [JsonPropertyName("nonce")]
-    public string Nonce { get; set; }
-    [JsonPropertyName("redirect_uri")]
-    public string RedirectUri { get; set; }
-    [JsonPropertyName("response_type")]
-    public string ResponseType { get; set; }
-}
-
-internal class AuthRequest
-{
-    [JsonPropertyName("type")]
-    public string Type { get; set; }
-    [JsonPropertyName("username")]
-    public string Username { get; set; }
-    [JsonPropertyName("password")]
-    public string Password { get; set; }
-}
-internal class TokenResponseWrapper
-{
-    [JsonPropertyName("response")]
-    public TokenResponse Response { get; set; }
-}
-internal class TokenResponse
-{
-    [JsonPropertyName("parameters")]
-    public TokenParameters Parameters { get; set; }
-}
-internal class TokenParameters
-{
-    [JsonPropertyName("uri")]
-    public string Uri { get; set; }
-}
-internal class EntitlementTokenResponse
-{
-    [JsonPropertyName("entitlements_token")]
-    public string EntitlementToken { get; set; }
-}
-internal class UserInfoResponse
-{
-    [JsonPropertyName("sub")]
-    public string PuuId { get; set; }
-}
-internal class ValorantRankedResponse
-{
-    public ValorantCompetitiveUpdate? LatestCompetitiveUpdate { get; set; }
-    public ValorantQueueSkills? QueueSkills { get; set; }
-}
-internal class ValorantCompetitiveUpdate
-{
-    public int? TierAfterUpdate { get; set; }
-}
-internal class ValorantQueueSkills
-{
-    [JsonPropertyName("competitive")]
-    public ValorantCompetitive? Competitive { get; set; }
-}
-internal class ValorantCompetitive
-{
-    public int? TotalGamesNeededForRating { get; set; }
 }

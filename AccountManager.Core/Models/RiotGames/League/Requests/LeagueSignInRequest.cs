@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace AccountManager.Core.Models
+namespace AccountManager.Core.Models.RiotGames.League.Requests
 {
     public class LeagueSignInRequest
     {

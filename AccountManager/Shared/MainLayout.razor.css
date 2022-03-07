@@ -8,6 +8,48 @@ main {
 	flex: 1;
 }
 
+.login-form {
+	padding: 50px;
+	background-color: var(--primary-light);
+	display: flex;
+	flex-flow: wrap;
+	flex-direction: column;
+	align-content: center;
+	justify-content: center;
+	height: 85vh;
+	gap: 10px
+}
+
+a {
+	float: right;
+	cursor: pointer
+}
+
+.btn-dark {
+	background-color: var(--primary-dark) !important;
+}
+
+.notification {
+	opacity: .9;
+	position: absolute;
+	width: 100%;
+	z-index: 2000;
+	text-align: center;
+	padding: .2rem 1rem
+}
+
+.login-form div {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	gap: 10px
+}
+
+.login-form div span {
+	font-size: 120px;
+	padding-bottom: 20px
+}
+
 .sidebar {
 	background-color: var(--primary-dark);
 }

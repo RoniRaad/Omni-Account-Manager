@@ -1,8 +1,7 @@
 ﻿using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 
-namespace AccountManager.Core.ViewModels
+namespace AccountManager.Core.Interfaces.ViewModels
 {
     public interface IAccountListItemViewModel
     {
@@ -13,7 +12,7 @@ namespace AccountManager.Core.ViewModels
         string Name { get; set; }
         Rank Rank { get; set; }
 
-        Task Login();
-        Task ToggleEdit();
+        void Login();
+        void ToggleEdit();
     }
 }

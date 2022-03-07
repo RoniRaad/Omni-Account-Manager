@@ -4,7 +4,8 @@ namespace AccountManager.Core.Interfaces
 {
     public interface ILeagueClient
     {
-        Task<Rank> GetRankByPuuidAsync(Account account);
+        Task<Rank> GetSummonerRankByPuuidAsync(Account account);
         Task<string> GetRankByUsernameAsync(string username);
+        Task<Rank> GetTFTRankByPuuidAsync(Account account);
     }
 }

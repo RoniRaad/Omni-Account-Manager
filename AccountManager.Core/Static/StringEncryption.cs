@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AccountManager
+namespace AccountManager.Core.Static
 {
     public static class StringEncryption
     {

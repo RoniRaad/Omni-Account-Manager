@@ -1,6 +1,6 @@
 ﻿using AccountManager.Core.Models;
 
-namespace AccountManager.Infrastructure.Clients
+namespace AccountManager.Core.Interfaces
 {
     public interface IRiotClient
     {

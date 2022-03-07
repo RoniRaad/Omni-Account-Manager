@@ -1,87 +1,77 @@
 ﻿@page "/settings"
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
 @using AccountManager.Core.Services
+@using AccountManager.Core.ViewModels
 @inject AuthService _authService
+@inject IUserSettingsService<UserSettings> _settings
+@inject SettingsViewModel _viewModel
 
-<div class="container" style="width:75%">
-    <div class="row">
-        <div class="col">
-            <p style="width:auto; font-size:20px">Use account credentials to get current ranking</p>
-        </div>
-        <div class="col" style="display: flex;justify-content:flex-end;padding-right:0px;align-content:flex-start;align-items: center;">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="credentialsCheckBox">
-              <label class="form-check-label" for="credentialsCheckBox">
-                Use Credentials
-              </label>
+<div class="container main">
+    <EditForm Model="@_settings.Settings">
+        <div class="row">
+            <div class="col">
+                <p >Use account credentials to get current ranking</p>
             </div>
+            <div class="col setting-col">
+                <div class="form-check">
+                    <InputCheckbox @bind-Value="_settings.Settings.UseAccountCredentials" id="credentialsCheckBox"></InputCheckbox>
+                    <label class="form-check-label" for="credentialsCheckBox">
+                        Use Credentials
+                    </label>
+                </div>
+            </div>
+            <hr />
         </div>
-        <hr />
-    </div>
-    <div class="row">
-        <div class="col">
-            <p style="width:auto; font-size:20px">Change your account manager password</p>
+        <div class="row">
+            <div class="col">
+                <p >Change your account manager password</p>
+            </div>
+            <div class="col setting-col">
+                <button class="btn btn-dark" @onclick=_viewModel.ToggleChangePassword>Change Password</button>
+            </div>
+            <hr />
         </div>
-        <div class="col" style="display: flex;justify-content:flex-end;padding-right:0px;align-content:flex-start;align-items: center;">
-            <button style="width:auto" class="btn btn-dark" @onclick=ToggleChangePassword>Change Password</button>
+        <div class="row">
+            <div class="col">
+                <p>Save changes</p>
+            </div>
+            <div class="col setting-col">
+                <button class="btn btn-dark" @onclick=_settings.Save>Save</button>
+            </div>
+            <hr />
         </div>
-        <hr />
-    </div>
+    </EditForm>
 </div>
 
-@if (showChangePasswordPrompt)
+@if (_viewModel.ShowChangePasswordPrompt)
 {
 	<div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
-          <div class="modal-dialog" role="document">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
-              <div class="modal-header">
+                <div class="modal-header">
                 <h5 class="modal-title">Change Password</h5>
-                <button type="button" class="btn-close btn-close-white" @onclick="ToggleChangePassword" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <EditForm Model="@passwordChangeRequest">
-                  <div class="form-group">
-                    <label for="exampleInputEmail1">Current Password</label>
-                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.OldPassword" placeholder="Current Password"></InputText>
+                <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.ToggleChangePassword" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <EditForm Model="@_viewModel.PasswordChangeRequest">
+                    <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="currentPassword" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.OldPassword" placeholder="Current Password"></InputText>
    
-                    <label for="exampleInputEmail1">New Password</label>
-                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.NewPassword" placeholder="New Password"></InputText>
+                    <label for="newPassword">New Password</label>
+                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="newPasswordConfirm" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.NewPassword" placeholder="New Password"></InputText>
 
-                    <label for="exampleInputPassword1">Confirm New Password</label>
-                    <InputText style="margin-bottom:12px" type="password"  class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" @bind-Value="passwordChangeRequest.NewPasswordConfirm" placeholder="Confirm New Password"></InputText>
-                  </div>
-
+                    <label for="newPasswordConfirm">Confirm New Password</label>
+                    <InputText style="margin-bottom:12px" type="password"  class="form-control" id="newPasswordConfirm" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.NewPasswordConfirm" placeholder="Confirm New Password"></InputText>
+                    </div>
                 </EditForm>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="ChangePassword">Change Password</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ToggleChangePassword">Close</button>
-              </div>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="_viewModel.ChangePassword">Change Password</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="_viewModel.ToggleChangePassword">Close</button>
+                </div>
             </div>
-          </div>
         </div>
-}
-
-@code {
-    public class PasswordChangeRequest
-    {
-        public string OldPassword { get; set; }
-        public string NewPassword { get; set; }
-        public string NewPasswordConfirm { get; set; }
-    }
-    private PasswordChangeRequest passwordChangeRequest = new();
-    private bool showChangePasswordPrompt = false;
-    public async Task ToggleChangePassword()
-    {
-        showChangePasswordPrompt = true;
-    }
-    public void ChangePassword()
-    {
-        if (passwordChangeRequest.NewPassword != passwordChangeRequest.NewPasswordConfirm)
-            return; // TODO: Show error for them not being equal
-        if (StringEncryption.Hash(passwordChangeRequest.OldPassword) != _authService.PasswordHash)
-            return; // TODO: Show error for password being wrong
-
-        _authService.ChangePassword(passwordChangeRequest.OldPassword, passwordChangeRequest.NewPassword);
-        ToggleChangePassword();
-    }
+    </div>
 }

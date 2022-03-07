@@ -6,14 +6,13 @@ using AccountManager.Core.Interfaces;
 using AccountManager.UI.Extensions;
 using AccountManager.Core.ViewModels;
 using AccountManager.Infrastructure.Clients;
-using Microsoft.Maui.Hosting;
-using Microsoft.Maui.LifecycleEvents;
-using System.Runtime.InteropServices;
-using System.Windows;
-using AccountManager.Extensions;
-using System.Net;
 using CloudFlareUtilities;
-using Microsoft.Extensions.Http;
+using AccountManager.Core.Models;
+using AccountManager.Infrastructure.Services.Token;
+using AccountManager.Infrastructure.Services.Platform;
+using AccountManager.Extensions;
+using Microsoft.Maui.LifecycleEvents;
+using AccountManager.Pages;
 
 namespace AccountManager;
 
@@ -39,60 +38,49 @@ public static class MauiProgram
 				MaxRetries = 2
 			};
         });
+		builder.Services.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
+		{
+			var httpClientHandler = new HttpClientHandler();
+			httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+			{
+				return true;
+			};
+
+			x.PrimaryHandler = httpClientHandler;
+		});
 		builder.Services.AddSingleton<IIOService, IOService>();
 		builder.Services.AddSingleton<AuthService>();
+		builder.Services.AddSingleton<AlertService>();
+		builder.Services.AddSingleton<SettingsViewModel>();
 		builder.Services.AddTransient<RemoteLeagueClient>();
 		builder.Services.AddSingleton<LocalLeagueClient>();
 		builder.Services.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 		builder.Services.AddSingleton<IRiotClient, RiotClient>();
 		builder.Services.AddSingleton<LeagueTokenService>();
 		builder.Services.AddSingleton<AccountPageViewModel>();
+		builder.Services.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
 		builder.Services.AddFactory<AccountType, IPlatformService>()
 			.AddImplementation<SteamPlatformService>(AccountType.Steam)
 			.AddImplementation<LeaguePlatformService>(AccountType.League)
+			.AddImplementation<TFTPlatformService>(AccountType.TFT)
 			.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
 			.Build();
 		builder.Services.AddFactory<AccountType, ITokenService>()
 			.AddImplementation<LeagueTokenService>(AccountType.League)
+			.AddImplementation<LeagueTokenService>(AccountType.TFT)
 			.AddImplementation<RiotTokenService>(AccountType.Valorant)
 			.Build();
-		builder.Services.AddSingleton < Dictionary<AccountType, Dictionary<string, string>>>((x) =>
-        {
-			var collectionOfRankingColors = new Dictionary<AccountType, Dictionary<string, string>>();
-			var leaugeRankingColors = new Dictionary<string, string>()
-            {
-				{"bronze", "#CD7F32"},
-				{"silver", "gray"},
-				{"gold", "#FFD700"},
-			};
-			var valorantRankingColors = new Dictionary<string, string>()
-			{
-				{"bronze", "#CD7F32"},
-				{"silver", "gray"},
-				{"gold", "#FFD700"},
-			};
 
-			collectionOfRankingColors.Add(AccountType.League, leaugeRankingColors);
-			collectionOfRankingColors.Add(AccountType.Valorant, valorantRankingColors);
-			return collectionOfRankingColors;
-		});
-
-/*new Dictionary<string, string>()
-				{
-					{"bronze", "#CD7F32"},
-					{"silver", "gray"},
-					{"gold", "#FFD700"},
-				}; */
-#if WINDOWS
+		#if WINDOWS
 			builder.ConfigureLifecycleEvents(events => {
-						events.AddWindows(wndLifeCycleBuilder => {
-							wndLifeCycleBuilder.OnWindowCreated(window => {
-								window.SetDimensionsAndCenter(1000, 900);
-							});
-						});
+				events.AddWindows(wndLifeCycleBuilder => {
+					wndLifeCycleBuilder.OnWindowCreated(window => {
+						window.SetDimensionsAndCenter(1200, 900);
 					});
-#endif
-	var app = builder.Build();
+				});
+			});
+		#endif
+		var app = builder.Build();
 		return app;
 	}
 }
