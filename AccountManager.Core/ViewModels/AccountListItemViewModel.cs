@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
+using AccountManager.Core.Interfaces.ViewModels;
 using AccountManager.Core.Models;
 using System.Text.Json.Serialization;
 
@@ -16,13 +17,13 @@ namespace AccountManager.Core.ViewModels
         public IPlatformService PlatformService { get; set; }
         [JsonIgnore]
         public Action Delete { get; set; }
-        public async Task ToggleEdit()
+        public void ToggleEdit()
         {
             IsEditing = !IsEditing;
         }
-        public async Task Login()
+        public void Login()
         {
-            Task.Factory.StartNew(() => PlatformService.Login(Account).ConfigureAwait(false));
+            _ = Task.Factory.StartNew(() => PlatformService.Login(Account).ConfigureAwait(false));
         }
     }
 }

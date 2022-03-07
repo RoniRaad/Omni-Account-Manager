@@ -1,18 +1,15 @@
-﻿namespace AccountManager.Core.Services
+﻿namespace AccountManager.Core.Interfaces
 {
     public interface IIOService
     {
         DriveInfo FindSteamDrive();
-        string GetConfig();
         string GetEncryptedUsername();
         List<string[]> GetInstalledGamesManifest();
-        void InitializeData(string password);
         T ReadData<T>(string password) where T : new();
-        string ReadDataAsString(string password);
-        void SaveConfig(string contents);
+        T ReadData<T>() where T : new();
         bool TryLogin(string password);
         void UpdateData<T>(T data, string password);
+        void UpdateData<T>(T data);
         bool ValidateData();
-        void WriteDataAsString(string password, string data);
     }
 }

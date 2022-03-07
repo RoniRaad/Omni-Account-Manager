@@ -1,4 +1,4 @@
-﻿namespace AccountManager.Infrastructure.Services
+﻿namespace AccountManager.Core.Interfaces
 {
     public interface IRiotGameTokenService
     {

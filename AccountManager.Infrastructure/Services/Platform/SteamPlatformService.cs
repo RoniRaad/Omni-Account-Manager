@@ -2,7 +2,7 @@
 using AccountManager.Core.Models;
 using System.Diagnostics;
 
-namespace AccountManager.Infrastructure.Services
+namespace AccountManager.Infrastructure.Services.Platform
 {
     public class SteamPlatformService : IPlatformService
     {

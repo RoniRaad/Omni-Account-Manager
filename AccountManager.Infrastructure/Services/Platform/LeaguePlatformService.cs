@@ -1,38 +1,37 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Infrastructure.Clients;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
+using AccountManager.Core.Enums;
+using AccountManager.Core.Factories;
+using AccountManager.Core.Models.RiotGames.League.Requests;
 
-namespace AccountManager.Infrastructure.Services
+namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class ValorantPlatformService : IPlatformService
+    public class LeaguePlatformService : IPlatformService
     {
+        private readonly ITokenService _leagueService;
+        private readonly ITokenService _riotService;
+        private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#3a3a3a"},
-            {"bronze", "#816539"},
-            {"silver", "#999c9b"},
-            {"gold", "#e2cd5f"},
-            {"platinum", "#308798"},
-            {"diamond", "#f195f4"},
-            {"immortal", "#ac3654"},
+            {"iron", "#372826"},
+            {"bronze", "#823012"},
+            {"silver", "#7e878b"},
+            {"gold", "#FFD700"},
+            {"platinum", "#25cb6e"},
+            {"diamond", "#9e7ad6"},
+            {"master", "#f359f9"},
+            {"grandmaster", "#f8848f"},
+            {"challenger", "#4ee1ff"},
         };
-        public ValorantPlatformService(IRiotClient riotClient)
+        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory)
         {
+            _leagueClient = leagueClient;
             _riotClient = riotClient;
-        }
-
-        private string GetRiotExePath()
-        {
-            return @"C:\Riot Games\Riot Client\RiotClientServices.exe";
+            _leagueService = tokenServiceFactory.CreateImplementation(AccountType.League);
+            _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
         }
         public async Task Login(Account account)
         {
@@ -44,30 +43,24 @@ namespace AccountManager.Infrastructure.Services
                     process.Kill();
                 }
             }
-            Process.Start(@"C:\Riot Games\Riot Client\RiotClientServices.exe");
 
-            while (!Process.GetProcessesByName("RiotClientUx").Any())
+            for (int i = 0 ; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++) {
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            Process.Start(GetRiotExePath());
+
+            for (int i = 0; !Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
+                System.Threading.Thread.Sleep(1000);
             }
 
             var queryProcess = "RiotClientUx.exe";
-
-            var StartInfo = new ProcessStartInfo
+            for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
-                FileName = "wmic",
-                Arguments = $"PROCESS WHERE name='{queryProcess}' GET commandline",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            };
-
-            var wmicQuery = Process.Start(StartInfo);
-            wmicQuery.WaitForExit();
-            var wmicResponse = wmicQuery.StandardOutput.ReadToEnd();
-            string token = GetCommandLineValue(wmicResponse, "--remoting-auth-token");
-            string port = GetCommandLineValue(wmicResponse, "--app-port");
-
-
+                System.Threading.Thread.Sleep(1000);
+            }
+            _riotService.TryGetPortAndToken(out string token, out string port);
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
             {
@@ -88,13 +81,13 @@ namespace AccountManager.Infrastructure.Services
             var responseText = response.Content.ReadAsStringAsync();
 
 
-            var startValorantCommandline = "--launch-product=valorant --launch-patchline=live";
-            var startValorant = new ProcessStartInfo
+            var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
+            var startLeague = new ProcessStartInfo
             {
                 FileName = GetRiotExePath(),
-                Arguments = startValorantCommandline
+                Arguments = startLeagueCommandline
             };
-            Process.Start(startValorant);
+            Process.Start(startLeague);
         }
         public string GetCommandLineValue(string commandline , string key)
         {
@@ -106,45 +99,57 @@ namespace AccountManager.Infrastructure.Services
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             Rank rank = new Rank();
-
             try
             {
                 if (string.IsNullOrEmpty(account.Id))
                     account.Id = await _riotClient.GetPuuId(account.Username, account.Password);
 
-                rank = await _riotClient.GetValorantRank(account);
+                rank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
                 SetRankColor(rank);
-                return new(true, rank);
+                return (true, rank);
             }
             catch
             {
-                return new(false, rank);
+                return (false, rank);
             }
         }
         public async Task<(bool, string)> TryFetchId(Account account)
         {
-            string id = "";
-
+            var id = "";
             try
             {
                 if (!string.IsNullOrEmpty(account.Id))
-                {
-                    return new (true, account.Id);
-                }
+                    return (true, account.Id);
 
                 id = await _riotClient.GetPuuId(account.Username, account.Password);
-                return new(true, id);
+                return (true, id);
             }
             catch
             {
-                return new (false, id);
+                return (false, id);
             }
         }
         private void SetRankColor(Rank rank)
         {
+            if (rank.Tier is null)
+                return;
+
             foreach (KeyValuePair<string, string> kvp in RankColorMap)
                 if (rank.Tier.ToLower().Equals(kvp.Key))
-                    rank.Color = kvp.Value;
+                     rank.Color = kvp.Value;
+        }
+        private DriveInfo FindRiotDrive()
+        {
+            DriveInfo riotDrive = null;
+            foreach (DriveInfo drive in DriveInfo.GetDrives())
+                if (Directory.Exists($"{drive.RootDirectory}\\Riot Games"))
+                    riotDrive = drive;
+
+            return riotDrive;
+        }
+        private string GetRiotExePath()
+        {
+            return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

@@ -1,16 +1,12 @@
 ﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models;
 using AccountManager.Core.Services;
-using AccountManager.Infrastructure.Clients;
-using System.Security.Principal;
 
 namespace AccountManager.Core.ViewModels
 {
     public class AccountPageViewModel
     {
-        bool initialized = false;
         public List<AccountListItemViewModel> AccountLists = new List<AccountListItemViewModel>();
         public AccountListItemViewModel NewAccount { get; set; } = new AccountListItemViewModel();
         public Action UpdateView { get; set; }
@@ -23,13 +19,11 @@ namespace AccountManager.Core.ViewModels
             _iOService = iOService;
             _authService = authService;
             _platformServiceFactory = platformServiceFactory;
-            InitializeView();
+            _ = Initialize();
         }
 
-        public async Task InitializeView()
+        public async Task Initialize()
         {
-            if (initialized)
-                return;
             var accounts = _iOService.ReadData<List<AccountListItemViewModel>>(_authService.PasswordHash);
             AccountLists = accounts;
             foreach (var account in accounts)
@@ -37,7 +31,8 @@ namespace AccountManager.Core.ViewModels
                 account.PlatformService = _platformServiceFactory.CreateImplementation(account.AccountType);
                 account.Account.Id = (await account.PlatformService.TryFetchId(account.Account)).Item2;
                 var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
-                account.Rank = rank;
+                if (!string.IsNullOrEmpty(rank.Tier))
+                    account.Rank = rank;
                 account.Delete = () => RemoveAccount(account);
             }
             _iOService.UpdateData(accounts, _authService.PasswordHash);
@@ -79,9 +74,9 @@ namespace AccountManager.Core.ViewModels
         {
             AddAccountPromptShow = false;
         }
-        public async Task FinishAddAccount()
+        public void FinishAddAccount()
         {
-            AddAccount(NewAccount);
+            _ = AddAccount(NewAccount);
             AddAccountPromptShow = false;
         }
     }

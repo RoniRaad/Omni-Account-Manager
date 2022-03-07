@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Static;
+using AccountManager.Core.ViewModels;
 
 namespace AccountManager.Core.Services
 {
@@ -12,6 +10,7 @@ namespace AccountManager.Core.Services
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
+        public Action UpdateMainView { get; set; }
         public AuthService(IIOService iOService)
         {
             _iOService = iOService;
@@ -39,8 +38,8 @@ namespace AccountManager.Core.Services
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);
 
-            var currentData = _iOService.ReadDataAsString(oldPassword);
-            _iOService.WriteDataAsString(newPassword, currentData);
+            var currentData = _iOService.ReadData<List<AccountListItemViewModel>>(oldPassword);
+            _iOService.UpdateData(currentData, newPassword);
             PasswordHash = newPassword;
         }
     }

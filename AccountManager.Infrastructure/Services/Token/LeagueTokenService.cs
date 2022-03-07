@@ -1,16 +1,9 @@
 ﻿using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models;
-using AccountManager.Infrastructure.Clients;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using static AccountManager.Infrastructure.Clients.LocalLeagueClient;
 
-namespace AccountManager.Infrastructure.Services
+namespace AccountManager.Infrastructure.Services.Token
 {
     public class LeagueTokenService : BaseRiotService, ITokenService
     {
