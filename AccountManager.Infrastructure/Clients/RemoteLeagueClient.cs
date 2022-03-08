@@ -75,16 +75,9 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
         {
             var sessionToken = await GetLeagueSessionToken(account);
-            var handler = new ClearanceHandler
-            {
-                MaxRetries = 2 // Optionally specify the number of retries, if clearance fails (default is 3).
-            };
 
-            // Create a HttpClient that uses the handler to bypass CloudFlare's JavaScript challange.
-            var client = new HttpClient(handler);
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
-            var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.Id}");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
+            var rankResponse = await _httpClient.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.Id}");
             var rankedStats = rankResponse.Queues.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
 
             return rankResponse.Queues;
@@ -151,7 +144,6 @@ namespace AccountManager.Infrastructure.Clients
                 return token;
             }
         }
-        // Requires RiotAuthToken header
         private async Task<string> GetUserInfo(Account account, string riotToken)
         {
             string userInfo;
@@ -176,7 +168,6 @@ namespace AccountManager.Infrastructure.Clients
 
             return entitlement;
         }
-        // Requires RiotAuthToken header
         private async Task<string> GetLeagueLoginToken(Account account)
         {
             string token;
@@ -191,7 +182,6 @@ namespace AccountManager.Infrastructure.Clients
                 Entitlements = entitlement,
                 UserInfo = userInfo
             });
-            var str = loginResponse.Content.ReadAsStringAsync();
             loginResponse.EnsureSuccessStatusCode();
             var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponse>();
             token = tokenResponse.Token;
@@ -206,10 +196,10 @@ namespace AccountManager.Infrastructure.Clients
             var puuId = account.Id;
             var leagueToken = await GetLeagueLoginToken(account);
 
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
 
-            var sessionResponse = await client.PostAsJsonAsync($"https://usw.pp.riotgames.com/session-external/v1/session/create", new PostSessionsRequest
+            _httpClient.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
+
+            var sessionResponse = await _httpClient.PostAsJsonAsync($"https://usw.pp.riotgames.com/session-external/v1/session/create", new PostSessionsRequest
             {
                 Claims = new Claims
                 {
@@ -219,7 +209,6 @@ namespace AccountManager.Infrastructure.Clients
                 PuuId = puuId,
                 Region = "NA1"
             });
-            var str = sessionResponse.Content.ReadAsStringAsync();
             sessionResponse.EnsureSuccessStatusCode();
             sessionToken = await sessionResponse.Content.ReadAsStringAsync();
 

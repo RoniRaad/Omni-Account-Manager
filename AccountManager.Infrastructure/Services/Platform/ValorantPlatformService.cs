@@ -52,7 +52,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 System.Threading.Thread.Sleep(1000);
             }
 
-            var queryProcess = "RiotClientUx.exe";
             for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
                 System.Threading.Thread.Sleep(1000);

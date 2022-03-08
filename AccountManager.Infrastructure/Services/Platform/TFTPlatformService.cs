@@ -37,7 +37,6 @@ namespace AccountManager.Infrastructure.Services.Platform
         }
         public async Task Login(Account account)
         {
-            Process? riotProcess = null;
             foreach (var process in Process.GetProcesses())
             {
                 if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
@@ -57,7 +56,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 System.Threading.Thread.Sleep(1000);
             }
 
-            var queryProcess = "RiotClientUx.exe";
             for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
             {
                 System.Threading.Thread.Sleep(1000);
@@ -72,10 +70,8 @@ namespace AccountManager.Infrastructure.Services.Platform
             };
 
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
-            var responseDelete = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
-            var response = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", json);
-            var responseText = response.Content.ReadAsStringAsync();
-
+            _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
+            _ = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", json);
 
             var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
             var startLeague = new ProcessStartInfo
@@ -134,7 +130,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (rank.Tier.ToLower().Equals(kvp.Key))
                      rank.Color = kvp.Value;
         }
-        private DriveInfo FindRiotDrive()
+        private DriveInfo? FindRiotDrive()
         {
             DriveInfo riotDrive = null;
             foreach (DriveInfo drive in DriveInfo.GetDrives())
@@ -145,7 +141,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         }
         private string GetRiotExePath()
         {
-            return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+            return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

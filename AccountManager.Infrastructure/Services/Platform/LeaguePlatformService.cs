@@ -35,7 +35,6 @@ namespace AccountManager.Infrastructure.Services.Platform
         }
         public async Task Login(Account account)
         {
-            Process? riotProcess = null;
             foreach (var process in Process.GetProcesses())
             {
                 if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
