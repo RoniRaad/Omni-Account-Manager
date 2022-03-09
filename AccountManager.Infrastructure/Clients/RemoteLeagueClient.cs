@@ -6,15 +6,10 @@ using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
-using AccountManager.Infrastructure.Services;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Memory;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Text.RegularExpressions;
 using static AccountManager.Infrastructure.Clients.LocalLeagueClient;
 
@@ -233,6 +228,23 @@ namespace AccountManager.Infrastructure.Clients
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var rankResponse = await _httpClient.GetAsync($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
             return rankResponse.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetPuuId(string username, string password)
+        {
+            var account = new Account
+            {
+                Username = username,
+                Password = password
+            };
+            var token = await GetRiotAuthToken(account);
+            var entitlement = await GetEntitlementJWT(account, token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlement);
+
+            var response = await _httpClient.GetAsync("https://auth.riotgames.com/userinfo");
+            var str = await response.Content.ReadAsStringAsync();
+            return str;
         }
     }
 }
