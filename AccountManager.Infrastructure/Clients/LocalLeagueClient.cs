@@ -95,6 +95,11 @@ namespace AccountManager.Infrastructure.Clients
 
             return rank;
         }
+
+        public Task<string> GetPuuId(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class LeagueAccount

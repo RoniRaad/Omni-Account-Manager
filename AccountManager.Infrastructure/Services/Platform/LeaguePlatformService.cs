@@ -120,7 +120,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (!string.IsNullOrEmpty(account.Id))
                     return (true, account.Id);
 
-                id = await _riotClient.GetPuuId(account.Username, account.Password);
+                id = await _leagueClient.GetPuuId(account.Username, account.Password);
                 return (true, id);
             }
             catch
