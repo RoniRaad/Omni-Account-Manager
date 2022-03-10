@@ -7,6 +7,5 @@ namespace AccountManager.Core.Interfaces
         Task<Rank> GetSummonerRankByPuuidAsync(Account account);
         Task<string> GetRankByUsernameAsync(string username);
         Task<Rank> GetTFTRankByPuuidAsync(Account account);
-        Task<string> GetPuuId(string username, string password);
     }
 }
