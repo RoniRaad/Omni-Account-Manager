@@ -4,11 +4,11 @@ using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using AccountManager.Core.Models.RiotGames.League.Responses;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class LocalLeagueClient : ILeagueClient
+    public partial class LocalLeagueClient : ILeagueClient
     {
         private readonly ITokenService _leagueTokenService;
         private readonly HttpClient _httpClient;
@@ -31,11 +31,6 @@ namespace AccountManager.Infrastructure.Clients
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
             var rankResponse = await _httpClient.GetFromJsonAsync<LeagueSessionResponse>($"https://127.0.0.1:{port}/lol-login/v2/league-session-init-token");
             return rankResponse.Token;
-        }
-        public class LeagueSessionResponse
-        {
-            [JsonPropertyName("token")]
-            public string Token { get; set; }
         }
         public async Task<string> GetRankByUsernameAsync(string username)
         {
@@ -100,13 +95,5 @@ namespace AccountManager.Infrastructure.Clients
         {
             throw new NotImplementedException();
         }
-    }
-
-    public class LeagueAccount
-    {
-        [JsonPropertyName("puuid")]
-        public string Puuid { get; set; }
-        [JsonPropertyName("username")]
-        public string Username { get; set; }
     }
 }

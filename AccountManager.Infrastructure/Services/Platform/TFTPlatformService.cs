@@ -81,13 +81,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             };
             Process.Start(startLeague);
         }
-        public string GetCommandLineValue(string commandline , string key)
-        {
-            key += "=";
-            var valueStart = commandline.IndexOf(key) + key.Length;
-            var valueEnd = commandline.IndexOf(" ", valueStart);
-            return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
-        }
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             Rank rank = new Rank();

@@ -1,24 +1,19 @@
 ﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Static;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
-    public class LeagueTokenService : BaseRiotService, ITokenService
+    public class LeagueTokenService : ITokenService
     {
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
         public LeagueTokenService(IMemoryCache cache, IHttpClientFactory httpClientFactory)
         {
             _memoryCache = cache;
-            var handler = new ClearanceHandler
-            {
-                MaxRetries = 2 // Optionally specify the number of retries, if clearance fails (default is 3).
-            };
-
-            // TODO: Inject this client
-            _httpClient = new HttpClient(handler);
+            _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
         }
 
         public bool TryGetPortAndToken(out string token, out string port)
@@ -31,8 +26,8 @@ namespace AccountManager.Infrastructure.Services.Token
             }
 
             var leagueParams = GetLeagueCommandlineParams();
-            token = GetCommandLineValue(leagueParams, "--remoting-auth-token");
-            port = GetCommandLineValue(leagueParams, "--app-port");
+            token = WmicHelper.GetCommandLineValue(leagueParams, "--remoting-auth-token");
+            port = WmicHelper.GetCommandLineValue(leagueParams, "--app-port");
             return true;
         }
 
