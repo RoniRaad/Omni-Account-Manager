@@ -6,21 +6,27 @@ namespace AccountManager.Core.Services
 {
     public class AuthService
     {
-        private IIOService _iOService;
+        private readonly IIOService _iOService;
+        private readonly AlertService _alertService;
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
         public Action UpdateMainView { get; set; }
-        public AuthService(IIOService iOService)
+        public AuthService(IIOService iOService, AlertService alertService)
         {
             _iOService = iOService;
             AuthInitialized = _iOService.ValidateData();
+            _alertService = alertService;
         }
 
         public void Login(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = _iOService.TryLogin(PasswordHash);
+            if (!LoggedIn)
+            {
+                _alertService.ErrorMessage = "Error incorrect password!";
+            }
         }
 
         public void Register(string password)

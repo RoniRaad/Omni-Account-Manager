@@ -38,20 +38,20 @@ namespace AccountManager.Infrastructure.Clients
         {
             await AddHeadersToClient();
 
-            await _httpClient.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse {
+            _ = await _httpClient.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse {
                 Id = "play-valorant-web-prod",
                 Nonce = "1",
                 RedirectUri = "https://playvalorant.com/opt_in",
                 ResponseType = "token id_token"
             });
 
+            
             var authResponse = await _httpClient.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
             {
                 Type = "auth",
                 Username = username,
                 Password = pass
             });
-
             var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
             var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
             var token = matches[0].Groups[1].Value;
