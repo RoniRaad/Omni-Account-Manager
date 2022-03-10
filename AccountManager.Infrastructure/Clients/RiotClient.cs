@@ -13,20 +13,21 @@ namespace AccountManager.Infrastructure.Clients
     {
         private string bearerToken = "";
         private string entitlementToken = "";
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private HttpClient _httpClient;
 
         public RiotClient(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
-
+            _httpClientFactory = httpClientFactory;
         }
 
-        private async Task AddHeadersToClient()
+        private async Task AddHeadersToClient(HttpClient httpClient)
         {
-            if (_httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
+            if (httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
                 return;
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
         }
 
         public async Task<string> GetExpectedClientVersion()
@@ -36,31 +37,39 @@ namespace AccountManager.Infrastructure.Clients
         }
         public async Task<string> GetToken(string username, string pass)
         {
-            await AddHeadersToClient();
-
-            _ = await _httpClient.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse {
-                Id = "play-valorant-web-prod",
-                Nonce = "1",
-                RedirectUri = "https://playvalorant.com/opt_in",
-                ResponseType = "token id_token"
-            });
-
-            
-            var authResponse = await _httpClient.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
+            var handler = new ClearanceHandler
             {
-                Type = "auth",
-                Username = username,
-                Password = pass
-            });
-            var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-            var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-            var token = matches[0].Groups[1].Value;
+                MaxRetries = 2
+            };
 
-            return token;
+            using (var client = new HttpClient(handler))
+            {
+                await AddHeadersToClient(client);
+
+                _ = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse
+                {
+                    Id = "play-valorant-web-prod",
+                    Nonce = "1",
+                    RedirectUri = "https://playvalorant.com/opt_in",
+                    ResponseType = "token id_token"
+                });
+
+                var authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
+                {
+                    Type = "auth",
+                    Username = username,
+                    Password = pass
+                });
+                var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+                var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                var token = matches[0].Groups[1].Value;
+
+                return token;
+            }
         }
         public async Task<string> GetEntitlementToken(string token)
         {
-            await AddHeadersToClient();
+            await AddHeadersToClient(_httpClient);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var entitlementResponse = await _httpClient.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { });

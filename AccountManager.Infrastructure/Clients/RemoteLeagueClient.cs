@@ -27,10 +27,6 @@ namespace AccountManager.Infrastructure.Clients
         {
             _memoryCache = memoryCache;
             _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
-            var handler = new ClearanceHandler
-            {
-                MaxRetries = 2 // Optionally specify the number of retries, if clearance fails (default is 3).
-            };
             _httpClientFactory = httpClientFactory;
             _localLeagueClient = localLeagueClient;
             _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
@@ -183,7 +179,6 @@ namespace AccountManager.Infrastructure.Clients
 
             return token;
         }
-        // Requires LeagueLoginToken header
         public async Task<string> CreateLeagueSession(Account account)
         {
             string sessionToken;
@@ -228,23 +223,6 @@ namespace AccountManager.Infrastructure.Clients
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var rankResponse = await _httpClient.GetAsync($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
             return rankResponse.IsSuccessStatusCode;
-        }
-
-        public async Task<string> GetPuuId(string username, string password)
-        {
-            var account = new Account
-            {
-                Username = username,
-                Password = password
-            };
-            var token = await GetRiotAuthToken(account);
-            var entitlement = await GetEntitlementJWT(account, token);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlement);
-
-            var response = await _httpClient.GetAsync("https://auth.riotgames.com/userinfo");
-            var str = await response.Content.ReadAsStringAsync();
-            return str;
         }
     }
 }
