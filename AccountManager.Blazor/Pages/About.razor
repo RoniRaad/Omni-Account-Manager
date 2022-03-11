@@ -1,0 +1,23 @@
+﻿@page "/about"
+@using System.Diagnostics
+<div style="text-align:center">
+    <h3>Multi Account Manager</h3>
+    <hr />
+    <p>
+        The multi account manager is a one-stop-shop for managing supported gaming related accounts. It currently supports the following platforms/games: Steam, Riot, League of Legends,
+        Valorant, and Team Fight Tactics. Ranks are also displayed for the latter 3 games.
+    </p>
+
+</div>
+<div>
+    <p>
+        Support the project on GitHub: <a href="./about" @onclick="OpenGitHubPage">https://github.com/RoniRaad/Multi-Game-Account-Manager</a>
+    </p>
+</div>
+
+@code {
+    public void OpenGitHubPage()
+    {
+        Process.Start(new ProcessStartInfo("https://github.com/RoniRaad/Multi-Game-Account-Manager".Replace("&", "^&")) { UseShellExecute = true });
+    }
+}

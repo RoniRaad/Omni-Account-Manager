@@ -75,4 +75,10 @@
 	  <PackageReference Include="PInvoke.User32" Version="0.7.104" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Content Update="Main.razor">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 </Project>
