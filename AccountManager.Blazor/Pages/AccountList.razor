@@ -1,0 +1,68 @@
+﻿@page "/"
+@using AccountManager.Blazor.Components
+@using AccountManager.Core.Enums
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Services
+@using AccountManager.Core.ViewModels
+@using AccountManager.Infrastructure.Services
+@inject AccountPageViewModel _viewModel
+
+<div class="container-fluid">
+    <div class="row">
+        @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
+        {
+            <AccountListItem ListViewModel="viewModel"></AccountListItem>
+        }
+        <div class="w-100"></div>
+    </div>
+
+    <div class="row">
+        <div class="col" >
+            <span @onclick="_viewModel.StartAddAccount" class="oi oi-plus"> </span>
+        </div>
+    </div>
+    @if (_viewModel.AddAccountPromptShow)
+    {
+        <div class="modal fade show d-block" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title">Create Account</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.CancelAddAccount" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <EditForm Model="@_viewModel.NewAccount">
+                    <div class="form-group">
+                    <label for="newAccountName">Name</label>
+                    <InputText id="newAccountName" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="_viewModel.NewAccount.Name" placeholder="Name"></InputText>
+   
+                    <label for="newAccountUsername">Username</label>
+                    <InputText id="newAccountUsername" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="_viewModel.NewAccount.Account.Username" placeholder="Username"></InputText>
+
+                    <label for="newAccountPass">Password</label>
+                    <InputText id="newAccountPass" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="_viewModel.NewAccount.Account.Password" placeholder="Password"></InputText>
+                    </div>
+                        <div class="form-group">
+                        <label for="accountTypeSelect">Account Type</label>
+                        <InputSelect id="accountTypeSelect" style="margin-bottom: 12px" class="form-select input-text" @bind-Value="_viewModel.NewAccount.AccountType">
+                            @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
+                            {
+                                <option value="@accountType">@accountType</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="_viewModel.FinishAddAccount">Add Account</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="_viewModel.CancelAddAccount">Close</button>
+                </div>
+            </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code{
+    protected override async Task OnInitializedAsync() => _viewModel.UpdateView = () => InvokeAsync(() => StateHasChanged());
+}
