@@ -80,5 +80,15 @@ namespace AccountManager.UI
 
 			InitializeComponent();
         }
+
+		private void Close(object sender, RoutedEventArgs e)
+        {
+			this.Close();
+        }
+
+        private void Minimize(object sender, RoutedEventArgs e)
+        {
+			SystemCommands.MinimizeWindow(this);
+		}
     }
 }

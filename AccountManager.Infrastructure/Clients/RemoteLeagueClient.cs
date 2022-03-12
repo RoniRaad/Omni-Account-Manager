@@ -8,6 +8,7 @@ using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Memory;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -21,7 +22,6 @@ namespace AccountManager.Infrastructure.Clients
         private IHttpClientFactory _httpClientFactory;
         private readonly ITokenService _leagueTokenService;
         private readonly LocalLeagueClient _localLeagueClient;
-        private readonly HttpClient _httpClient;
         private readonly IUserSettingsService<UserSettings> _settings;
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory, LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings)
         {
@@ -29,7 +29,7 @@ namespace AccountManager.Infrastructure.Clients
             _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
             _httpClientFactory = httpClientFactory;
             _localLeagueClient = localLeagueClient;
-            _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
+            _httpClientFactory = httpClientFactory;
             _settings = settings;
         }
 
@@ -37,11 +37,12 @@ namespace AccountManager.Infrastructure.Clients
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return "";
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var response = await _httpClient.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var response = await client.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
             var summoner = await response.Content.ReadFromJsonAsync<LeagueAccount>();
-            var rankResponse = await _httpClient.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner.Puuid}");
+            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner.Puuid}");
             var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
             return $"{summonerRanking.QueueMap.RankedSoloDuoStats.Tier} {summonerRanking.QueueMap.RankedSoloDuoStats.Division}";
         }
@@ -67,8 +68,10 @@ namespace AccountManager.Infrastructure.Clients
         {
             var sessionToken = await GetLeagueSessionToken(account);
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
-            var rankResponse = await _httpClient.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.Id}");
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
+            var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.Id}");
             var rankedStats = rankResponse.Queues.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
 
             return rankResponse.Queues;
@@ -100,6 +103,7 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<string> GetRiotAuthToken(Account account)
         {
+            string token;
             var handler = new ClearanceHandler
             {
                 MaxRetries = 2
@@ -107,7 +111,6 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
-                string token;
                 var initialAuthTokenResponse = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new InitialAuthTokenRequest
                 {
                     Id = "lol",
@@ -138,9 +141,10 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<string> GetUserInfo(Account account, string riotToken)
         {
             string userInfo;
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
-            _httpClient.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            var userInfoResponse = await _httpClient.GetAsync("https://auth.riotgames.com/userinfo");
+            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            var userInfoResponse = await client.GetAsync("https://auth.riotgames.com/userinfo");
             userInfoResponse.EnsureSuccessStatusCode();
             userInfo = await userInfoResponse.Content.ReadAsStringAsync();
 
@@ -149,10 +153,12 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<string> GetEntitlementJWT(Account account, string riotToken)
         {
             string entitlement;
-            _httpClient.DefaultRequestHeaders.Remove("Authorization");
-            _httpClient.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
-            var entitlementResponse = await _httpClient.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { urn = "urn:entitlement" });
+            client.DefaultRequestHeaders.Remove("Authorization");
+            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+
+            var entitlementResponse = await client.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { urn = "urn:entitlement" });
             entitlementResponse.EnsureSuccessStatusCode();
             var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementResponse>();
             entitlement = entitlementResponseDeserialized.EntitlementToken;
@@ -165,10 +171,11 @@ namespace AccountManager.Infrastructure.Clients
             var riotToken = await GetRiotAuthToken(account);
             var userInfo = await GetUserInfo(account, riotToken);
             var entitlement = await GetEntitlementJWT(account, riotToken);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
-            _httpClient.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
 
-            var loginResponse = await _httpClient.PostAsJsonAsync($"https://usw.pp.riotgames.com/login-queue/v2/login/products/lol/regions/na1", new LoginRequest
+            var loginResponse = await client.PostAsJsonAsync($"https://usw.pp.riotgames.com/login-queue/v2/login/products/lol/regions/na1", new LoginRequest
             {
                 Entitlements = entitlement,
                 UserInfo = userInfo
@@ -185,11 +192,11 @@ namespace AccountManager.Infrastructure.Clients
 
             var puuId = account.Id;
             var leagueToken = await GetLeagueLoginToken(account);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
+            client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
 
-            _httpClient.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
-
-            var sessionResponse = await _httpClient.PostAsJsonAsync($"https://usw.pp.riotgames.com/session-external/v1/session/create", new PostSessionsRequest
+            var sessionResponse = await client.PostAsJsonAsync($"https://usw.pp.riotgames.com/session-external/v1/session/create", new PostSessionsRequest
             {
                 Claims = new Claims
                 {
@@ -220,8 +227,10 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<bool> TestLeagueToken(string token)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var rankResponse = await _httpClient.GetAsync($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var rankResponse = await client.GetAsync($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
             return rankResponse.IsSuccessStatusCode;
         }
     }

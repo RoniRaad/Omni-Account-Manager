@@ -4,10 +4,9 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IRiotClient
     {
-        Task GetAuth(string username, string password);
         Task<string> GetEntitlementToken(string token);
         Task<string> GetPuuId(string username, string password);
-        Task<string> GetToken(string username, string pass);
+        Task<string> GetToken(Account account);
         Task<Rank> GetValorantRank(Account account);
     }
 }

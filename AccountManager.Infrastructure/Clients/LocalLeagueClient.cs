@@ -5,17 +5,18 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League;
 using System.Net.Http.Json;
 using AccountManager.Core.Models.RiotGames.League.Responses;
+using System.Net.Http;
 
 namespace AccountManager.Infrastructure.Clients
 {
     public partial class LocalLeagueClient : ILeagueClient
     {
         private readonly ITokenService _leagueTokenService;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         public LocalLeagueClient(GenericFactory<AccountType, ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory)
         {
             _leagueTokenService = tokenServiceFactory.CreateImplementation(AccountType.League);
-            _httpClient = httpClientFactory.CreateClient("SSLBypass");
+            _httpClientFactory = httpClientFactory;
         }
 
         public bool IsClientOpen()
@@ -27,9 +28,10 @@ namespace AccountManager.Infrastructure.Clients
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return string.Empty;
+            var client = _httpClientFactory.CreateClient("SSLBypass");
 
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var rankResponse = await _httpClient.GetFromJsonAsync<LeagueSessionResponse>($"https://127.0.0.1:{port}/lol-login/v2/league-session-init-token");
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var rankResponse = await client.GetFromJsonAsync<LeagueSessionResponse>($"https://127.0.0.1:{port}/lol-login/v2/league-session-init-token");
             return rankResponse.Token;
         }
         public async Task<string> GetRankByUsernameAsync(string username)
@@ -37,10 +39,12 @@ namespace AccountManager.Infrastructure.Clients
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return "";
 
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var response = await _httpClient.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
+            var client = _httpClientFactory.CreateClient("SSLBypass");
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var response = await client.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
             var summoner = await response.Content.ReadFromJsonAsync<LeagueAccount>();
-            var rankResponse = await _httpClient.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner.Puuid}");
+            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner.Puuid}");
             var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
             return $"{summonerRanking.QueueMap.RankedSoloDuoStats.Tier} {summonerRanking.QueueMap.RankedSoloDuoStats.Division}";
         }
@@ -49,8 +53,10 @@ namespace AccountManager.Infrastructure.Clients
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return null;
 
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
-            var rankResponse = await _httpClient.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{account.Id}");
+            var client = _httpClientFactory.CreateClient("SSLBypass");
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
+            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{account.Id}");
             var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
 
             return summonerRanking.QueueMap;
@@ -59,6 +65,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return new Rank();
+
 
             var queueMap = await GetRankQueuesByPuuidAsync(account);
             var rank = new Rank()

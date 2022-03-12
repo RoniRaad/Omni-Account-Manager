@@ -15,11 +15,12 @@ namespace AccountManager.Infrastructure.Services
         private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
+            var fileName = StringEncryption.Hash(typeof(List<AccountListItemViewModel>).Name);
             if (!Directory.Exists(_dataPath))
             {
                 Directory.CreateDirectory(_dataPath);
             }
-            if (!File.Exists($"{_dataPath}\\data.dat"))
+            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
                 return false;
             else
                 return true;
