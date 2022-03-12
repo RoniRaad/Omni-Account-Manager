@@ -3,6 +3,7 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using CloudFlareUtilities;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -11,14 +12,10 @@ namespace AccountManager.Infrastructure.Clients
 {
     public partial class RiotClient : IRiotClient
     {
-        private string bearerToken = "";
-        private string entitlementToken = "";
         private readonly IHttpClientFactory _httpClientFactory;
-        private HttpClient _httpClient;
 
         public RiotClient(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
             _httpClientFactory = httpClientFactory;
         }
 
@@ -26,16 +23,18 @@ namespace AccountManager.Infrastructure.Clients
         {
             if (httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
                 return;
+
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
         }
 
         public async Task<string> GetExpectedClientVersion()
-        {
-            var response = await _httpClient.GetFromJsonAsync<ExpectedClientVersionResponse>("https://valorant-api.com/v1/version");
+{
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>("https://valorant-api.com/v1/version");
             return response.Data.RiotClientVersion;
         }
-        public async Task<string> GetToken(string username, string pass)
+        public async Task<string> GetToken(Account account)
         {
             var handler = new ClearanceHandler
             {
@@ -57,8 +56,8 @@ namespace AccountManager.Infrastructure.Clients
                 var authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
                 {
                     Type = "auth",
-                    Username = username,
-                    Password = pass
+                    Username = account.Username,
+                    Password = account.Password
                 });
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
                 var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
@@ -69,36 +68,46 @@ namespace AccountManager.Infrastructure.Clients
         }
         public async Task<string> GetEntitlementToken(string token)
         {
-            await AddHeadersToClient(_httpClient);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
-            var entitlementResponse = await _httpClient.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { });
+            await AddHeadersToClient(client);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var entitlementResponse = await client.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { });
             var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementTokenResponse>();
 
             return entitlementResponseDeserialized.EntitlementToken;
         }
-        public async Task GetAuth(string username, string password)
-        {
-            bearerToken = await GetToken(username, password);
-            entitlementToken = await GetEntitlementToken(bearerToken);
-        }
+
         public async Task<string> GetPuuId(string username, string password)
         {
-            await GetAuth(username, password);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            await AddHeadersToClient(client);
 
-            var response = await _httpClient.GetFromJsonAsync<UserInfoResponse>("https://auth.riotgames.com/userinfo");
+            var bearerToken = await GetToken(new Account
+            {
+                Username = username,
+                Password = password
+            });
+            var entitlementToken = await GetEntitlementToken(bearerToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
+
+            var response = await client.GetFromJsonAsync<UserInfoResponse>("https://auth.riotgames.com/userinfo");
             return response.PuuId;
         }
         public async Task<Rank> GetValorantRank(Account account)
         {
             int rankNumber;
-            await GetAuth(account.Username, account.Password);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            await AddHeadersToClient(client);
+            var bearerToken = await GetToken(account);
+            var entitlementToken = await GetEntitlementToken(bearerToken);
+            
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await _httpClient.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
+            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
 
             if (response?.QueueSkills?.Competitive?.TotalGamesNeededForRating > 0)
                 return new Rank() {
