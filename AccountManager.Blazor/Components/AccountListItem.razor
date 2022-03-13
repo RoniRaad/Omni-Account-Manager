@@ -2,9 +2,9 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.ViewModels
 @inherits LayoutComponentBase
-
-    <div class="col-3 col-md-2 col-xl-1 logo-container">
-        @if (ListViewModel.AccountType == Core.Enums.AccountType.League)
+    <tr style="color:white; border-color:#787b7c; ">
+      <th style="width:32px" scope="row">
+                  @if (ListViewModel.AccountType == Core.Enums.AccountType.League)
         {
             <img src="./logos/league-logo.png" class="game-logo" />
         }
@@ -41,11 +41,11 @@
                     style="margin-right:10px; fill:#000000;"><path d="M1.756 5.345C1.482 5.029 1.042 4.915.65 5.063.259 5.209 0 5.583 0 6v7c0 .242.088.477.248.658l7 8C7.438 21.876 7.711 22 8 22h6c.392 0 .747-.229.91-.585.163-.355.103-.774-.154-1.07L1.756 5.345zM23.325 6.054c-.404-.138-.852-.005-1.114.332l-7 9c-.234.302-.276.711-.109 1.054C15.27 16.782 15.618 17 16 17h5c.334 0 .646-.167.832-.445l2-3C23.941 13.391 24 13.197 24 13V7C24 6.573 23.729 6.192 23.325 6.054z"></path></svg>
             </div>
         }
-        <p >
-            @ListViewModel?.Name
-        </p>
-    </div>
-    <div class="col-2">
+      </th>
+      <td style=" width:32px">
+          @ListViewModel?.Name
+      </td>
+      <td>
         <div class="name-container">
             <div class="row">
                 <span style="color:@ListViewModel?.Rank?.Color" class="badge badge-secondary">@ListViewModel?.Rank?.Tier @ListViewModel?.Rank?.Ranking</span>
@@ -54,13 +54,15 @@
                 <span class="badge badge-secondary">@ListViewModel.Account.Username</span>
             </div>
         </div>
-    </div>
-    <div class="col-7 col-sm buttons-container">
-        <span @onclick=ListViewModel.Delete class="oi oi-trash"></span>
-        <span @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
-        <span @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
-    </div>
-    <hr class="solid">
+      </td>
+      <td>
+         <div class="buttons-container">
+            <span @onclick=ListViewModel.Delete class="oi oi-trash"></span>
+            <span @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
+            <span @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
+        </div>
+      </td>
+    </tr>
     @if (ListViewModel.IsEditing)
     {
         <div class="modal show" tabindex="1" role="dialog">
