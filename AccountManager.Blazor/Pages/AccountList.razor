@@ -8,14 +8,14 @@
 @inject AccountPageViewModel _viewModel
 
 <div class="container-fluid">
-    <div class="row">
-        @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
-        {
-            <AccountListItem ListViewModel="viewModel"></AccountListItem>
-        }
-        <div class="w-100"></div>
-    </div>
-
+    <table class="table table-fit">
+        <tbody>
+            @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
+            {
+                <AccountListItem ListViewModel="viewModel"></AccountListItem>
+            }
+        </tbody>
+    </table>
     <div class="row">
         <div class="col" >
             <span @onclick="_viewModel.StartAddAccount" class="oi oi-plus"> </span>

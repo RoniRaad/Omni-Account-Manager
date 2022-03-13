@@ -6,6 +6,16 @@ p {
     font-size: 25px
 }
 
+tr {
+    vertical-align: middle;
+    font-family: Roboto;
+    font-size: 25px
+}
+td {
+    max-width:32vw;
+    word-wrap:break-word;
+}
+
 .game-logo {
     margin-right: 10px;
     height: 34px;
@@ -31,7 +41,6 @@ p {
 .name-container {
     margin-left: 40px
 }
-
 .buttons-container {
     display: flex;
     justify-content: flex-end;
