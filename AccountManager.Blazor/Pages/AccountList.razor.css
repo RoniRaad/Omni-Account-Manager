@@ -5,7 +5,15 @@ div .container-fluid {
     background-color: var(--primary-light);
     color: var(--secondary-light)
 }
-
+.row{
+    margin-right:0px;
+}
+.plk-dd-draggable div {
+    cursor: grab;
+    border-style: dashed;
+    border-color: #ffffff21;
+    border-width: 1px;
+}
 div .col {
     display: flex;
     justify-content: flex-end;

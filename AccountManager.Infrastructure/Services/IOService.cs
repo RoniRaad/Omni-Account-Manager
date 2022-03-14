@@ -41,8 +41,11 @@ namespace AccountManager.Infrastructure.Services
 
         public void UpdateData<T>(T data, string password)
         {
-            var fileName = StringEncryption.Hash(typeof(T).Name);
-            File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(data)));
+            var name = typeof(T).Name;
+            var fileName = StringEncryption.Hash(name);
+            var serializedData = JsonSerializer.Serialize(data);
+            var encryptedData = StringEncryption.EncryptString(password, serializedData);
+            File.WriteAllText($"{_dataPath}\\{fileName}.dat", encryptedData);
         }
         public void UpdateData<T>(T data)
         {
@@ -52,7 +55,8 @@ namespace AccountManager.Infrastructure.Services
 
         public T ReadData<T>(string password) where T : new()
         {
-            var fileName = StringEncryption.Hash(typeof(T).Name);
+            var name = typeof(T).Name;
+            var fileName = StringEncryption.Hash(name);
             if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
             {
                 File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
