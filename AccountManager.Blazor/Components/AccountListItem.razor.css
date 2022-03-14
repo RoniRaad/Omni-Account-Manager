@@ -5,11 +5,15 @@ p {
     font-family: Roboto;
     font-size: 25px
 }
-
+th {
+    width: 32px
+}
 tr {
     vertical-align: middle;
     font-family: Roboto;
-    font-size: 25px
+    font-size: 25px;
+    color: white;
+    border-color: #787b7c;
 }
 td {
     max-width:32vw;

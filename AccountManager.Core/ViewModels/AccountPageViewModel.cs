@@ -1,7 +1,10 @@
 ﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 using AccountManager.Core.Services;
+using AccountManager.Core.Static;
+using System.Security.Principal;
 
 namespace AccountManager.Core.ViewModels
 {
@@ -25,7 +28,7 @@ namespace AccountManager.Core.ViewModels
         public async Task Initialize()
         {
             var accounts = _iOService.ReadData<List<AccountListItemViewModel>>(_authService.PasswordHash);
-            AccountLists = accounts;
+            AccountLists = new List<AccountListItemViewModel>(accounts);
             foreach (var account in accounts)
             {
                 account.PlatformService = _platformServiceFactory.CreateImplementation(account.AccountType);
@@ -35,7 +38,8 @@ namespace AccountManager.Core.ViewModels
                     account.Rank = rank;
                 account.Delete = () => RemoveAccount(account);
             }
-            _iOService.UpdateData(accounts, _authService.PasswordHash);
+            AccountLists = accounts;
+            SaveList();
 
             if (!(UpdateView is null))
                 UpdateView();
@@ -48,13 +52,13 @@ namespace AccountManager.Core.ViewModels
             account.Account.Id = (await account.PlatformService.TryFetchId(account.Account)).Item2;
             var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
             account.Rank = rank;
-            _iOService.UpdateData(AccountLists, _authService.PasswordHash);
+            SaveList();
             UpdateView();
         }
         public void RemoveAccount(AccountListItemViewModel account)
         {
             AccountLists.Remove(account);
-            _iOService.UpdateData(AccountLists, _authService.PasswordHash);
+            SaveList();
             UpdateView();
         }
         public void StartAddAccount()
@@ -78,6 +82,11 @@ namespace AccountManager.Core.ViewModels
         {
             _ = AddAccount(NewAccount);
             AddAccountPromptShow = false;
+        }
+
+        public void SaveList()
+        {
+            _iOService.UpdateData(AccountLists, _authService.PasswordHash);
         }
     }
 }

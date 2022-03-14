@@ -55,13 +55,16 @@
             </div>
         </div>
       </td>
-      <td>
-         <div class="buttons-container">
-            <span @onclick=ListViewModel.Delete class="oi oi-trash"></span>
-            <span @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
-            <span @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
-        </div>
-      </td>
+      @if (RenderButtons){
+        <td>
+            <div class="buttons-container">
+                <span @onclick=ListViewModel.Delete class="oi oi-trash"></span>
+                <span @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
+                <span @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
+            </div>
+        </td>
+      }
+ 
     </tr>
     @if (ListViewModel.IsEditing)
     {
@@ -106,4 +109,7 @@
 @code {
     [Parameter]
     public AccountListItemViewModel ListViewModel { get; set; }
+
+    [Parameter]
+    public bool RenderButtons { get; set; }
 }
