@@ -50,7 +50,13 @@
 	color: white;
 }
 
-@media (min-width: 641px) {
+@media (max-width: 750px) {
+	.nav-link p{
+		display:none;
+	}
+}
+
+@media (min-width: 640px) {
 	.navbar-toggler {
 		display: none;
 	}
