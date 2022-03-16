@@ -25,6 +25,8 @@ using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using CloudFlareUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Plk.Blazor.DragDrop;
+
 namespace AccountManager.UI
 {
     /// <summary>
@@ -36,7 +38,8 @@ namespace AccountManager.UI
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddBlazorWebView();
-            serviceCollection.AddMemoryCache();
+            serviceCollection.AddBlazorDragDrop();
+			serviceCollection.AddMemoryCache();
 			serviceCollection.AddHttpClient("CloudflareBypass").ConfigureHttpMessageHandlerBuilder(x =>
 			{
 				x.PrimaryHandler = new ClearanceHandler

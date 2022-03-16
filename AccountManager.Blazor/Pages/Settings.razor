@@ -9,38 +9,39 @@
 
 <div class="container main">
     <EditForm Model="@_settings.Settings">
-        <div class="row">
-            <div class="col">
-                <p >Use account credentials to get current ranking</p>
-            </div>
-            <div class="col setting-col">
-                <div class="form-check">
-                    <InputCheckbox @bind-Value="_settings.Settings.UseAccountCredentials" id="credentialsCheckBox"></InputCheckbox>
-                    <label class="form-check-label" for="credentialsCheckBox">
-                        Use Credentials
-                    </label>
-                </div>
-            </div>
-            <hr />
-        </div>
-        <div class="row">
-            <div class="col">
-                <p >Change your account manager password</p>
-            </div>
-            <div class="col setting-col">
-                <button class="btn btn-dark" @onclick=_viewModel.ToggleChangePassword>Change Password</button>
-            </div>
-            <hr />
-        </div>
-        <div class="row">
-            <div class="col">
-                <p>Save changes</p>
-            </div>
-            <div class="col setting-col">
-                <button class="btn btn-dark" @onclick=_settings.Save>Save</button>
-            </div>
-            <hr />
-        </div>
+        <table>
+            <tbody>
+                <tr>
+                    <th scope="row">
+                        <p >Use account credentials to get current ranking</p>
+                    </th>
+                    <td>
+                        <div class="form-check">
+                            <InputCheckbox @bind-Value="_settings.Settings.UseAccountCredentials" id="credentialsCheckBox"></InputCheckbox>
+                            <label class="form-check-label" for="credentialsCheckBox">
+                                Use Credentials
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <p >Change your account manager password</p>
+                    </th>
+                    <td>
+                        <button class="btn btn-dark" @onclick=_viewModel.ToggleChangePassword>Change Password</button>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <p >Save changes</p>
+                    </th>
+                    <td>
+                        <button class="btn btn-dark" @onclick=_settings.Save>Save</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </EditForm>
 </div>
 
