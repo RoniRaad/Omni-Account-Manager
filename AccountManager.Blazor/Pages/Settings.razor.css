@@ -20,5 +20,20 @@
 
 p {
     width: auto;
-    font-size: 20px
+    font-family: 'Roboto';
+    font-weight: 100;
+    font-size: 20px;
+}
+
+tr {
+    border-bottom: solid 1px #787b7c;
+    height: 60px;
+}
+td {
+    margin-bottom: 10px;
+    text-align: right;
+    height: 60px;
+}
+table {
+    width: 100%;
 }

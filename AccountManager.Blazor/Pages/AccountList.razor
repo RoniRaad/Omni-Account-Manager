@@ -8,17 +8,35 @@
 @inject AccountPageViewModel _viewModel
 
 <div class="container-fluid">
+    <table class="table table-fit">
+        <tbody>
+            @if (!DragMode){
+                @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
+                {
+                    <AccountListItem ListViewModel="viewModel" RenderButtons="true"></AccountListItem>
+                }
+            }
+            else{
+                <Dropzone Items="_viewModel.AccountLists" TItem="AccountListItemViewModel">
+                    <div>
+                        <AccountListItem ListViewModel="@context" RenderButtons="false" ></AccountListItem>
+                    </div>
+                </Dropzone>
+            }
+        </tbody>
+    </table>
     <div class="row">
-        @foreach (AccountListItemViewModel viewModel in _viewModel.AccountLists)
-        {
-            <AccountListItem ListViewModel="viewModel"></AccountListItem>
-        }
-        <div class="w-100"></div>
-    </div>
+        <div class="col" style="margin-left: -3px" >
+            @if (!DragMode)
+            {
+                <span @onclick="()=>DragMode = true" class="oi oi-list"></span>
+                <span @onclick="_viewModel.StartAddAccount" class="oi oi-plus"> </span>
+            }
+            else
+            {
+                <span @onclick="()=>{DragMode = false; _viewModel.SaveList();}" class="oi oi-check"></span>
+            }
 
-    <div class="row">
-        <div class="col" >
-            <span @onclick="_viewModel.StartAddAccount" class="oi oi-plus"> </span>
         </div>
     </div>
     @if (_viewModel.AddAccountPromptShow)
@@ -65,4 +83,5 @@
 
 @code{
     protected override async Task OnInitializedAsync() => _viewModel.UpdateView = () => InvokeAsync(() => StateHasChanged());
+    private bool DragMode = false;
 }
