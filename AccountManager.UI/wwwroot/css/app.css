@@ -183,3 +183,16 @@ a, .btn-link {
 	user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
+p {
+	margin: 0px
+}
+@media (max-width: 750px) {
+	.nav-link p {
+		display: none;
+		width: 0px;
+	}
+
+	.sidebar {
+		width: 83px !important;
+	}
+}
