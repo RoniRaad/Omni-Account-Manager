@@ -33,9 +33,9 @@ namespace AccountManager.Core.ViewModels
             {
                 account.PlatformService = _platformServiceFactory.CreateImplementation(account.AccountType);
                 account.Account.Id = (await account.PlatformService.TryFetchId(account.Account)).Item2;
-                var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
-                if (!string.IsNullOrEmpty(rank.Tier))
-                    account.Rank = rank;
+ //               var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
+  //              if (!string.IsNullOrEmpty(rank.Tier))
+   //                 account.Rank = rank;
                 account.Delete = () => RemoveAccount(account);
             }
             AccountLists = accounts;

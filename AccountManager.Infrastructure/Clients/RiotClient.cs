@@ -6,6 +6,7 @@ using CloudFlareUtilities;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace AccountManager.Infrastructure.Clients
@@ -43,6 +44,7 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
+                HttpResponseMessage authResponse;
                 await AddHeadersToClient(client);
 
                 _ = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse
@@ -53,13 +55,24 @@ namespace AccountManager.Infrastructure.Clients
                     ResponseType = "token id_token"
                 });
 
-                var authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
+                authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
                 {
                     Type = "auth",
                     Username = account.Username,
                     Password = account.Password
                 });
+                var authResponseString = authResponse.Content.ReadAsStringAsync();
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+                if (authResponseDeserialized.Type == "multifactor")
+                {
+                    var code = "";
+                    authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest
+                    {
+                        Type = "multifactor",
+                        Code = code,
+                        RememberDevice = true
+                    });
+                }
                 var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
                 var token = matches[0].Groups[1].Value;
 
@@ -142,4 +155,17 @@ namespace AccountManager.Infrastructure.Clients
             return rank;
         }
     }
+    public class MultifactorRequest
+    {
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        [JsonPropertyName("code")]
+        public string Code { get; set; }
+
+        [JsonPropertyName("rememberDevice")]
+        public bool RememberDevice { get; set; }
+    }
+
+
 }

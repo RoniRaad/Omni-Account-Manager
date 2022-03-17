@@ -20,6 +20,7 @@ using AccountManager.Core.Services;
 using AccountManager.Core.ViewModels;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
+using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Infrastructure.Services.Platform;
 using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
@@ -63,6 +64,8 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<SettingsViewModel>();
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
+			serviceCollection.AddSingleton<RiotLockFileService>();
+			serviceCollection.AddSingleton<LeagueLockFileService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
