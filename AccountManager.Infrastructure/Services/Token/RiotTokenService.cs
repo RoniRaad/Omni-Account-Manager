@@ -1,40 +1,41 @@
 ﻿using AccountManager.Core.Interfaces;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
     public class RiotTokenService : BaseRiotService, ITokenService
     {
-        public bool TryGetPortAndToken(out string token, out string port)
-        {
-            if (!Process.GetProcessesByName("RiotClientUx").Any())
-            {
-                token = "";
-                port = "";
-                return false;
-            }
+        private readonly IIOService _iOService;
 
-            var leagueParams = GetLeagueCommandlineParams();
-            token = GetCommandLineValue(leagueParams, "--remoting-auth-token");
-            port = GetCommandLineValue(leagueParams, "--app-port");
-            return true;
+        public RiotTokenService(IIOService iOService)
+        {
+            _iOService = iOService;
         }
 
-        private string GetLeagueCommandlineParams()
-        {
-            var queryProcess = "RiotClientUx.exe";
-            var StartInfo = new ProcessStartInfo
-            {
-                FileName = "wmic",
-                Arguments = $"PROCESS WHERE name='{queryProcess}' GET commandline",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            };
 
-            var wmicQuery = Process.Start(StartInfo);
-            wmicQuery.WaitForExit();
-            return wmicQuery.StandardOutput.ReadToEnd();
+        public bool TryGetPortAndToken(out string token, out string port)
+        {
+            port = "";
+            token = "";
+            var fileName = @"C:\Users\Roni\AppData\Local\Riot Games\Riot Client\Config\lockfile";
+            if (!_iOService.IsFileLocked(fileName))
+                return false;
+
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader fileReader = new StreamReader(fileStream))
+            {
+                while (!fileReader.EndOfStream)
+                {
+                    var riotParams = fileReader.ReadLine().Split(":");
+                    token = riotParams[3];
+                    port = riotParams[2];
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

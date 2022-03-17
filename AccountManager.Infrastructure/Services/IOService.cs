@@ -39,6 +39,24 @@ namespace AccountManager.Infrastructure.Services
             }
         }
 
+        public bool IsFileLocked(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return false;
+
+            try
+            {
+                using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return inputStream.Length <= 0;
+                }
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+        }
+
         public void UpdateData<T>(T data, string password)
         {
             var name = typeof(T).Name;

@@ -3,8 +3,11 @@ using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League.Requests;
+using AccountManager.Core.Services;
+using AccountManager.Infrastructure.Services.FileSystem;
 using System.Diagnostics;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -12,6 +15,8 @@ namespace AccountManager.Infrastructure.Services.Platform
     {
         private readonly ITokenService _riotService;
         private readonly IRiotClient _riotClient;
+        private readonly RiotLockFileService _riotFileSystemService;
+        private readonly AlertService _alertService;
         private readonly HttpClient _httpClient;
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
@@ -23,59 +28,67 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"diamond", "#f195f4"},
             {"immortal", "#ac3654"},
         };
-        public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory)
+        public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
+            IHttpClientFactory httpClientFactory, RiotLockFileService riotLockFileService, AlertService alertService)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
-
+            _riotFileSystemService = riotLockFileService;
+            _alertService = alertService;
         }
         public async Task Login(Account account)
         {
-            foreach (var process in Process.GetProcesses())
-            {
-                if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
-                {
-                    process.Kill();
-                }
-            }
+            string token;
+            string port;
+            EventHandler riotClientOpen = null;
 
-            for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
-            {
-                System.Threading.Thread.Sleep(1000);
-            }
+            foreach (var process in Process.GetProcesses())
+                if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
+                    process.Kill();
+
 
             Process.Start(GetRiotExePath());
+            riotClientOpen = async (o, ea) => {
+                _riotFileSystemService.ClientOpened -= riotClientOpen;
 
-            for (int i = 0; !Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
-            {
-                System.Threading.Thread.Sleep(1000);
-            }
+                var signInRequest = new LeagueSignInRequest
+                {
+                    Username = account.Username,
+                    Password = account.Password,
+                    StaySignedIn = true
+                };
+                _riotService.TryGetPortAndToken(out token, out port);
 
-            for (int i = 0; Process.GetProcessesByName("RiotClientUx").Any() && i < 3; i++)
-            {
-                System.Threading.Thread.Sleep(1000);
-            }
-            _riotService.TryGetPortAndToken(out string token, out string port);
-
-            var signInRequest = new LeagueSignInRequest
-            {
-                Username = account.Username,
-                Password = account.Password,
-                PlatformId = "NA1"
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
+                _ = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v2/authorizations", new CreateAuthorizations());
+                var loginResponse = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", signInRequest);
+                var loginResponseStr = await loginResponse.Content.ReadAsStringAsync();
+                var loginResponseObj = await loginResponse.Content.ReadFromJsonAsync<RiotLoginResponse>();
+                if (!string.IsNullOrEmpty(loginResponseObj.Multifactor.Email))
+                {
+                    _alertService.PromptUserFor2FA();
+                    _alertService.TwoFactorRequestSubmitted += async (sender, obj) =>
+                    {
+                        var mfLogin = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new MultifactorRequest()
+                        {
+                            Code = _alertService.TwoFactorRequest.Code,
+                            Retry = false,
+                            TrustDevice = true
+                        });
+                    };
+                }
+                var startValorantCommandline = "--launch-product=valorant --launch-patchline=live";
+                var startValorant = new ProcessStartInfo
+                {
+                    FileName = GetRiotExePath(),
+                    Arguments = startValorantCommandline
+                };
+                Process.Start(startValorant);
             };
 
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var responseDelete = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
-            var response = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", signInRequest);
-
-            var startValorantCommandline = "--launch-product=valorant --launch-patchline=live";
-            var startValorant = new ProcessStartInfo
-            {
-                FileName = GetRiotExePath(),
-                Arguments = startValorantCommandline
-            };
-            Process.Start(startValorant);
+            _riotFileSystemService.ClientOpened += riotClientOpen;
         }
         public string GetCommandLineValue(string commandline , string key)
         {
@@ -141,4 +154,83 @@ namespace AccountManager.Infrastructure.Services.Platform
             return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
+    public class Multifactor
+    {
+        [JsonPropertyName("email")]
+        public string Email { get; set; }
+
+        [JsonPropertyName("method")]
+        public string Method { get; set; }
+
+        [JsonPropertyName("methods")]
+        public List<object> Methods { get; set; }
+
+        [JsonPropertyName("mfaVersion")]
+        public object MfaVersion { get; set; }
+
+        [JsonPropertyName("multiFactorCodeLength")]
+        public object MultiFactorCodeLength { get; set; }
+    }
+
+    public class RiotLoginResponse
+    {
+        [JsonPropertyName("authenticationType")]
+        public string AuthenticationType { get; set; }
+
+        [JsonPropertyName("country")]
+        public string Country { get; set; }
+
+        [JsonPropertyName("error")]
+        public string Error { get; set; }
+
+        [JsonPropertyName("multifactor")]
+        public Multifactor Multifactor { get; set; }
+
+        [JsonPropertyName("persistLogin")]
+        public bool PersistLogin { get; set; }
+
+        [JsonPropertyName("securityProfile")]
+        public object SecurityProfile { get; set; }
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+    }
+    public class MultifactorRequest
+    {
+        [JsonPropertyName("code")]
+        public string Code { get; set; }
+
+        [JsonPropertyName("retry")]
+        public bool Retry { get; set; }
+
+        [JsonPropertyName("trustDevice")]
+        public bool TrustDevice { get; set; }
+    }
+
+    public class CreateAuthorizations
+    {
+        [JsonPropertyName("authenticationType")]
+        public string AuthenticationType { get; set; } = "SSOAuth";
+
+        [JsonPropertyName("claims")]
+        public List<string> Claims { get; set; } = new List<string>()
+        {
+            "open id"
+        };
+
+        [JsonPropertyName("clientId")]
+        public string ClientId { get; set; } = "riot-client";
+
+        [JsonPropertyName("keepAlive")]
+        public bool KeepAlive { get; set; } = true;
+
+        [JsonPropertyName("trustLevels")]
+        public List<string> TrustLevels { get; set; } = new List<string>()
+        {
+            "always_trusted"
+        };
+    }
+
+
+
 }
