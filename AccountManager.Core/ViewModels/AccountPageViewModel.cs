@@ -32,10 +32,10 @@ namespace AccountManager.Core.ViewModels
             foreach (var account in accounts)
             {
                 account.PlatformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-                account.Account.Id = (await account.PlatformService.TryFetchId(account.Account)).Item2;
- //               var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
-  //              if (!string.IsNullOrEmpty(rank.Tier))
-   //                 account.Rank = rank;
+                account.Account.Id ??= (await account.PlatformService.TryFetchId(account.Account)).Item2;
+                var rank = (await account.PlatformService.TryFetchRank(account.Account)).Item2;
+                if (!string.IsNullOrEmpty(rank.Tier))
+                    account.Rank = rank;
                 account.Delete = () => RemoveAccount(account);
             }
             AccountLists = accounts;
