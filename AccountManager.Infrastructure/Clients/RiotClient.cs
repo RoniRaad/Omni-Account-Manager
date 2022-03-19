@@ -2,10 +2,13 @@
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Services;
 using CloudFlareUtilities;
+using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -14,10 +17,14 @@ namespace AccountManager.Infrastructure.Clients
     public partial class RiotClient : IRiotClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly AlertService _alertService;
+        private readonly IMemoryCache _memoryCache;
 
-        public RiotClient(IHttpClientFactory httpClientFactory)
+        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache)
         {
             _httpClientFactory = httpClientFactory;
+            _alertService = alertService;
+            _memoryCache = memoryCache;
         }
 
         private async Task AddHeadersToClient(HttpClient httpClient)
@@ -37,6 +44,9 @@ namespace AccountManager.Infrastructure.Clients
         }
         public async Task<string> GetToken(Account account)
         {
+            if (_memoryCache.TryGetValue($"{account.Username}:{account.Password}", out string token))
+                return token;
+
             var handler = new ClearanceHandler
             {
                 MaxRetries = 2
@@ -61,22 +71,55 @@ namespace AccountManager.Infrastructure.Clients
                     Username = account.Username,
                     Password = account.Password
                 });
+
                 var authResponseString = authResponse.Content.ReadAsStringAsync();
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
                 if (authResponseDeserialized.Type == "multifactor")
                 {
-                    var code = "";
-                    authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest
+                    token = null;
+                    bool errorOccured = false;
+                    var mfCode = await _alertService.PromptUserFor2FA(account);
+                    if (string.IsNullOrEmpty(mfCode))
+                        return "";
+
+                    var mfLogin = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
                     {
+                        Code = mfCode,
                         Type = "multifactor",
-                        Code = code,
                         RememberDevice = true
                     });
-                }
-                var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                var token = matches[0].Groups[1].Value;
 
-                return token;
+                    var mfLoginResponseDeserialized = await mfLogin.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+                    var mfLoginResponseStr = await mfLogin.Content.ReadAsStringAsync();
+                    if (mfLoginResponseDeserialized.Type == "multifactor")
+                    {
+                        _alertService.ErrorMessage = $"Incorrect code. Unable to get rank for account {account.Username}";
+                        errorOccured = true;
+                    }
+                    else
+                    {
+                        var matches = Regex.Matches(mfLoginResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                        token = matches[0].Groups[1].Value;
+                    }
+
+                    while (string.IsNullOrEmpty(token) && !errorOccured)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (errorOccured)
+                        return "";
+
+                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
+                    return token;
+                }
+                else
+                {
+                    var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                    token = matches[0].Groups[1].Value;
+
+                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
+                    return token;
+                }
             }
         }
         public async Task<string> GetEntitlementToken(string token)

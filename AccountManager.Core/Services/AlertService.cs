@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AccountManager.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,22 +54,37 @@ namespace AccountManager.Core.Services
             }
         }
 
-        public bool PromptUserFor2FA()
+        public async Task<string> PromptUserFor2FA(Account account)
         {
-            TwoFactorRequest = new();
+            var code = "";
+            TwoFactorRequest = new()
+            {
+                Username = account.Username
+            };
             TwoFactorPrompt = true;
-            return true;
+            TwoFactorRequestSubmitted += delegate
+            {
+                code = TwoFactorRequest.Code;
+            };
+
+            while (TwoFactorPrompt)
+            {
+                await Task.Delay(100);
+            }
+
+            return code;
         }
 
         public void Cancel2FA()
         {
-            TwoFactorRequestSubmitted = null;
-            TwoFactorPrompt = false;
+            TwoFactorRequest.Code = "";
+            Submit2FA();
         }
 
         public void Submit2FA()
         {
             TwoFactorRequestSubmitted?.Invoke(this, EventArgs.Empty);
+            TwoFactorRequestSubmitted = null;
             TwoFactorPrompt = false;
         }
     }
