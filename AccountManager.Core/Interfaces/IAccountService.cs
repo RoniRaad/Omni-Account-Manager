@@ -4,9 +4,10 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IAccountService
     {
-        void AddAccount(Account account);
+        Task AddAccount(Account account);
         void EditAccount(Account editedAccount);
-        List<Account> GetAllAccounts();
+        Task<List<Account>> GetAllAccounts();
+        List<Account> GetAllAccountsMin();
         void Login(Account account);
         void RemoveAccount(Account account);
         void WriteAllAccounts(List<Account> accounts);

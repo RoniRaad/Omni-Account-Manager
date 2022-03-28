@@ -42,6 +42,7 @@ namespace AccountManager.Infrastructure.Clients
             var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>("https://valorant-api.com/v1/version");
             return response?.Data?.RiotClientVersion;
         }
+
         public async Task<string?> GetToken(Account account)
         {
             if (_memoryCache.TryGetValue($"{account.Username}:{account.Password}", out string? token))
@@ -122,6 +123,7 @@ namespace AccountManager.Infrastructure.Clients
                 }
             }
         }
+
         public async Task<string> GetEntitlementToken(string token)
         {
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
@@ -155,6 +157,7 @@ namespace AccountManager.Infrastructure.Clients
             var response = await client.GetFromJsonAsync<UserInfoResponse>("https://auth.riotgames.com/userinfo");
             return response?.PuuId;
         }
+
         public async Task<Rank> GetValorantRank(Account account)
         {
             int rankNumber;

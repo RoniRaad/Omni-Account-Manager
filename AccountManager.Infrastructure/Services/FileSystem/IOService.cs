@@ -117,15 +117,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 .Where((drive) => Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
                 .FirstOrDefault(drives.First());
         }
-        private void WriteFile(string filePath, string fileContents)
-        {
-            File.WriteAllText(filePath, fileContents);
-        }
-
-        private string ReadFile(string filePath)
-        {
-            return File.ReadAllText(filePath);
-        }
 
         public List<string[]> GetInstalledGamesManifest()
         {

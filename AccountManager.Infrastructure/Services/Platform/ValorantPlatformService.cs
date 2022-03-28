@@ -62,7 +62,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 _riotService.TryGetPortAndToken(out token, out port);
 
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/session");
+                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
                 var sessionCreateResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v2/authorizations", new CreateAuthorizations());
                 var Sesestr = await sessionCreateResponse.Content.ReadAsStringAsync();
 
@@ -86,7 +86,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     {
                         Code = twoFactorCode,
                         Retry = false,
-                        TrustDevice = false
+                        TrustDevice = true
                     });
                     var mfLoginResponse = await mfLogin.Content.ReadFromJsonAsync<RiotLoginResponse>();
 

@@ -6,13 +6,13 @@ using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
+using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Services;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Memory;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
-using static AccountManager.Infrastructure.Clients.LocalLeagueClient;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -22,8 +22,10 @@ namespace AccountManager.Infrastructure.Clients
         private IHttpClientFactory _httpClientFactory;
         private readonly ITokenService _leagueTokenService;
         private readonly LocalLeagueClient _localLeagueClient;
+        private readonly AlertService _alertService;
         private readonly IUserSettingsService<UserSettings> _settings;
-        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory, LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings)
+        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory,
+            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService)
         {
             _memoryCache = memoryCache;
             _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
@@ -31,6 +33,7 @@ namespace AccountManager.Infrastructure.Clients
             _localLeagueClient = localLeagueClient;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
+            _alertService = alertService;
         }
 
         public async Task<string> GetRankByUsernameAsync(string username)
@@ -46,6 +49,7 @@ namespace AccountManager.Infrastructure.Clients
             var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
             return $"{summonerRanking?.QueueMap?.RankedSoloDuoStats?.Tier} {summonerRanking?.QueueMap?.RankedSoloDuoStats?.Division}";
         }
+
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
         {
             if (_localLeagueClient.IsClientOpen())
@@ -132,16 +136,58 @@ namespace AccountManager.Infrastructure.Clients
                 });
                 finalAuthRequest.EnsureSuccessStatusCode();
 
-                var riotTokenResponse = await finalAuthRequest.Content.ReadFromJsonAsync<RiotAuthTokenWrapper>();
-                if (riotTokenResponse?.Response?.Parameters?.Uri is null)
-                    return string.Empty;
+                var riotTokenResponse = await finalAuthRequest.Content.ReadFromJsonAsync<TokenResponseWrapper>();
 
-                var matches = Regex.Matches(riotTokenResponse.Response.Parameters.Uri,
-                    @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                token = matches[0].Groups[1].Value;
-                return token;
+                if (riotTokenResponse?.Type == "multifactor")
+                {
+                    token = null;
+                    bool errorOccured = false;
+                    var mfCode = await _alertService.PromptUserFor2FA(account, riotTokenResponse.Multifactor.Email);
+                    if (string.IsNullOrEmpty(mfCode))
+                        return "";
+
+                    var mfLogin = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
+                    {
+                        Code = mfCode,
+                        Type = "multifactor",
+                        RememberDevice = true
+                    });
+
+                    var mfLoginResponseDeserialized = await mfLogin.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+                    var mfLoginResponseStr = await mfLogin.Content.ReadAsStringAsync();
+                    if (mfLoginResponseDeserialized?.Type == "multifactor")
+                    {
+                        _alertService.ErrorMessage = $"Incorrect code. Unable to get rank for account {account.Username}";
+                        errorOccured = true;
+                    }
+                    else
+                    {
+                        var matches = Regex.Matches(mfLoginResponseDeserialized.Response.Parameters.Uri,
+                            @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                        token = matches[0].Groups[1].Value;
+                    }
+
+                    while (string.IsNullOrEmpty(token) && !errorOccured)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (errorOccured)
+                        return "";
+
+                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
+                    return token;
+                }
+                else
+                {
+                    var matches = Regex.Matches(riotTokenResponse.Response.Parameters.Uri,
+                            @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                    token = matches[0].Groups[1].Value;
+                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
+                    return token;
+                }
             }
         }
+
         private async Task<string> GetUserInfo(Account account, string riotToken)
         {
             string userInfo;
@@ -154,6 +200,7 @@ namespace AccountManager.Infrastructure.Clients
 
             return userInfo;
         }
+
         private async Task<string> GetEntitlementJWT(Account account, string riotToken)
         {
             string entitlement;
@@ -172,6 +219,7 @@ namespace AccountManager.Infrastructure.Clients
 
             return entitlement;
         }
+
         private async Task<string> GetLeagueLoginToken(Account account)
         {
             string token;
@@ -201,6 +249,7 @@ namespace AccountManager.Infrastructure.Clients
 
             return token;
         }
+
         public async Task<string> CreateLeagueSession(Account account)
         {
             string sessionToken;
@@ -232,6 +281,7 @@ namespace AccountManager.Infrastructure.Clients
 
             return sessionToken.Replace("\"", "");
         }
+
         public async Task<string> GetLeagueSessionToken(Account account)
         {
             if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string sessionToken))
