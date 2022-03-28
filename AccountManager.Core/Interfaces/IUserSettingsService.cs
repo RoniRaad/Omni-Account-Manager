@@ -9,5 +9,6 @@ namespace AccountManager.Core.Interfaces
         bool ChangePassword(PasswordChangeRequest newPassword);
 
         void Save();
+        void Transfer();
     }
 }

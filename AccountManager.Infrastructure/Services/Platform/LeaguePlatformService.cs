@@ -6,6 +6,7 @@ using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Infrastructure.Services.FileSystem;
+using AccountManager.Core.Services;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -15,6 +16,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
+        private readonly AlertService _alertService;
         private readonly RiotLockFileService _riotFileSystemService;
 
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
@@ -30,38 +32,88 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"challenger", "#4ee1ff"},
         };
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotLockFileService riotFileSystemService )
+            IHttpClientFactory httpClientFactory, RiotLockFileService riotFileSystemService, AlertService alertService )
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
+            _alertService = alertService;
         }
         public async Task Login(Account account)
         {
             string token;
             string port;
-            foreach (var process in Process.GetProcesses())
-                if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
-                    process.Kill();
-
-            Process.Start(GetRiotExePath());
-
-            await _riotFileSystemService.WaitForClientInit();
-
-            var signInRequest = new LeagueSignInRequest
+            EventHandler riotClientOpen = null;
+            try
             {
-                Username = account.Username,
-                Password = account.Password,
-                StaySignedIn = true
-            };
-            _riotService.TryGetPortAndToken(out token, out port);
+                foreach (var process in Process.GetProcesses())
+                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
+                        process.Kill();
 
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
-            _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
-            _ = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", signInRequest);
+                Process.Start(GetRiotExePath());
 
+                await _riotFileSystemService.WaitForClientInit();
+
+                var signInRequest = new LeagueSignInRequest
+                {
+                    Username = account.Username,
+                    Password = account.Password,
+                    StaySignedIn = true
+                };
+
+                _riotService.TryGetPortAndToken(out token, out port);
+
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
+                var sessionCreateResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v2/authorizations", new CreateAuthorizations());
+                var Sesestr = await sessionCreateResponse.Content.ReadAsStringAsync();
+
+                var loginResponse = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", signInRequest);
+                var loginResponseStr = await loginResponse.Content.ReadAsStringAsync();
+                var loginResponseObj = await loginResponse.Content.ReadFromJsonAsync<RiotLoginResponse>();
+
+                if (!string.IsNullOrEmpty(loginResponseObj.Error))
+                {
+                    if (loginResponseObj.Error == "rate_limited")
+{
+                        _alertService.ErrorMessage = "Error logging in, too many attempts made. Try again later.";
+                        return;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(loginResponseObj?.Multifactor?.Email))
+{
+                    var twoFactorCode = await _alertService.PromptUserFor2FA(account, loginResponseObj?.Multifactor?.Email);
+                    var mfLogin = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new MultifactorRequest()
+                    {
+                        Code = twoFactorCode,
+                        Retry = false,
+                        TrustDevice = true
+                    });
+                    var mfLoginResponse = await mfLogin.Content.ReadFromJsonAsync<RiotLoginResponse>();
+
+                    if (!string.IsNullOrEmpty(mfLoginResponse?.Multifactor?.Email))
+                    {
+                        _alertService.ErrorMessage = "Incorrect code. Login failed.";
+                        return;
+                    }
+
+                    StartLeague();
+                }
+                else
+                {
+                    StartLeague();
+                }
+            }
+            catch
+            {
+                _alertService.ErrorMessage = "There was an error signing in.";
+            }
+        }
+        private void StartLeague()
+        {
             var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
             var startLeague = new ProcessStartInfo
             {
@@ -69,8 +121,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                 Arguments = startLeagueCommandline
             };
             Process.Start(startLeague);
-
         }
+
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             Rank rank = new Rank();
@@ -90,6 +142,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, rank);
             }
         }
+
         public async Task<(bool, string)> TryFetchId(Account account)
         {
             var id = "";

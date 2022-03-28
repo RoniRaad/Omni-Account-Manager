@@ -20,23 +20,22 @@ namespace AccountManager.Core.Services
             _platformServiceFactory = platformServiceFactory;
         }
 
-        public void AddAccount(Account account)
+        public async Task AddAccount(Account account)
         {
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-            _ = Task.Run(async () =>
-            {
-                account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
-                var rank = (await platformService.TryFetchRank(account)).Item2;
-                if (!string.IsNullOrEmpty(rank.Tier))
-                    account.Rank = rank;
-            });
-            var accounts = GetAllAccounts();
+
+            account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
+            var rank = (await platformService.TryFetchRank(account)).Item2;
+            if (!string.IsNullOrEmpty(rank.Tier))
+                account.Rank = rank;
+
+            var accounts = GetAllAccountsMin();
             accounts.Add(account);
             WriteAllAccounts(accounts);
         }
         public void RemoveAccount(Account account)
         {
-            var accounts = GetAllAccounts();
+            var accounts = GetAllAccountsMin();
             var relevantAccounts = accounts.Where((viewModel) => viewModel?.AccountType == account.AccountType
                 && viewModel.Username == account.Username);
 
@@ -45,14 +44,32 @@ namespace AccountManager.Core.Services
 
             WriteAllAccounts(accounts);
         }
-        public List<Account> GetAllAccounts()
+
+        public async Task<List<Account>> GetAllAccounts()
+        {
+            var accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
+            foreach (var account in accounts)
+            {
+                var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
+                account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
+                var rank = (await platformService.TryFetchRank(account)).Item2;
+                if (!string.IsNullOrEmpty(rank.Tier))
+                    account.Rank = rank;
+                accounts.Add(account);
+            }
+
+            return accounts;
+        }
+
+        public List<Account> GetAllAccountsMin()
         {
             var accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
             return accounts;
         }
+
         public void EditAccount(Account editedAccount)
         {
-            var accounts = GetAllAccounts();
+            var accounts = GetAllAccountsMin();
             accounts.ForEach(account =>
             {
                 if (account.Guid == editedAccount.Guid)
