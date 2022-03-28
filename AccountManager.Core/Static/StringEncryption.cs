@@ -61,7 +61,6 @@ namespace AccountManager.Core.Static
             }
         }
 
-        private static int SaltSize = 16; // 128 bit 
         private static  int KeySize = 32; // 256 bit
         private static byte[] Salt = new byte[] { 10, 20, 30, 40, 50, 60, 70, 80 };
 

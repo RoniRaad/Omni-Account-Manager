@@ -42,9 +42,9 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
             var response = await client.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
             var summoner = await response.Content.ReadFromJsonAsync<LeagueAccount>();
-            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner.Puuid}");
+            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner?.Puuid}");
             var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
-            return $"{summonerRanking.QueueMap.RankedSoloDuoStats.Tier} {summonerRanking.QueueMap.RankedSoloDuoStats.Division}";
+            return $"{summonerRanking?.QueueMap?.RankedSoloDuoStats?.Tier} {summonerRanking?.QueueMap?.RankedSoloDuoStats?.Division}";
         }
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
         {
@@ -59,8 +59,8 @@ namespace AccountManager.Infrastructure.Clients
 
             return new Rank()
             {
-                Tier = rankedStats.Tier,
-                Ranking = rankedStats.Rank,
+                Tier = rankedStats?.Tier,
+                Ranking = rankedStats?.Rank,
             };
         }
 
@@ -71,8 +71,11 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
-            var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.Id}");
-            var rankedStats = rankResponse.Queues.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
+            var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.PlatformId}");
+            var rankedStats = rankResponse?.Queues.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
+
+            if (rankResponse?.Queues is null)
+                return new List<Queue>();
 
             return rankResponse.Queues;
         }
@@ -87,7 +90,7 @@ namespace AccountManager.Infrastructure.Clients
 
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_TFT");
-            if (rankedStats.Tier.ToLower() == "none")
+            if (rankedStats?.Tier?.ToLower() == "none")
                 return new Rank()
                 {
                     Tier = "UNRANKED",
@@ -96,8 +99,8 @@ namespace AccountManager.Infrastructure.Clients
 
             return new Rank()
             {
-                Tier = rankedStats.Tier,
-                Ranking = rankedStats.Rank,
+                Tier = rankedStats?.Tier,
+                Ranking = rankedStats?.Rank,
             };
         }
 
@@ -126,11 +129,12 @@ namespace AccountManager.Infrastructure.Clients
                     Type = "auth",
                     Username = account.Username,
                     Password = account.Password,
-                    Region = null
                 });
                 finalAuthRequest.EnsureSuccessStatusCode();
 
                 var riotTokenResponse = await finalAuthRequest.Content.ReadFromJsonAsync<RiotAuthTokenWrapper>();
+                if (riotTokenResponse?.Response?.Parameters?.Uri is null)
+                    return string.Empty;
 
                 var matches = Regex.Matches(riotTokenResponse.Response.Parameters.Uri,
                     @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
@@ -161,6 +165,9 @@ namespace AccountManager.Infrastructure.Clients
             var entitlementResponse = await client.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { urn = "urn:entitlement" });
             entitlementResponse.EnsureSuccessStatusCode();
             var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementResponse>();
+            if (entitlementResponseDeserialized?.EntitlementToken is null)
+                return string.Empty;
+
             entitlement = entitlementResponseDeserialized.EntitlementToken;
 
             return entitlement;
@@ -171,6 +178,11 @@ namespace AccountManager.Infrastructure.Clients
             var riotToken = await GetRiotAuthToken(account);
             var userInfo = await GetUserInfo(account, riotToken);
             var entitlement = await GetEntitlementJWT(account, riotToken);
+            if (string.IsNullOrEmpty(riotToken) 
+                || string.IsNullOrEmpty(userInfo)
+                || string.IsNullOrEmpty(entitlement))
+                return string.Empty;
+
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
@@ -182,6 +194,9 @@ namespace AccountManager.Infrastructure.Clients
             });
             loginResponse.EnsureSuccessStatusCode();
             var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponse>();
+            if (tokenResponse?.Token is null)
+                return string.Empty;
+
             token = tokenResponse.Token;
 
             return token;
@@ -190,8 +205,14 @@ namespace AccountManager.Infrastructure.Clients
         {
             string sessionToken;
 
-            var puuId = account.Id;
+            var puuId = account.PlatformId;
+            if (puuId is null)
+                return string.Empty;
+
             var leagueToken = await GetLeagueLoginToken(account);
+            if (string.IsNullOrEmpty(leagueToken))
+                return string.Empty;
+
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
@@ -221,7 +242,9 @@ namespace AccountManager.Infrastructure.Clients
             if (string.IsNullOrEmpty(sessionToken) || !await TestLeagueToken(sessionToken))
                 sessionToken = await CreateLeagueSession(account);
 
-            _memoryCache.Set("GetLeagueSessionToken", sessionToken);
+            if (!string.IsNullOrEmpty(sessionToken))
+                _memoryCache.Set("GetLeagueSessionToken", sessionToken);
+
             return sessionToken;
         }
 

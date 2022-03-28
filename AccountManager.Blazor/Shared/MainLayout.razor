@@ -1,4 +1,5 @@
 ﻿@using AccountManager.Core.Services
+@using AccountManager.Blazor.Components
 @inherits LayoutComponentBase
 @inject AuthService _authService; 
 @inject AlertService _alertService; 
@@ -16,27 +17,8 @@ else if (!string.IsNullOrEmpty(_alertService.InfoMessage)){
 	</div>
 }
 
-@if (_alertService.TwoFactorPrompt){
-	<div class="modal fade show d-block" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Account requires 2FA</h5>
-					<button type="button" class="btn-close btn-close-white" @onclick="_alertService.Cancel2FA" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<EditForm Model="@_alertService.TwoFactorRequest">
-						<h5 style="margin-bottom: 20px;text-align: center;"> Please enter the code that was sent to @_alertService.TwoFactorRequest.EmailHint</h5>
-						<InputText id="auth2FA" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="_alertService.TwoFactorRequest.Code" placeholder="Ex: 111111"></InputText>
-					</EditForm>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" @onclick="_alertService.Submit2FA">Submit</button>
-					<button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="_alertService.Cancel2FA">Close</button>
-				</div>
-			</div>
-		</div>
-	</div>
+@foreach (var request in _alertService.TwoFactorRequests){
+	<TwoFactorAuthModal Request="request"></TwoFactorAuthModal>
 }
 
 @if (_authService.LoggedIn){
@@ -79,18 +61,3 @@ else {
 	</form>
 }
 
-@code{
-	public string Password { get; set; }
-
-	protected override async Task OnInitializedAsync() => _alertService.UpdateView = () => InvokeAsync(() => StateHasChanged());
-	public async Task Login()
-	{
-		_authService.Login(Password);
-        await InvokeAsync(() => StateHasChanged());
-	}
-	public async Task Register()
-	{
-		_authService.Register(Password);
-        await InvokeAsync(() => StateHasChanged());
-	}
-}
