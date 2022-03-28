@@ -1,9 +1,9 @@
 ﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 using AccountManager.Core.Static;
-using AccountManager.Core.ViewModels;
 using System.Text.Json;
 
-namespace AccountManager.Infrastructure.Services
+namespace AccountManager.Infrastructure.Services.FileSystem
 {
     public class IOService : IIOService
     {
@@ -15,7 +15,7 @@ namespace AccountManager.Infrastructure.Services
         private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
-            var fileName = StringEncryption.Hash(typeof(List<AccountListItemViewModel>).Name);
+            var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
             if (!Directory.Exists(_dataPath))
             {
                 Directory.CreateDirectory(_dataPath);
@@ -30,7 +30,7 @@ namespace AccountManager.Infrastructure.Services
         {
             try
             {
-                ReadData<List<AccountListItemViewModel>>(password);
+                ReadData<List<Account>>(password);
                 return true;
             }
             catch
@@ -83,7 +83,7 @@ namespace AccountManager.Infrastructure.Services
 
             string encryptedData = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
             string decryptedData = StringEncryption.DecryptString(password, encryptedData);
-            return JsonSerializer.Deserialize<T>(decryptedData);
+            return JsonSerializer.Deserialize<T>(decryptedData) ?? new T();
         }
         public T ReadData<T>() where T : new()
         {
@@ -95,7 +95,7 @@ namespace AccountManager.Infrastructure.Services
             }
 
             string data = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
-            return JsonSerializer.Deserialize<T>(data);
+            return JsonSerializer.Deserialize<T>(data) ?? new T();
         }
 
         public string GetEncryptedUsername()
@@ -112,15 +112,10 @@ namespace AccountManager.Infrastructure.Services
 
         public DriveInfo FindSteamDrive()
         {
-            DriveInfo steamDrive = null;
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
-                {
-                    steamDrive = drive;
-                }
-            }
-            return steamDrive;
+            var drives = DriveInfo.GetDrives();
+            return drives
+                .Where((drive) => Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
+                .FirstOrDefault(drives.First());
         }
         private void WriteFile(string filePath, string fileContents)
         {

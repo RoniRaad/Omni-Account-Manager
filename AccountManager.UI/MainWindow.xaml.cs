@@ -7,17 +7,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Services;
-using AccountManager.Core.ViewModels;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
@@ -61,7 +54,6 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddSingleton<AlertService>();
-			serviceCollection.AddSingleton<SettingsViewModel>();
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
 			serviceCollection.AddSingleton<RiotLockFileService>();
@@ -69,7 +61,7 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
-			serviceCollection.AddSingleton<AccountPageViewModel>();
+			serviceCollection.AddSingleton<IAccountService, AccountService>();
 			serviceCollection.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)

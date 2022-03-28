@@ -1,8 +1,4 @@
 ﻿using AccountManager.Core.Interfaces;
-using AccountManager.Core.Static;
-using CloudFlareUtilities;
-using Microsoft.Extensions.Caching.Memory;
-using System.Diagnostics;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
@@ -27,7 +23,11 @@ namespace AccountManager.Infrastructure.Services.Token
             {
                 while (!fileReader.EndOfStream)
                 {
-                    var leagueParams = fileReader.ReadLine().Split(":");
+                    var leagueLockFile = fileReader.ReadLine();
+                    if (string.IsNullOrEmpty(leagueLockFile))
+                        return false;
+
+                    var leagueParams = leagueLockFile.Split(":");
                     token = leagueParams[3];
                     port = leagueParams[2];
                     return true;

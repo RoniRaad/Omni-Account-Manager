@@ -16,7 +16,6 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
         private readonly RiotLockFileService _riotFileSystemService;
-        private readonly LeagueLockFileService _leagueFileSystemService;
 
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
@@ -31,60 +30,56 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"challenger", "#4ee1ff"},
         };
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, LeagueLockFileService leagueFileSystemService, RiotLockFileService riotFileSystemService )
+            IHttpClientFactory httpClientFactory, RiotLockFileService riotFileSystemService )
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
-            _leagueFileSystemService = leagueFileSystemService;
             _riotFileSystemService = riotFileSystemService;
         }
         public async Task Login(Account account)
         {
             string token;
             string port;
-            EventHandler riotClientOpen = null;
             foreach (var process in Process.GetProcesses())
                 if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
                     process.Kill();
 
-
             Process.Start(GetRiotExePath());
 
-            riotClientOpen = async (o, ea) => {
-                _riotFileSystemService.ClientOpened -= riotClientOpen;
+            await _riotFileSystemService.WaitForClientInit();
 
-                var signInRequest = new LeagueSignInRequest
-                {
-                    Username = account.Username,
-                    Password = account.Password,
-                    StaySignedIn = true
-                };
-                _riotService.TryGetPortAndToken(out token, out port);
-
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
-                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
-                _ = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", signInRequest);
-
-                var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
-                var startLeague = new ProcessStartInfo
-                {
-                    FileName = GetRiotExePath(),
-                    Arguments = startLeagueCommandline
-                };
-                Process.Start(startLeague);
+            var signInRequest = new LeagueSignInRequest
+            {
+                Username = account.Username,
+                Password = account.Password,
+                StaySignedIn = true
             };
+            _riotService.TryGetPortAndToken(out token, out port);
 
-            _riotFileSystemService.ClientOpened += riotClientOpen;
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes($"riot:{token}")));
+            _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
+            _ = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization/gas", signInRequest);
+
+            var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
+            var startLeague = new ProcessStartInfo
+            {
+                FileName = GetRiotExePath(),
+                Arguments = startLeagueCommandline
+            };
+            Process.Start(startLeague);
+
         }
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             Rank rank = new Rank();
             try
             {
-                if (string.IsNullOrEmpty(account.Id))
-                    account.Id = await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    if (string.IsNullOrEmpty(account.PlatformId))
+                        return (false, rank);
 
                 rank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
                 SetRankColor(rank);
@@ -100,8 +95,8 @@ namespace AccountManager.Infrastructure.Services.Platform
             var id = "";
             try
             {
-                if (!string.IsNullOrEmpty(account.Id))
-                    return (true, account.Id);
+                if (!string.IsNullOrEmpty(account.PlatformId))
+                    return (true, account.PlatformId);
 
                 id = await _riotClient.GetPuuId(account.Username, account.Password);
                 return (true, id);

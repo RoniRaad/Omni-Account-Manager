@@ -1,16 +1,13 @@
 ﻿using AccountManager.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace AccountManager.Core.Services
 {
     public class AlertService
     {
         public TwoFactorAuthenticationUserRequest? TwoFactorRequest = null;
-        public event EventHandler TwoFactorRequestSubmitted;
+        public ObservableCollection<TwoFactorAuthenticationUserRequest> TwoFactorRequests = new();
+
         private string errorMessage = "";
         private string infoMessage = "";
         private bool twoFactorPrompt = false;
@@ -24,11 +21,12 @@ namespace AccountManager.Core.Services
             set
             {
                 twoFactorPrompt = value;
-                UpdateView();
+                if (UpdateView is not null)
+                    UpdateView();
             }
         }
 
-        public Action UpdateView { get; set; }
+        public Action? UpdateView { get; set; }
         public string ErrorMessage
         {
             get
@@ -38,7 +36,8 @@ namespace AccountManager.Core.Services
             set
             {
                 errorMessage = value;
-                UpdateView();
+                if (UpdateView is not null)
+                    UpdateView();
             }
         }
         public string InfoMessage
@@ -50,49 +49,47 @@ namespace AccountManager.Core.Services
             set
             {
                 infoMessage = value;
-                UpdateView();
+                if (UpdateView is not null)
+                    UpdateView();
             }
         }
 
-        public async Task<string> PromptUserFor2FA(Account account)
+        public async Task<string> PromptUserFor2FA(Account account, string emailHint)
         {
-            var code = "";
-            TwoFactorRequest = new()
+            string? returnCode = null;
+            Action<string>? callback = null;
+            var request = new TwoFactorAuthenticationUserRequest()
             {
-                Username = account.Username
+                Account = account,
+                EmailHint = emailHint,
+                Callback = (code) => returnCode = code
             };
-            TwoFactorPrompt = true;
-            TwoFactorRequestSubmitted += delegate
+            callback = (code) =>
             {
-                code = TwoFactorRequest.Code;
+                returnCode = code;
             };
 
-            while (TwoFactorPrompt)
+            TwoFactorRequests.Add(request);
+            if (UpdateView is not null)
+                UpdateView();
+
+            while (returnCode is null)
             {
                 await Task.Delay(100);
             }
 
-            return code;
-        }
+            TwoFactorRequests.Remove(request);
+            if (UpdateView is not null)
+                UpdateView();
 
-        public void Cancel2FA()
-        {
-            TwoFactorRequest.Code = "";
-            Submit2FA();
-        }
-
-        public void Submit2FA()
-        {
-            TwoFactorRequestSubmitted?.Invoke(this, EventArgs.Empty);
-            TwoFactorRequestSubmitted = null;
-            TwoFactorPrompt = false;
+            return returnCode;
         }
     }
     public class TwoFactorAuthenticationUserRequest
     {
-        public string Username { get; set; }
-        public string EmailHint { get; set; }
-        public string Code { get; set; }
-        public bool Cancel { get; set; }
+        public Account? Account { get; set; }
+        public string EmailHint { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public Action<string>? Callback { get; set; }
     }
 }

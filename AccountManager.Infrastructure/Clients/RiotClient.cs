@@ -36,15 +36,15 @@ namespace AccountManager.Infrastructure.Clients
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
         }
 
-        public async Task<string> GetExpectedClientVersion()
-{
+        public async Task<string?> GetExpectedClientVersion()
+        {
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>("https://valorant-api.com/v1/version");
-            return response.Data.RiotClientVersion;
+            return response?.Data?.RiotClientVersion;
         }
-        public async Task<string> GetToken(Account account)
+        public async Task<string?> GetToken(Account account)
         {
-            if (_memoryCache.TryGetValue($"{account.Username}:{account.Password}", out string token))
+            if (_memoryCache.TryGetValue($"{account.Username}:{account.Password}", out string? token))
                 return token;
 
             var handler = new ClearanceHandler
@@ -74,11 +74,11 @@ namespace AccountManager.Infrastructure.Clients
 
                 var authResponseString = authResponse.Content.ReadAsStringAsync();
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                if (authResponseDeserialized.Type == "multifactor")
+                if (authResponseDeserialized?.Type == "multifactor")
                 {
                     token = null;
                     bool errorOccured = false;
-                    var mfCode = await _alertService.PromptUserFor2FA(account);
+                    var mfCode = await _alertService.PromptUserFor2FA(account, authResponseDeserialized.Multifactor.Email);
                     if (string.IsNullOrEmpty(mfCode))
                         return "";
 
@@ -91,14 +91,14 @@ namespace AccountManager.Infrastructure.Clients
 
                     var mfLoginResponseDeserialized = await mfLogin.Content.ReadFromJsonAsync<TokenResponseWrapper>();
                     var mfLoginResponseStr = await mfLogin.Content.ReadAsStringAsync();
-                    if (mfLoginResponseDeserialized.Type == "multifactor")
+                    if (mfLoginResponseDeserialized?.Type == "multifactor")
                     {
                         _alertService.ErrorMessage = $"Incorrect code. Unable to get rank for account {account.Username}";
                         errorOccured = true;
                     }
                     else
                     {
-                        var matches = Regex.Matches(mfLoginResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+                        var matches = Regex.Matches(mfLoginResponseDeserialized?.Response?.Parameters?.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
                         token = matches[0].Groups[1].Value;
                     }
 
@@ -135,7 +135,7 @@ namespace AccountManager.Infrastructure.Clients
             return entitlementResponseDeserialized.EntitlementToken;
         }
 
-        public async Task<string> GetPuuId(string username, string password)
+        public async Task<string?> GetPuuId(string username, string password)
         {
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             await AddHeadersToClient(client);
@@ -145,12 +145,15 @@ namespace AccountManager.Infrastructure.Clients
                 Username = username,
                 Password = password
             });
+            if (bearerToken is null)
+                return null;
+
             var entitlementToken = await GetEntitlementToken(bearerToken);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.GetFromJsonAsync<UserInfoResponse>("https://auth.riotgames.com/userinfo");
-            return response.PuuId;
+            return response?.PuuId;
         }
         public async Task<Rank> GetValorantRank(Account account)
         {
@@ -158,15 +161,19 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             await AddHeadersToClient(client);
             var bearerToken = await GetToken(account);
+            if (bearerToken is null)
+                return new Rank();
+
             var entitlementToken = await GetEntitlementToken(bearerToken);
-            
+
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.Id}");
+            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.PlatformId}");
 
             if (response?.QueueSkills?.Competitive?.TotalGamesNeededForRating > 0)
-                return new Rank() {
+                return new Rank()
+                {
                     Tier = "PLACEMENTS",
                     Ranking = $"{5 - response?.QueueSkills?.Competitive?.TotalGamesNeededForRating}/5"
                 };
@@ -177,7 +184,7 @@ namespace AccountManager.Infrastructure.Clients
                     Ranking = $"{1 - response?.QueueSkills?.Competitive?.CurrentSeasonGamesNeededForRating}/1"
                 };
             else
-                rankNumber = response.LatestCompetitiveUpdate.TierAfterUpdate.Value;
+                rankNumber = response?.LatestCompetitiveUpdate?.TierAfterUpdate ?? 0;
 
             var valorantRanking = new List<string>() {
                 "IRON",
@@ -209,6 +216,4 @@ namespace AccountManager.Infrastructure.Clients
         [JsonPropertyName("rememberDevice")]
         public bool RememberDevice { get; set; }
     }
-
-
 }

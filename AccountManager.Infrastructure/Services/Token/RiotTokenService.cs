@@ -5,7 +5,7 @@ using System.IO.Pipes;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
-    public class RiotTokenService : BaseRiotService, ITokenService
+    public class RiotTokenService : ITokenService
     {
         private readonly IIOService _iOService;
 
@@ -14,12 +14,12 @@ namespace AccountManager.Infrastructure.Services.Token
             _iOService = iOService;
         }
 
-
         public bool TryGetPortAndToken(out string token, out string port)
         {
             port = "";
             token = "";
-            var fileName = @"C:\Users\Roni\AppData\Local\Riot Games\Riot Client\Config\lockfile";
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var fileName = $@"{appDataPath}\Riot Games\Riot Client\Config\lockfile";
             if (!_iOService.IsFileLocked(fileName))
                 return false;
 
@@ -28,7 +28,11 @@ namespace AccountManager.Infrastructure.Services.Token
             {
                 while (!fileReader.EndOfStream)
                 {
-                    var riotParams = fileReader.ReadLine().Split(":");
+                    var lockfileContents = fileReader.ReadLine();
+                    if (lockfileContents == null)
+                        return false;
+
+                    var riotParams = lockfileContents.Split(":");
                     token = riotParams[3];
                     port = riotParams[2];
                     return true;

@@ -15,6 +15,9 @@ namespace AccountManager.Core.Factories
         {
             var implementationType = _implementations[key];
             var implementation = _serviceProvider.GetService(implementationType);
+            if (implementation is null)
+                throw new ArgumentNullException(nameof(implementationType)); // TODO: create custom exception
+
             return (TInterface)implementation;
         }
     }
