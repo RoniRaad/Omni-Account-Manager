@@ -39,69 +39,29 @@ namespace AccountManager.Infrastructure.Services.Platform
         }
         public async Task Login(Account account)
         {
-            string token;
-            string port;
-            EventHandler riotClientOpen = null;
             try
             {
                 foreach (var process in Process.GetProcesses())
                     if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
                         process.Kill();
 
-                Process.Start(GetRiotExePath());
-
-                await _riotFileSystemService.WaitForClientInit();
-
-                var signInRequest = new LeagueSignInRequest
+                var request = new InitialAuthTokenRequest
                 {
-                    Username = account.Username,
-                    Password = account.Password,
-                    StaySignedIn = true
+                    Id = "riot-client",
+                    Nonce = "1",
+                    RedirectUri = "http://localhost/redirect",
+                    ResponseType = "token id_token",
+                    Scope = "openid offline_access lol ban profile email phone account"
                 };
 
-                _riotService.TryGetPortAndToken(out token, out port);
+                var authResponse = await _riotClient.GetRiotClientInitialCookies(request, account);
+                if (authResponse.Cookies.Csid is null)
+                    authResponse = await _riotClient.RiotAuthenticate(account, authResponse.Cookies);
 
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-                _ = await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
-                var sessionCreateResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v2/authorizations", new CreateAuthorizations());
-                var Sesestr = await sessionCreateResponse.Content.ReadAsStringAsync();
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
+                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
-                var loginResponse = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", signInRequest);
-                var loginResponseStr = await loginResponse.Content.ReadAsStringAsync();
-                var loginResponseObj = await loginResponse.Content.ReadFromJsonAsync<RiotLoginResponse>();
-
-                if (!string.IsNullOrEmpty(loginResponseObj.Error))
-                {
-                    if (loginResponseObj.Error == "rate_limited")
-                    {
-                        _alertService.ErrorMessage = "Error logging in, too many attempts made. Try again later.";
-                        return;
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(loginResponseObj?.Multifactor?.Email))
-                {
-                    var twoFactorCode = await _alertService.PromptUserFor2FA(account, loginResponseObj?.Multifactor?.Email);
-                    var mfLogin = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new MultifactorRequest()
-                    {
-                        Code = twoFactorCode,
-                        Retry = false,
-                        TrustDevice = true
-                    });
-                    var mfLoginResponse = await mfLogin.Content.ReadFromJsonAsync<RiotLoginResponse>();
-
-                    if (!string.IsNullOrEmpty(mfLoginResponse?.Multifactor?.Email))
-                    {
-                        _alertService.ErrorMessage = "Incorrect code. Login failed.";
-                        return;
-                    }
-
-                    StartValorant();
-                }
-                else
-                {
-                    StartValorant();
-                }
+                StartValorant();
             }
             catch
             {

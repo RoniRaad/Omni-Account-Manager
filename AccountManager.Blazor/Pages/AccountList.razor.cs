@@ -9,22 +9,23 @@ namespace AccountManager.Blazor.Pages
         private bool DragMode = false;
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
-                LoadList();
+            if (firstRender && !ListItems.Any())
+                await LoadList();
         }
         public void SaveList()
         {
             _accountService.WriteAllAccounts(ListItems);
         }
-        public void LoadList()
+        public async Task LoadList()
         {
+            ListItems = new();
             var accounts = _accountService.GetAllAccountsMin();
             ListItems = accounts;
             InvokeAsync(() => StateHasChanged());
             _ = Task.Run(async () =>
             {
                 var fullAccounts = await _accountService.GetAllAccounts();
-                ListItems = accounts;
+                ListItems = fullAccounts;
                 _ = InvokeAsync(() => StateHasChanged());
             });
         }
