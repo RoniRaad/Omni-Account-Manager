@@ -5,7 +5,9 @@
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
 @using AccountManager.Infrastructure.Services
+@using Microsoft.Extensions.Caching.Memory
 @inject IAccountService _accountService
+@inject IMemoryCache _memoryCache
 @namespace AccountManager.Blazor.Pages
 
 <div class="container-fluid">

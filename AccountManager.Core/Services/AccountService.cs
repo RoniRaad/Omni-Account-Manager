@@ -2,9 +2,6 @@
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
-using AccountManager.Core.Static;
-using System.Security.Principal;
 
 namespace AccountManager.Core.Services
 {
@@ -13,6 +10,7 @@ namespace AccountManager.Core.Services
         private IIOService _iOService;
         private AuthService _authService;
         private GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
+        public List<Account> currentAccounts;
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory)
         {
             _iOService = iOService;
@@ -47,18 +45,29 @@ namespace AccountManager.Core.Services
 
         public async Task<List<Account>> GetAllAccounts()
         {
-            var accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
-            foreach (var account in accounts)
+            if (currentAccounts is null)
             {
-                var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-                account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
-                var rank = (await platformService.TryFetchRank(account)).Item2;
-                if (!string.IsNullOrEmpty(rank.Tier))
-                    account.Rank = rank;
-                accounts.Add(account);
+                currentAccounts = new List<Account>();
+                return new List<Account>();
             }
 
-            return accounts;
+            if (!currentAccounts.Any())
+            {
+                var accounts = GetAllAccountsMin();
+                var accountsCount = accounts.Count;
+                for (int i = 0; i < accountsCount; i++)
+                {
+                    var account = accounts[i];
+                    var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
+                    account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                    var rank = (await platformService.TryFetchRank(account)).Item2;
+                    if (!string.IsNullOrEmpty(rank.Tier))
+                        account.Rank = rank;
+                }
+                currentAccounts = accounts;
+            }
+
+            return currentAccounts;
         }
 
         public List<Account> GetAllAccountsMin()

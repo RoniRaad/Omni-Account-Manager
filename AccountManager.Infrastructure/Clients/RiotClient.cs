@@ -1,14 +1,17 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames;
+using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
 using CloudFlareUtilities;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using System.Net.Http;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
+using AccountManager.Core.Static;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -19,12 +22,14 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
 
-        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache)
+        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
             _httpClientFactory = httpClientFactory;
             _alertService = alertService;
             _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
         }
 
         private async Task AddHeadersToClient(HttpClient httpClient)
@@ -43,12 +48,20 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        public async Task<string?> GetToken(Account account)
+        public async Task<RiotAuthResponse> GetRiotClientInitialCookies(InitialAuthTokenRequest request, Account account)
         {
-            if (_memoryCache.TryGetValue($"{account.Username}:{account.Password}", out string? token))
-                return token;
+            var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
+            var cookieContainer = new CookieContainer();
+            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(ssidCacheKey);
 
-            var handler = new ClearanceHandler
+            if (cachedSessionCookie is not null)
+                cookieContainer.Add(cachedSessionCookie);
+
+            var innerHandler = new HttpClientHandler()
+            {
+                CookieContainer = cookieContainer
+            };
+            var handler = new ClearanceHandler(innerHandler)
             {
                 MaxRetries = 2
             };
@@ -56,72 +69,117 @@ namespace AccountManager.Infrastructure.Clients
             using (var client = new HttpClient(handler))
             {
                 HttpResponseMessage authResponse;
-                await AddHeadersToClient(client);
+                authResponse = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", request);
 
-                _ = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequestPostResponse
+                var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+                var authObject = new RiotAuthResponse()
                 {
-                    Id = "play-valorant-web-prod",
-                    Nonce = "1",
-                    RedirectUri = "https://playvalorant.com/opt_in",
-                    ResponseType = "token id_token"
-                });
+                    Content = authResponseDeserialized,
+                    Cookies = MapCookies(cookieContainer.GetAllCookies())
+                };
 
-                authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
+                return authObject;
+            }
+        }
+
+        private RiotAuthCookies MapCookies(CookieCollection cookies)
+        {
+            return new RiotAuthCookies
+            {
+                Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null),
+                Clid = cookies.FirstOrDefault((cookie) => cookie?.Name == "clid", null),
+                Csid = cookies.FirstOrDefault((cookie) => cookie?.Name == "csid", null),
+                Tdid = cookies.FirstOrDefault((cookie) => cookie?.Name == "tdid", null),
+                Sub = cookies.FirstOrDefault((cookie) => cookie?.Name == "sub", null),
+                Ssid = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null),
+            };
+        }
+
+        public async Task<RiotAuthResponse> RiotAuthenticate(Account account, RiotAuthCookies initialCookies)
+        {
+            var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(initialCookies.GetCollection());
+
+            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(ssidCacheKey);
+            if (cachedSessionCookie is not null)
+                cookieContainer.Add(cachedSessionCookie);
+
+            var innerHandler = new HttpClientHandler()
+            {
+                CookieContainer = cookieContainer
+            };
+
+            var handler = new ClearanceHandler(innerHandler)
+            {
+                MaxRetries = 2
+            };
+
+            using (var client = new HttpClient(handler))
+            {
+
+                HttpResponseMessage authResponse = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new AuthRequest
                 {
                     Type = "auth",
                     Username = account.Username,
                     Password = account.Password
                 });
 
-                var authResponseString = authResponse.Content.ReadAsStringAsync();
-                var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                if (authResponseDeserialized?.Type == "multifactor")
-                {
-                    token = null;
-                    bool errorOccured = false;
-                    var mfCode = await _alertService.PromptUserFor2FA(account, authResponseDeserialized.Multifactor.Email);
-                    if (string.IsNullOrEmpty(mfCode))
-                        return "";
+                var tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
 
-                    var mfLogin = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
+                if (tokenResponse?.Type == "multifactor")
+                {
+                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse.Multifactor.Email);
+
+                    authResponse = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
                     {
                         Code = mfCode,
                         Type = "multifactor",
                         RememberDevice = true
                     });
 
-                    var mfLoginResponseDeserialized = await mfLogin.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                    var mfLoginResponseStr = await mfLogin.Content.ReadAsStringAsync();
-                    if (mfLoginResponseDeserialized?.Type == "multifactor")
-                    {
-                        _alertService.ErrorMessage = $"Incorrect code. Unable to get rank for account {account.Username}";
-                        errorOccured = true;
-                    }
-                    else
-                    {
-                        var matches = Regex.Matches(mfLoginResponseDeserialized?.Response?.Parameters?.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                        token = matches[0].Groups[1].Value;
-                    }
+                    tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
 
-                    while (string.IsNullOrEmpty(token) && !errorOccured)
-                    {
-                        await Task.Delay(100);
-                    }
-                    if (errorOccured)
-                        return "";
-
-                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
-                    return token;
+                    if (tokenResponse?.Type == "multifactor")
+                        _alertService.ErrorMessage = $"Incorrect code. Unable to authenticate {account.Username}";
                 }
-                else
+
+                var cookies = cookieContainer.GetAllCookies();
+                var sessionCookie = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null);
+
+                if (sessionCookie is not null)
+                    await _persistantCache.SetAsync(ssidCacheKey, sessionCookie);
+
+                var response = new RiotAuthResponse
                 {
-                    var matches = Regex.Matches(authResponseDeserialized.Response.Parameters.Uri, @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                    token = matches[0].Groups[1].Value;
+                    Content = tokenResponse,
+                    Cookies = MapCookies(cookies)
+                };
 
-                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
-                    return token;
-                }
+                return response;
             }
+        }
+
+        public async Task<string?> GetToken(Account account)
+        {
+            var initialAuthTokenRequest = new InitialAuthTokenRequest
+            {
+                Id = "play-valorant-web-prod",
+                Nonce = "1",
+                RedirectUri = "https://playvalorant.com/opt_in",
+                ResponseType = "token id_token"
+            };
+
+            var riotAuthResponse = await GetRiotClientInitialCookies(initialAuthTokenRequest, account);
+            if (riotAuthResponse?.Content?.Response?.Parameters is null)
+                riotAuthResponse = await RiotAuthenticate(account, riotAuthResponse.Cookies);
+
+            var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
+                    @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+
+            var token = matches[0].Groups[1].Value;
+
+            return token;
         }
 
         public async Task<string> GetEntitlementToken(string token)

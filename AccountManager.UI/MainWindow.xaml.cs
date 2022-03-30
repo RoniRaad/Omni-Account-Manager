@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
@@ -19,6 +12,7 @@ using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using CloudFlareUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
 
 namespace AccountManager.UI
@@ -33,6 +27,9 @@ namespace AccountManager.UI
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
+            serviceCollection.AddSqliteCache(options => {
+				options.CachePath = @".\cache.db";
+			});
 			serviceCollection.AddMemoryCache();
 			serviceCollection.AddHttpClient("CloudflareBypass").ConfigureHttpMessageHandlerBuilder(x =>
 			{

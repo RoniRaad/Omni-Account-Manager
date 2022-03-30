@@ -7,12 +7,15 @@ using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
 using CloudFlareUtilities;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
+using YamlDotNet.Core.Tokens;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -24,8 +27,11 @@ namespace AccountManager.Infrastructure.Clients
         private readonly LocalLeagueClient _localLeagueClient;
         private readonly AlertService _alertService;
         private readonly IUserSettingsService<UserSettings> _settings;
+        private readonly IDistributedCache _persistantCache;
+        private readonly IRiotClient _riotClient;
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory,
-            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService)
+            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService, IDistributedCache persistantCache,
+            IRiotClient riotClient)
         {
             _memoryCache = memoryCache;
             _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
@@ -34,6 +40,8 @@ namespace AccountManager.Infrastructure.Clients
             _httpClientFactory = httpClientFactory;
             _settings = settings;
             _alertService = alertService;
+            _persistantCache = persistantCache;
+            _riotClient = riotClient;
         }
 
         public async Task<string> GetRankByUsernameAsync(string username)
@@ -110,82 +118,25 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<string> GetRiotAuthToken(Account account)
         {
-            string token;
-            var handler = new ClearanceHandler
+            var request = new InitialAuthTokenRequest
             {
-                MaxRetries = 2
+                Id = "lol",
+                Nonce = "1",
+                RedirectUri = "http://localhost/redirect",
+                ResponseType = "token id_token",
+                Scope = "openid link ban lol_region"
             };
 
-            using (var client = new HttpClient(handler))
-            {
-                var initialAuthTokenResponse = await client.PostAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new InitialAuthTokenRequest
-                {
-                    Id = "lol",
-                    Nonce = "1",
-                    RedirectUri = "http://localhost/redirect",
-                    ResponseType = "token id_token",
-                    Scope = "openid link ban lol_region"
-                });
-                initialAuthTokenResponse.EnsureSuccessStatusCode();
+            var response = await _riotClient.GetRiotClientInitialCookies(request, account);
+            if (response?.Content?.Response?.Parameters is null)
+                response = await _riotClient.RiotAuthenticate(account, response.Cookies);
 
-                var finalAuthRequest = await client.PutAsJsonAsync("https://auth.riotgames.com/api/v1/authorization", new FinalAuthTokenRequest
-                {
-                    Type = "auth",
-                    Username = account.Username,
-                    Password = account.Password,
-                });
-                finalAuthRequest.EnsureSuccessStatusCode();
+            var matches = Regex.Matches(response.Content.Response.Parameters.Uri,
+                @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
 
-                var riotTokenResponse = await finalAuthRequest.Content.ReadFromJsonAsync<TokenResponseWrapper>();
+            var token = matches[0].Groups[1].Value;
 
-                if (riotTokenResponse?.Type == "multifactor")
-                {
-                    token = null;
-                    bool errorOccured = false;
-                    var mfCode = await _alertService.PromptUserFor2FA(account, riotTokenResponse.Multifactor.Email);
-                    if (string.IsNullOrEmpty(mfCode))
-                        return "";
-
-                    var mfLogin = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
-                    {
-                        Code = mfCode,
-                        Type = "multifactor",
-                        RememberDevice = true
-                    });
-
-                    var mfLoginResponseDeserialized = await mfLogin.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                    var mfLoginResponseStr = await mfLogin.Content.ReadAsStringAsync();
-                    if (mfLoginResponseDeserialized?.Type == "multifactor")
-                    {
-                        _alertService.ErrorMessage = $"Incorrect code. Unable to get rank for account {account.Username}";
-                        errorOccured = true;
-                    }
-                    else
-                    {
-                        var matches = Regex.Matches(mfLoginResponseDeserialized.Response.Parameters.Uri,
-                            @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                        token = matches[0].Groups[1].Value;
-                    }
-
-                    while (string.IsNullOrEmpty(token) && !errorOccured)
-                    {
-                        await Task.Delay(100);
-                    }
-                    if (errorOccured)
-                        return "";
-
-                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
-                    return token;
-                }
-                else
-                {
-                    var matches = Regex.Matches(riotTokenResponse.Response.Parameters.Uri,
-                            @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-                    token = matches[0].Groups[1].Value;
-                    _memoryCache.Set($"{account.Username}:{account.Password}", token);
-                    return token;
-                }
-            }
+            return token;
         }
 
         private async Task<string> GetUserInfo(Account account, string riotToken)
