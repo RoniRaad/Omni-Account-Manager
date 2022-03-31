@@ -4,7 +4,7 @@ namespace AccountManager.Blazor.Shared
     {
         public string Password { get; set; } = string.Empty;
 
-        protected override void OnInitialized() => _alertService.UpdateView = () => InvokeAsync(() => StateHasChanged());
+        protected override void OnInitialized() => _alertService.Notify += () => InvokeAsync(() => StateHasChanged());
         public async Task Login()
         {
             _authService.Login(Password);

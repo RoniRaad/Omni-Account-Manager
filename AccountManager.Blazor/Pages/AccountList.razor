@@ -8,19 +8,21 @@
 @using Microsoft.Extensions.Caching.Memory
 @inject IAccountService _accountService
 @inject IMemoryCache _memoryCache
+@inject AppState _appState
+@inject AlertService _alertSerivce
 @namespace AccountManager.Blazor.Pages
 
 <div class="container-fluid">
     <table class="table table-fit">
         <tbody>
             @if (!DragMode){
-                @foreach (var viewModel in ListItems)
+                @foreach (var viewModel in _appState.Accounts)
                 {
                     <AccountListItem AccountService="_accountService" Account="viewModel" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
                 }
             }
             else{
-                <Dropzone Items="ListItems" TItem="Account">
+                <Dropzone Items="_appState.Accounts" TItem="Account">
                     <div>
                         <AccountListItem AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" ></AccountListItem>
                     </div>

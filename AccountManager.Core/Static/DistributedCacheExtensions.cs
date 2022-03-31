@@ -11,7 +11,7 @@ namespace AccountManager.Core.Static
             await cache.SetStringAsync(key + typeof(T).Name, json);
         }
 
-        public static async Task<T?> GetAsync<T>(this IDistributedCache cache, string key) where T : notnull, new()
+        public static async Task<T?> GetAsync<T>(this IDistributedCache cache, string key)
         {
             var value = await cache.GetStringAsync(key + typeof(T).Name);
 

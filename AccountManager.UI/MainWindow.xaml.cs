@@ -49,11 +49,12 @@ namespace AccountManager.UI
 				x.PrimaryHandler = httpClientHandler;
 			});
 			serviceCollection.AddSingleton<IIOService, IOService>();
-			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddSingleton<AlertService>();
+			serviceCollection.AddSingleton<AppState>();
+			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
-			serviceCollection.AddSingleton<RiotLockFileService>();
+			serviceCollection.AddSingleton<RiotFileSystemService>();
 			serviceCollection.AddSingleton<LeagueLockFileService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();

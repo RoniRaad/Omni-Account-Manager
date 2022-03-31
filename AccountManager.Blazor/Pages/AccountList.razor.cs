@@ -5,28 +5,24 @@ namespace AccountManager.Blazor.Pages
     public partial class AccountList
     {
         private bool addAccountPrompt { get; set; } = false;
-        public List<Account> ListItems = new List<Account>();
         private bool DragMode = false;
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+        protected override async Task OnInitializedAsync()
         {
-            if (firstRender && !ListItems.Any())
-                await LoadList();
+            _appState.Notify += () =>
+            {
+                InvokeAsync(() => StateHasChanged());
+            };
+            _alertSerivce.ErrorMessage = "";
         }
         public void SaveList()
         {
-            _accountService.WriteAllAccounts(ListItems);
+            _appState.SaveAccounts();
         }
-        public async Task LoadList()
+        public void LoadList()
         {
-            ListItems = new();
-            var accounts = _accountService.GetAllAccountsMin();
-            ListItems = accounts;
-            InvokeAsync(() => StateHasChanged());
             _ = Task.Run(async () =>
             {
-                var fullAccounts = await _accountService.GetAllAccounts();
-                ListItems = fullAccounts;
-                _ = InvokeAsync(() => StateHasChanged());
+                await _appState.UpdateAccounts();
             });
         }
         public void StartAddAccount()

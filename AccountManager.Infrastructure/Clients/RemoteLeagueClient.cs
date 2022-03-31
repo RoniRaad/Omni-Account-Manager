@@ -2,20 +2,16 @@
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
-using AccountManager.Core.Models.RiotGames.Valorant;
-using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Services;
-using CloudFlareUtilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
-using YamlDotNet.Core.Tokens;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -102,7 +98,7 @@ namespace AccountManager.Infrastructure.Clients
 
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_TFT");
-            if (rankedStats?.Tier?.ToLower() == "none")
+            if (rankedStats?.Tier?.ToLower() == "none" || rankedStats?.Tier is null)
                 return new Rank()
                 {
                     Tier = "UNRANKED",
@@ -128,7 +124,7 @@ namespace AccountManager.Infrastructure.Clients
             };
 
             var response = await _riotClient.GetRiotClientInitialCookies(request, account);
-            if (response?.Content?.Response?.Parameters is null)
+            if (response?.Cookies?.Csid is null)
                 response = await _riotClient.RiotAuthenticate(account, response.Cookies);
 
             var matches = Regex.Matches(response.Content.Response.Parameters.Uri,

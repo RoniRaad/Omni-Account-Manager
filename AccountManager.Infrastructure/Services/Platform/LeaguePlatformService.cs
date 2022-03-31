@@ -10,6 +10,7 @@ using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Requests;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -20,11 +21,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
         private readonly AlertService _alertService;
-        private readonly RiotLockFileService _riotFileSystemService;
+        private readonly RiotFileSystemService _riotFileSystemService;
 
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#372826"},
+            {"iron", "#242424"},
             {"bronze", "#823012"},
             {"silver", "#7e878b"},
             {"gold", "#FFD700"},
@@ -34,8 +35,9 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"grandmaster", "#f8848f"},
             {"challenger", "#4ee1ff"},
         };
+
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotLockFileService riotFileSystemService, AlertService alertService )
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService )
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -44,6 +46,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
         }
+
         public async Task Login(Account account)
         {
             try
@@ -123,6 +126,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, id);
             }
         }
+
         private void SetRankColor(Rank rank)
         {
             if (rank.Tier is null)
@@ -132,6 +136,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (rank.Tier.ToLower().Equals(kvp.Key))
                      rank.Color = kvp.Value;
         }
+
         private DriveInfo FindRiotDrive()
         {
             DriveInfo riotDrive = null;
@@ -141,6 +146,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
             return riotDrive;
         }
+
         private string GetRiotExePath()
         {
             return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
