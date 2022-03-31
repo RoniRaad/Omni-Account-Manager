@@ -3,6 +3,7 @@ using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League.Requests;
+using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using System.Diagnostics;
@@ -15,12 +16,12 @@ namespace AccountManager.Infrastructure.Services.Platform
     {
         private readonly ITokenService _riotService;
         private readonly IRiotClient _riotClient;
-        private readonly RiotLockFileService _riotFileSystemService;
+        private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
         private readonly HttpClient _httpClient;
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#3a3a3a"},
+            {"iron", "#242424"},
             {"bronze", "#823012"},
             {"silver", "#999c9b"},
             {"gold", "#e2cd5f"},
@@ -29,7 +30,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"immortal", "#ac3654"},
         };
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotLockFileService riotLockFileService, AlertService alertService)
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
@@ -37,6 +38,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotFileSystemService = riotLockFileService;
             _alertService = alertService;
         }
+
         public async Task Login(Account account)
         {
             try
@@ -117,12 +119,14 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return new (false, id);
             }
         }
+
         private void SetRankColor(Rank rank)
         {
             foreach (KeyValuePair<string, string> kvp in RankColorMap)
                 if (rank.Tier.ToLower().Equals(kvp.Key))
                     rank.Color = kvp.Value;
         }
+
         private DriveInfo FindRiotDrive()
         {
             DriveInfo riotDrive = null;
@@ -132,115 +136,10 @@ namespace AccountManager.Infrastructure.Services.Platform
 
             return riotDrive;
         }
+
         private string GetRiotExePath()
         {
             return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
-    public class Multifactor
-    {
-        [JsonPropertyName("email")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Email { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("method")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Method { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("methods")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public List<object> Methods { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("mfaVersion")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public object MfaVersion { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("multiFactorCodeLength")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public object MultiFactorCodeLength { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    }
-
-    public class RiotLoginResponse
-    {
-        [JsonPropertyName("authenticationType")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string AuthenticationType { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("country")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Country { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("error")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Error { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("multifactor")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public Multifactor Multifactor { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("persistLogin")]
-        public bool PersistLogin { get; set; }
-
-        [JsonPropertyName("securityProfile")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public object SecurityProfile { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("type")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Type { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    }
-    public class MultifactorRequest
-    {
-        [JsonPropertyName("code")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public string Code { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        [JsonPropertyName("retry")]
-        public bool Retry { get; set; }
-
-        [JsonPropertyName("trustDevice")]
-        public bool TrustDevice { get; set; }
-    }
-
-    public class CreateAuthorizations
-    {
-        [JsonPropertyName("authenticationType")]
-        public string AuthenticationType { get; set; } = "SSOAuth";
-        [JsonPropertyName("claims")]
-        public List<string> Claims { get; set; } = new List<string>()
-        {
-            "sub","iss","auth_time","acr","name"
-        };
-        [JsonPropertyName("scope")]
-        public List<string> Scope { get; set; } = new List<string>()
-        {
-            "openid","profile","email","lol","summoner"
-        };
-        [JsonPropertyName("clientId")]
-        public string ClientId { get; set; } = "riot-client";
-
-        [JsonPropertyName("keepAlive")]
-        public bool KeepAlive { get; set; } = true;
-
-        [JsonPropertyName("trustLevels")]
-        public List<string> TrustLevels { get; set; } = new List<string>()
-        {
-            "always_trusted"
-        };
-    }
-
-
-
 }

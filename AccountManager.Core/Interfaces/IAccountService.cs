@@ -4,7 +4,7 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IAccountService
     {
-        Task AddAccount(Account account);
+        void AddAccount(Account account);
         void EditAccount(Account editedAccount);
         Task<List<Account>> GetAllAccounts();
         List<Account> GetAllAccountsMin();

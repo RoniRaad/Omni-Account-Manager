@@ -7,13 +7,13 @@
 @if (!string.IsNullOrEmpty(_alertService.ErrorMessage)){
 	<div class="alert alert-danger notification" role="alert">
 		@_alertService.ErrorMessage
-		<a @onclick="() => _alertService.ErrorMessage = string.Empty">X</a>
+		<a class="close" @onclick="() => _alertService.ErrorMessage = string.Empty">X</a>
 	</div>
 }
 else if (!string.IsNullOrEmpty(_alertService.InfoMessage)){
 	<div class="alert alert-primary notification" role="alert">
 		@_alertService.InfoMessage
-		<a @onclick="() => _alertService.InfoMessage = string.Empty" style="float:right;cursor:pointer">X</a>
+		<a class="close" @onclick="() => _alertService.InfoMessage = string.Empty">X</a>
 	</div>
 }
 

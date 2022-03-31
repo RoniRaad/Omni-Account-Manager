@@ -1,12 +1,12 @@
 ﻿
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class RiotLockFileService
+    public class RiotFileSystemService
     {
         private readonly FileSystemWatcher _riotLockFileWatcher;
         private event EventHandler clientOpened = delegate { };
         private readonly string appDataPath;
-        public RiotLockFileService()
+        public RiotFileSystemService()
         {
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _riotLockFileWatcher = new FileSystemWatcher($@"{appDataPath}\Riot Games\Riot Client\Config\");

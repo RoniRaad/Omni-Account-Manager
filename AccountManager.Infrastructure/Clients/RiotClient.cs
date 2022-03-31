@@ -1,7 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames;
-using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
@@ -12,8 +11,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AccountManager.Core.Static;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using AccountManager.Core.Models.RiotGames.Requests;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -129,7 +128,7 @@ namespace AccountManager.Infrastructure.Clients
 
                 if (tokenResponse?.Type == "multifactor")
                 {
-                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse.Multifactor.Email);
+                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email);
 
                     authResponse = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
                     {
@@ -160,7 +159,7 @@ namespace AccountManager.Infrastructure.Clients
             }
         }
 
-        public async Task<string?> GetToken(Account account)
+        public async Task<string?> GetValorantToken(Account account)
         {
             var initialAuthTokenRequest = new InitialAuthTokenRequest
             {
@@ -171,7 +170,7 @@ namespace AccountManager.Infrastructure.Clients
             };
 
             var riotAuthResponse = await GetRiotClientInitialCookies(initialAuthTokenRequest, account);
-            if (riotAuthResponse?.Content?.Response?.Parameters is null)
+            if (riotAuthResponse?.Cookies?.Csid is null)
                 riotAuthResponse = await RiotAuthenticate(account, riotAuthResponse.Cookies);
 
             var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
@@ -200,7 +199,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             await AddHeadersToClient(client);
 
-            var bearerToken = await GetToken(new Account
+            var bearerToken = await GetValorantToken(new Account
             {
                 Username = username,
                 Password = password
@@ -221,7 +220,7 @@ namespace AccountManager.Infrastructure.Clients
             int rankNumber;
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             await AddHeadersToClient(client);
-            var bearerToken = await GetToken(account);
+            var bearerToken = await GetValorantToken(account);
             if (bearerToken is null)
                 return new Rank();
 
@@ -265,16 +264,5 @@ namespace AccountManager.Infrastructure.Clients
 
             return rank;
         }
-    }
-    public class MultifactorRequest
-    {
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
-
-        [JsonPropertyName("rememberDevice")]
-        public bool RememberDevice { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace AccountManager.Blazor.Components
     
         public async Task AddAccount()
         {
-            await AccountService.AddAccount(NewAccount);
+            AccountService.AddAccount(NewAccount);
             Close();
         }
     }

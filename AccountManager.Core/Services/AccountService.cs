@@ -10,7 +10,6 @@ namespace AccountManager.Core.Services
         private IIOService _iOService;
         private AuthService _authService;
         private GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
-        public List<Account> currentAccounts;
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory)
         {
             _iOService = iOService;
@@ -18,56 +17,37 @@ namespace AccountManager.Core.Services
             _platformServiceFactory = platformServiceFactory;
         }
 
-        public async Task AddAccount(Account account)
+        public void AddAccount(Account account)
         {
-            var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-
-            account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
-            var rank = (await platformService.TryFetchRank(account)).Item2;
-            if (!string.IsNullOrEmpty(rank.Tier))
-                account.Rank = rank;
-
             var accounts = GetAllAccountsMin();
             accounts.Add(account);
             WriteAllAccounts(accounts);
         }
+
         public void RemoveAccount(Account account)
         {
             var accounts = GetAllAccountsMin();
-            var relevantAccounts = accounts.Where((viewModel) => viewModel?.AccountType == account.AccountType
-                && viewModel.Username == account.Username);
-
-            if (relevantAccounts.Any())
-                accounts.Remove(relevantAccounts.First());
+            var relevantAccounts = accounts.RemoveAll((acc) 
+                => acc?.Guid == account.Guid);
 
             WriteAllAccounts(accounts);
         }
 
         public async Task<List<Account>> GetAllAccounts()
         {
-            if (currentAccounts is null)
+            var accounts = GetAllAccountsMin();
+            var accountsCount = accounts.Count;
+            for (int i = 0; i < accountsCount; i++)
             {
-                currentAccounts = new List<Account>();
-                return new List<Account>();
+                var account = accounts[i];
+                var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
+                account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                var rank = (await platformService.TryFetchRank(account)).Item2;
+                if (!string.IsNullOrEmpty(rank.Tier))
+                    account.Rank = rank;
             }
 
-            if (!currentAccounts.Any())
-            {
-                var accounts = GetAllAccountsMin();
-                var accountsCount = accounts.Count;
-                for (int i = 0; i < accountsCount; i++)
-                {
-                    var account = accounts[i];
-                    var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-                    account.PlatformId = (await platformService.TryFetchId(account)).Item2;
-                    var rank = (await platformService.TryFetchRank(account)).Item2;
-                    if (!string.IsNullOrEmpty(rank.Tier))
-                        account.Rank = rank;
-                }
-                currentAccounts = accounts;
-            }
-
-            return currentAccounts;
+            return accounts;
         }
 
         public List<Account> GetAllAccountsMin()
@@ -92,11 +72,13 @@ namespace AccountManager.Core.Services
             });
             WriteAllAccounts(accounts);
         }
+
         public void Login(Account account)
         {
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
             platformService.Login(account);
         }
+
         public void WriteAllAccounts(List<Account> accounts)
         {
             _iOService.UpdateData(accounts, _authService.PasswordHash);

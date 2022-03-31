@@ -1,26 +1,23 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using System.Diagnostics;
-using System.Net.Http.Json;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
-using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Core.Services;
+using AccountManager.Core.Models.RiotGames.Requests;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
     public class TFTPlatformService : IPlatformService
     {
-        private readonly ITokenService _riotTokenService;
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-        private readonly HttpClient _httpClient;
-        private readonly RiotLockFileService _riotFileSystemService;
+        private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
         private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#372826"},
+            {"iron", "#242424"},
             {"bronze", "#823012"},
             {"silver", "#7e878b"},
             {"gold", "#FFD700"},
@@ -30,13 +27,11 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"grandmaster", "#f8848f"},
             {"challenger", "#4ee1ff"},
         };
-        public TFTPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, RiotLockFileService riotFileSystemService, AlertService alertService)
+        public TFTPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
+            RiotFileSystemService riotFileSystemService, AlertService alertService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
-            _riotTokenService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
-            _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
         }
@@ -101,6 +96,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, rank);
             }
         }
+
         public async Task<(bool, string)> TryFetchId(Account account)
         {
             var id = "";
@@ -117,6 +113,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, id);
             }
         }
+
         private void SetRankColor(Rank rank)
         {
             if (rank.Tier is null)
@@ -126,6 +123,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (rank.Tier.ToLower().Equals(kvp.Key))
                      rank.Color = kvp.Value;
         }
+
         private DriveInfo? FindRiotDrive()
         {
             DriveInfo riotDrive = null;
@@ -135,6 +133,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
             return riotDrive;
         }
+
         private string GetRiotExePath()
         {
             return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";

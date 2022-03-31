@@ -7,6 +7,7 @@ namespace AccountManager.Core.Services
     {
         public TwoFactorAuthenticationUserRequest? TwoFactorRequest = null;
         public ObservableCollection<TwoFactorAuthenticationUserRequest> TwoFactorRequests = new();
+        public event Action Notify = delegate { };
 
         private string errorMessage = "";
         private string infoMessage = "";
@@ -21,12 +22,10 @@ namespace AccountManager.Core.Services
             set
             {
                 twoFactorPrompt = value;
-                if (UpdateView is not null)
-                    UpdateView();
+                Notify.Invoke();
             }
         }
 
-        public Action? UpdateView { get; set; }
         public string ErrorMessage
         {
             get
@@ -36,8 +35,7 @@ namespace AccountManager.Core.Services
             set
             {
                 errorMessage = value;
-                if (UpdateView is not null)
-                    UpdateView();
+                Notify.Invoke();
             }
         }
         public string InfoMessage
@@ -49,8 +47,7 @@ namespace AccountManager.Core.Services
             set
             {
                 infoMessage = value;
-                if (UpdateView is not null)
-                    UpdateView();
+                Notify.Invoke();
             }
         }
 
@@ -70,8 +67,7 @@ namespace AccountManager.Core.Services
             };
 
             TwoFactorRequests.Add(request);
-            if (UpdateView is not null)
-                UpdateView();
+            Notify.Invoke();
 
             while (returnCode is null)
             {
@@ -79,8 +75,7 @@ namespace AccountManager.Core.Services
             }
 
             TwoFactorRequests.Remove(request);
-            if (UpdateView is not null)
-                UpdateView();
+            Notify.Invoke();
 
             return returnCode;
         }

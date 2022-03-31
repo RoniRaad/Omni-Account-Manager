@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 
 namespace AccountManager.Core.Static
 {
@@ -78,36 +74,5 @@ namespace AccountManager.Core.Static
                 return key;
             }
         }
-
-        public static (bool Verified, bool NeedsUpgrade) Check(string hash, string password)
-        {
-            var parts = hash.Split('.', 3);
-
-            if (parts.Length != 3)
-            {
-                throw new FormatException("Unexpected hash format. " +
-                  "Should be formatted as `{iterations}.{salt}.{hash}`");
-            }
-
-            var iterations = Convert.ToInt32(parts[0]);
-            var salt = Convert.FromBase64String(parts[1]);
-            var key = Convert.FromBase64String(parts[2]);
-
-            var needsUpgrade = iterations != 1000;
-
-            using (var algorithm = new Rfc2898DeriveBytes(
-              password,
-              salt,
-              iterations,
-              HashAlgorithmName.SHA512))
-            {
-                var keyToCheck = algorithm.GetBytes(KeySize);
-
-                var verified = keyToCheck.SequenceEqual(key);
-
-                return (verified, needsUpgrade);
-            }
-        }
-
     }
 }
