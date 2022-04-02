@@ -1,4 +1,5 @@
 ﻿@using AccountManager.Core.Services
+@using AccountManager.Blazor.Components
 @inherits LayoutComponentBase
 @inject AuthService _authService; 
 @inject AlertService _alertService; 
@@ -6,15 +7,20 @@
 @if (!string.IsNullOrEmpty(_alertService.ErrorMessage)){
 	<div class="alert alert-danger notification" role="alert">
 		@_alertService.ErrorMessage
-		<a @onclick="() => _alertService.ErrorMessage = string.Empty">X</a>
+		<a class="close" @onclick="() => _alertService.ErrorMessage = string.Empty">X</a>
 	</div>
 }
 else if (!string.IsNullOrEmpty(_alertService.InfoMessage)){
-		<div class="alert alert-primary notification" role="alert">
+	<div class="alert alert-primary notification" role="alert">
 		@_alertService.InfoMessage
-		<a @onclick="() => _alertService.InfoMessage = string.Empty" style="float:right;cursor:pointer">X</a>
+		<a class="close" @onclick="() => _alertService.InfoMessage = string.Empty">X</a>
 	</div>
 }
+
+@foreach (var request in _alertService.TwoFactorRequests){
+	<TwoFactorAuthModal Request="request"></TwoFactorAuthModal>
+}
+
 @if (_authService.LoggedIn){
     <div class="page">
 		<div class="sidebar">
@@ -55,18 +61,3 @@ else {
 	</form>
 }
 
-@code{
-	public string Password { get; set; }
-
-	protected override async Task OnInitializedAsync() => _alertService.UpdateView = () => InvokeAsync(() => StateHasChanged());
-	public async Task Login()
-	{
-		_authService.Login(Password);
-        await InvokeAsync(() => StateHasChanged());
-	}
-	public async Task Register()
-	{
-		_authService.Register(Password);
-        await InvokeAsync(() => StateHasChanged());
-	}
-}
