@@ -13,6 +13,7 @@ using System.Net.Http.Json;
 using AccountManager.Core.Static;
 using System.Text.RegularExpressions;
 using AccountManager.Core.Models.RiotGames.Requests;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -47,7 +48,7 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        public async Task<RiotAuthResponse> GetRiotClientInitialCookies(InitialAuthTokenRequest request, Account account)
+        private async Task<RiotAuthResponse> GetRiotClientInitialCookies(InitialAuthTokenRequest request, Account account)
         {
             var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
             var cookieContainer = new CookieContainer();
@@ -74,28 +75,25 @@ namespace AccountManager.Infrastructure.Clients
                 var authObject = new RiotAuthResponse()
                 {
                     Content = authResponseDeserialized,
-                    Cookies = MapCookies(cookieContainer.GetAllCookies())
+                    Cookies = new(cookieContainer.GetAllCookies())
                 };
+
+                if (authObject?.Cookies?.Ssid?.Expired is false)
+                    await _persistantCache.SetAsync(ssidCacheKey, authObject.Cookies.Ssid);
 
                 return authObject;
             }
         }
 
-        private RiotAuthCookies MapCookies(CookieCollection cookies)
-        {
-            return new RiotAuthCookies
-            {
-                Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null),
-                Clid = cookies.FirstOrDefault((cookie) => cookie?.Name == "clid", null),
-                Csid = cookies.FirstOrDefault((cookie) => cookie?.Name == "csid", null),
-                Tdid = cookies.FirstOrDefault((cookie) => cookie?.Name == "tdid", null),
-                Sub = cookies.FirstOrDefault((cookie) => cookie?.Name == "sub", null),
-                Ssid = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null),
-            };
-        }
 
-        public async Task<RiotAuthResponse> RiotAuthenticate(Account account, RiotAuthCookies initialCookies)
+        public async Task<RiotAuthResponse> RiotAuthenticate(InitialAuthTokenRequest request, Account account)
         {
+            var initialAuth = await GetRiotClientInitialCookies(request, account);
+            if (initialAuth?.Cookies?.Ssid?.Expired is false)
+                return initialAuth;
+
+            var initialCookies = initialAuth.Cookies;
+
             var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
             var cookieContainer = new CookieContainer();
             cookieContainer.Add(initialCookies.GetCollection());
@@ -152,7 +150,7 @@ namespace AccountManager.Infrastructure.Clients
                 var response = new RiotAuthResponse
                 {
                     Content = tokenResponse,
-                    Cookies = MapCookies(cookies)
+                    Cookies = new(cookies)
                 };
 
                 return response;
@@ -169,9 +167,7 @@ namespace AccountManager.Infrastructure.Clients
                 ResponseType = "token id_token"
             };
 
-            var riotAuthResponse = await GetRiotClientInitialCookies(initialAuthTokenRequest, account);
-            if (riotAuthResponse?.Cookies?.Csid is null)
-                riotAuthResponse = await RiotAuthenticate(account, riotAuthResponse.Cookies);
+            var riotAuthResponse = await RiotAuthenticate(initialAuthTokenRequest, account);
 
             var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
                     @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");

@@ -8,8 +8,19 @@ namespace AccountManager.Core.Models.RiotGames
         public TokenResponseWrapper Content { get; set; }
         public RiotAuthCookies Cookies { get; set; }
     }
+
     public class RiotAuthCookies
     {
+        public RiotAuthCookies(CookieCollection cookies)
+        {
+            Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null);
+            Clid = cookies.FirstOrDefault((cookie) => cookie?.Name == "clid", null);
+            Csid = cookies.FirstOrDefault((cookie) => cookie?.Name == "csid", null);
+            Tdid = cookies.FirstOrDefault((cookie) => cookie?.Name == "tdid", null);
+            Sub = cookies.FirstOrDefault((cookie) => cookie?.Name == "sub", null);
+            Ssid = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null);
+        }
+
         public Cookie? Tdid { get; set; }
         public Cookie? Ssid { get; set; }
         public Cookie? Sub { get; set; }

@@ -65,6 +65,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
             File.WriteAllText($"{_dataPath}\\{fileName}.dat", encryptedData);
         }
+
         public void UpdateData<T>(T data)
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);

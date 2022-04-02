@@ -123,9 +123,7 @@ namespace AccountManager.Infrastructure.Clients
                 Scope = "openid link ban lol_region"
             };
 
-            var response = await _riotClient.GetRiotClientInitialCookies(request, account);
-            if (response?.Cookies?.Csid is null)
-                response = await _riotClient.RiotAuthenticate(account, response.Cookies);
+            var response = await _riotClient.RiotAuthenticate(request, account);
 
             var matches = Regex.Matches(response.Content.Response.Parameters.Uri,
                 @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
