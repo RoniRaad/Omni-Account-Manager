@@ -6,35 +6,35 @@ namespace AccountManager.Core.Models.RiotGames
     public class Multifactor
     {
         [JsonPropertyName("email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [JsonPropertyName("method")]
-        public string Method { get; set; }
+        public string? Method { get; set; }
 
         [JsonPropertyName("methods")]
-        public List<string> Methods { get; set; }
+        public List<string>? Methods { get; set; }
 
         [JsonPropertyName("multiFactorCodeLength")]
         public int MultiFactorCodeLength { get; set; }
 
         [JsonPropertyName("mfaVersion")]
-        public string MfaVersion { get; set; }
+        public string? MfaVersion { get; set; }
     }
 
     public class RiotAuthTokenWrapper
     {
         [JsonPropertyName("response")]
-        public RiotAuthTokenResponse Response { get; set; }
+        public RiotAuthTokenResponse? Response { get; set; }
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonPropertyName("multifactor")]
-        public Multifactor Multifactor { get; set; }
+        public Multifactor? Multifactor { get; set; }
 
         [JsonPropertyName("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [JsonPropertyName("securityProfile")]
-        public string SecurityProfile { get; set; }
+        public string? SecurityProfile { get; set; }
     }
 }

@@ -7,9 +7,9 @@ namespace AccountManager.Core.Services
 {
     public class AccountService : IAccountService
     {
-        private IIOService _iOService;
-        private AuthService _authService;
-        private GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
+        private readonly IIOService _iOService;
+        private readonly AuthService _authService;
+        private readonly GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory)
         {
             _iOService = iOService;
@@ -27,8 +27,7 @@ namespace AccountManager.Core.Services
         public void RemoveAccount(Account account)
         {
             var accounts = GetAllAccountsMin();
-            var relevantAccounts = accounts.RemoveAll((acc) 
-                => acc?.Guid == account.Guid);
+            accounts.RemoveAll((acc) => acc?.Guid == account.Guid);
 
             WriteAllAccounts(accounts);
         }

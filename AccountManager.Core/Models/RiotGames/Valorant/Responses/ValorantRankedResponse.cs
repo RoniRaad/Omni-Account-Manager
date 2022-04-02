@@ -5,16 +5,16 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Match
     {
         [JsonPropertyName("MatchID")]
-        public string MatchID { get; set; }
+        public string? MatchID { get; set; }
 
         [JsonPropertyName("MapID")]
-        public string MapID { get; set; }
+        public string? MapID { get; set; }
 
         [JsonPropertyName("SeasonID")]
-        public string SeasonID { get; set; }
+        public string? SeasonID { get; set; }
 
         [JsonPropertyName("MatchStartTime")]
-        public object MatchStartTime { get; set; }
+        public object? MatchStartTime { get; set; }
 
         [JsonPropertyName("TierAfterUpdate")]
         public int TierAfterUpdate { get; set; }
@@ -35,7 +35,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public int RankedRatingPerformanceBonus { get; set; }
 
         [JsonPropertyName("CompetitiveMovement")]
-        public string CompetitiveMovement { get; set; }
+        public string? CompetitiveMovement { get; set; }
 
         [JsonPropertyName("AFKPenalty")]
         public int AFKPenalty { get; set; }
@@ -47,10 +47,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public int Version { get; set; }
 
         [JsonPropertyName("Subject")]
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
         [JsonPropertyName("Matches")]
-        public List<Match> Matches { get; set; }
+        public List<Match>? Matches { get; set; }
     }
 
 

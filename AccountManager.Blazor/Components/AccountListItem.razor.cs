@@ -25,17 +25,9 @@ namespace AccountManager.Blazor.Components
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         public bool EditPrompt { get; set; } = false;
-        protected override void OnInitialized()
-        {
-            Account = Account ?? throw new ArgumentNullException();
-            AccountService = AccountService ?? throw new ArgumentNullException();
-            base.OnInitialized();
-        }
 
         public void Delete()
         {
-            if (Account is null)
-                throw new ArgumentNullException();
             AccountService.RemoveAccount(Account);
             ReloadList();
         }

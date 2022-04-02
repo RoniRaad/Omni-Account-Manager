@@ -1,13 +1,16 @@
 ﻿using AccountManager.Core.Interfaces;
+using AccountManager.Infrastructure.Services.FileSystem;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
     public class LeagueTokenService : ITokenService
     {
         private readonly IIOService _iOService;
-        public LeagueTokenService(IIOService iOService)
+        private readonly RiotFileSystemService _riotFileSystemService;
+        public LeagueTokenService(IIOService iOService, RiotFileSystemService riotFileSystemService)
         {
             _iOService = iOService;
+            _riotFileSystemService = riotFileSystemService;
         }
 
         public bool TryGetPortAndToken(out string token, out string port)
@@ -21,7 +24,7 @@ namespace AccountManager.Infrastructure.Services.Token
             using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (StreamReader fileReader = new StreamReader(fileStream))
             {
-                while (!fileReader.EndOfStream)
+                if (!fileReader.EndOfStream)
                 {
                     var leagueLockFile = fileReader.ReadLine();
                     if (string.IsNullOrEmpty(leagueLockFile))

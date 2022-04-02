@@ -18,16 +18,11 @@ namespace AccountManager.Infrastructure.Services.Platform
             StopSteam();
             Process.Start($"{FindSteamDrive()}\\Program Files (x86)\\Steam\\steam.exe", args);
         }
-        public DriveInfo FindSteamDrive()
+        public DriveInfo? FindSteamDrive()
         {
-            DriveInfo steamDrive = null;
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
-                {
-                    steamDrive = drive;
-                }
-            }
+            DriveInfo? steamDrive = DriveInfo.GetDrives().FirstOrDefault(
+                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Program Files (x86)\\Steam"), null);
+
             return steamDrive;
         }
         public async Task LoginAsync(string userName, string password, string args)

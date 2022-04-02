@@ -9,13 +9,13 @@ using AccountManager.Core.Models.RiotGames.Requests;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class TFTPlatformService : IPlatformService
+    public class TeamFightTacticsPlatformService : IPlatformService
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
-        private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
             {"iron", "#242424"},
             {"bronze", "#823012"},
@@ -27,7 +27,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"grandmaster", "#f8848f"},
             {"challenger", "#4ee1ff"},
         };
-        public TFTPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
+        public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
             RiotFileSystemService riotFileSystemService, AlertService alertService)
         {
             _leagueClient = leagueClient;
@@ -58,14 +58,14 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
-                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
+                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
 
                 StartLeague();
             }
             catch
             {
-                _alertService.ErrorMessage = "There was an error signing in.";
+                _alertService.AddErrorMessage("There was an error signing in.");
             }
         }
 
@@ -82,36 +82,34 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            Rank rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
 
-                rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
+                var rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
                 SetRankColor(rank);
                 return (true, rank);
             }
             catch
             {
-                return (false, rank);
+                return (false, new Rank());
             }
         }
 
         public async Task<(bool, string)> TryFetchId(Account account)
         {
-            var id = "";
             try
             {
                 if (!string.IsNullOrEmpty(account.PlatformId))
                     return (true, account.PlatformId);
 
-                id = await _riotClient.GetPuuId(account.Username, account.Password);
-                return (true, id);
+                var id = await _riotClient.GetPuuId(account.Username, account.Password);
+                return (id is not null, id ?? string.Empty);
             }
             catch
             {
-                return (false, id);
+                return (false, string.Empty);
             }
         }
 
@@ -120,17 +118,13 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (rank.Tier is null)
                 return;
 
-            foreach (KeyValuePair<string, string> kvp in RankColorMap)
-                if (rank.Tier.ToLower().Equals(kvp.Key))
-                     rank.Color = kvp.Value;
+            rank.Color = RankColorMap.FirstOrDefault((kvp) => rank.Tier.ToLower().Equals(kvp.Key)).Value;
         }
 
         private DriveInfo? FindRiotDrive()
         {
-            DriveInfo riotDrive = null;
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-                if (Directory.Exists($"{drive.RootDirectory}\\Riot Games"))
-                    riotDrive = drive;
+            DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
+                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Riot Games"), null);
 
             return riotDrive;
         }

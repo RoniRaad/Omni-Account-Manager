@@ -69,7 +69,6 @@ namespace AccountManager.Core.Static
               HashAlgorithmName.SHA256))
             {
                 var key = Convert.ToBase64String(algorithm.GetBytes(KeySize));
-                var salt = Convert.ToBase64String(Salt);
 
                 return key;
             }

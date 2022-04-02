@@ -6,9 +6,8 @@ namespace AccountManager.Core.Interfaces
     {
         T Settings { get; set; }
 
-        bool ChangePassword(PasswordChangeRequest newPassword);
+        bool ChangePassword(PasswordChangeRequest changeRequest);
 
         void Save();
-        void Transfer();
     }
 }

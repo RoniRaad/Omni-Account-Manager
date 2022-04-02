@@ -80,7 +80,9 @@ namespace AccountManager.Infrastructure.Clients
                 if (authObject?.Cookies?.Ssid?.Expired is false)
                     await _persistantCache.SetAsync(ssidCacheKey, authObject.Cookies.Ssid);
 
+#pragma warning disable CS8603 // Possible null reference return.
                 return authObject;
+#pragma warning restore CS8603 // Possible null reference return.
             }
         }
 
@@ -91,7 +93,7 @@ namespace AccountManager.Infrastructure.Clients
             if (initialAuth?.Cookies?.Ssid?.Expired is false)
                 return initialAuth;
 
-            var initialCookies = initialAuth.Cookies;
+            var initialCookies = initialAuth?.Cookies ?? new();
 
             var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
             var cookieContainer = new CookieContainer();
@@ -125,7 +127,7 @@ namespace AccountManager.Infrastructure.Clients
 
                 if (tokenResponse?.Type == "multifactor")
                 {
-                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email);
+                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
 
                     authResponse = await client.PutAsJsonAsync($"https://auth.riotgames.com/api/v1/authorization", new MultifactorRequest()
                     {
@@ -137,7 +139,7 @@ namespace AccountManager.Infrastructure.Clients
                     tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
 
                     if (tokenResponse?.Type == "multifactor")
-                        _alertService.ErrorMessage = $"Incorrect code. Unable to authenticate {account.Username}";
+                        _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
                 }
 
                 var cookies = cookieContainer.GetAllCookies();
@@ -168,6 +170,9 @@ namespace AccountManager.Infrastructure.Clients
 
             var riotAuthResponse = await RiotAuthenticate(initialAuthTokenRequest, account);
 
+            if (riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
+                return null;
+
             var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
                     @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
 
@@ -176,7 +181,7 @@ namespace AccountManager.Infrastructure.Clients
             return token;
         }
 
-        public async Task<string> GetEntitlementToken(string token)
+        public async Task<string?> GetEntitlementToken(string token)
         {
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
@@ -186,7 +191,7 @@ namespace AccountManager.Infrastructure.Clients
             var entitlementResponse = await client.PostAsJsonAsync("https://entitlements.auth.riotgames.com/api/token/v1", new { });
             var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementTokenResponse>();
 
-            return entitlementResponseDeserialized.EntitlementToken;
+            return entitlementResponseDeserialized?.EntitlementToken;
         }
 
         public async Task<string?> GetPuuId(string username, string password)

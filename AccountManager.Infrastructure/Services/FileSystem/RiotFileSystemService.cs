@@ -5,7 +5,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 {
     public class RiotFileSystemService
     {
-        private readonly FileSystemWatcher _riotLockFileWatcher;
         private readonly IIOService _iOService;
         private event EventHandler clientOpened = delegate { };
         private readonly string appDataPath;
@@ -13,9 +12,9 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             _iOService = iOService;
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            _riotLockFileWatcher = new FileSystemWatcher($@"{appDataPath}\Riot Games\Riot Client\Config\");
+            var riotLockFileWatcher = new FileSystemWatcher($@"{appDataPath}\Riot Games\Riot Client\Config\");
 
-            _riotLockFileWatcher.NotifyFilter = NotifyFilters.Attributes
+            riotLockFileWatcher.NotifyFilter = NotifyFilters.Attributes
                                  | NotifyFilters.CreationTime
                                  | NotifyFilters.DirectoryName
                                  | NotifyFilters.FileName
@@ -24,10 +23,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                                  | NotifyFilters.Security
                                  | NotifyFilters.Size;
 
-            _riotLockFileWatcher.EnableRaisingEvents = true;
-            _riotLockFileWatcher.Filter = "*lockfile";
-            _riotLockFileWatcher.Changed += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
-            _riotLockFileWatcher.Created += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
+            riotLockFileWatcher.EnableRaisingEvents = true;
+            riotLockFileWatcher.Filter = "*lockfile";
+            riotLockFileWatcher.Changed += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
+            riotLockFileWatcher.Created += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
         }
 
         public async Task WaitForClientInit()
@@ -46,8 +45,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             {
                 await Task.Delay(100);
             }
-
-            return;
         }
 
         public async Task WaitForClientClose()
@@ -60,8 +57,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 clientIsOpen = _iOService.IsFileLocked(lockfilePath);
                 await Task.Delay(100);
             }
-
-            return;
         }
 
         public bool DeleteLockfile()

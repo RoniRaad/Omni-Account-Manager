@@ -22,6 +22,8 @@ namespace AccountManager.UI
     /// </summary>
     public partial class MainWindow : Window
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", "S4830:Server certificates should be verified during SSL/TLS connections", 
+			Justification = "Local requests to client require ignoring certificate")]
         public MainWindow()
         {
             var serviceCollection = new ServiceCollection();
@@ -55,7 +57,7 @@ namespace AccountManager.UI
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
-			serviceCollection.AddSingleton<LeagueLockFileService>();
+			serviceCollection.AddSingleton<LeagueFileSystemService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
@@ -64,7 +66,7 @@ namespace AccountManager.UI
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)
-				.AddImplementation<TFTPlatformService>(AccountType.TFT)
+				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TFT)
 				.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
 				.Build();
 			serviceCollection.AddFactory<AccountType, ITokenService>()

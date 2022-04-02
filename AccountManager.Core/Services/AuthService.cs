@@ -24,7 +24,7 @@ namespace AccountManager.Core.Services
             LoggedIn = _iOService.TryLogin(PasswordHash);
             if (!LoggedIn)
             {
-                _alertService.ErrorMessage = "Error incorrect password!";
+                _alertService.AddErrorMessage("Error incorrect password!");
             }
         }
 

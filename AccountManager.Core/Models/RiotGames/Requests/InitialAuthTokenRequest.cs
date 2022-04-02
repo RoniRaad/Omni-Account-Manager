@@ -5,14 +5,14 @@ namespace AccountManager.Core.Models.RiotGames.Requests
     public class InitialAuthTokenRequest
     {
         [JsonPropertyName("client_id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [JsonPropertyName("nonce")]
-        public string Nonce { get; set; }
+        public string? Nonce { get; set; }
         [JsonPropertyName("redirect_uri")]
-        public string RedirectUri { get; set; }
+        public string? RedirectUri { get; set; }
         [JsonPropertyName("response_type")]
-        public string ResponseType { get; set; }
+        public string? ResponseType { get; set; }
         [JsonPropertyName("scope")]
-        public string Scope { get; set; }
+        public string? Scope { get; set; }
     }
 }

@@ -6,13 +6,12 @@ namespace AccountManager.Blazor.Pages
     {
         private bool addAccountPrompt { get; set; } = false;
         private bool DragMode = false;
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             _appState.Notify += () =>
             {
                 InvokeAsync(() => StateHasChanged());
             };
-            _alertSerivce.ErrorMessage = "";
         }
         public void SaveList()
         {
