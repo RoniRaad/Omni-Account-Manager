@@ -13,7 +13,6 @@ using System.Net.Http.Json;
 using AccountManager.Core.Static;
 using System.Text.RegularExpressions;
 using AccountManager.Core.Models.RiotGames.Requests;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -225,24 +224,20 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.PlatformId}");
+            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"https://pd.na.a.pvp.net/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive");
+            
+            if (response?.Matches?.Any() is false)
+                return new Rank()
+                {
+                    Tier = "UNRANKED",
+                    Ranking = $""
+                };
 
-            if (response?.QueueSkills?.Competitive?.TotalGamesNeededForRating > 0)
-                return new Rank()
-                {
-                    Tier = "PLACEMENTS",
-                    Ranking = $"{5 - response?.QueueSkills?.Competitive?.TotalGamesNeededForRating}/5"
-                };
-            else if (response?.QueueSkills?.Competitive?.CurrentSeasonGamesNeededForRating > 0)
-                return new Rank()
-                {
-                    Tier = "PLACEMENTS",
-                    Ranking = $"{1 - response?.QueueSkills?.Competitive?.CurrentSeasonGamesNeededForRating}/1"
-                };
-            else
-                rankNumber = response?.LatestCompetitiveUpdate?.TierAfterUpdate ?? 0;
+            var mostRecentMatch = response?.Matches?.First();
+            rankNumber = mostRecentMatch?.TierAfterUpdate ?? 0;
 
             var valorantRanking = new List<string>() {
+                "Unrated",
                 "IRON",
                 "BRONZE",
                 "SILVER" ,
@@ -250,6 +245,7 @@ namespace AccountManager.Infrastructure.Clients
                 "PLATINUM" ,
                 "DIAMOND" ,
                 "IMMORTAL" ,
+                "RADIANT"
             };
 
             var rank = new Rank()
