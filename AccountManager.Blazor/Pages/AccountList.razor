@@ -16,9 +16,9 @@
     <table class="table table-fit">
         <tbody>
             @if (!DragMode){
-                @foreach (var viewModel in _appState.Accounts)
+                @foreach (var account in _appState.Accounts)
                 {
-                    <AccountListItem AccountService="_accountService" Account="viewModel" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
+                    <AccountListItem AccountService="_accountService" Account="account" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
                 }
             }
             else{
