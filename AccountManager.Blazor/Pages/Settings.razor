@@ -2,10 +2,9 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
-@using AccountManager.Core.ViewModels
-@inject AuthService _authService
+@using AccountManager.Blazor.Components
+@inject AppState _authService
 @inject IUserSettingsService<UserSettings> _settings
-@inject SettingsViewModel _viewModel
 
 <div class="container main">
     <EditForm Model="@_settings.Settings">
@@ -26,15 +25,23 @@
                 </tr>
                 <tr>
                     <th scope="row">
-                        <p >Change your account manager password</p>
+                        <p>Change your account manager password</p>
                     </th>
                     <td>
-                        <button class="btn btn-dark" @onclick=_viewModel.ToggleChangePassword>Change Password</button>
+                        <button class="btn btn-dark" @onclick="() => ShowChangePasswordPrompt=true">Change Password</button>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        <p >Save changes</p>
+                        <p>Transfer legacy accounts</p>
+                    </th>
+                    <td>
+                        <button class="btn btn-dark" @onclick=_settings.Transfer>Transfer</button>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Save changes</p>
                     </th>
                     <td>
                         <button class="btn btn-dark" @onclick=_settings.Save>Save</button>
@@ -45,34 +52,7 @@
     </EditForm>
 </div>
 
-@if (_viewModel.ShowChangePasswordPrompt)
+@if (ShowChangePasswordPrompt)
 {
-	<div class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h5 class="modal-title">Change Password</h5>
-                <button type="button" class="btn-close btn-close-white" @onclick="_viewModel.ToggleChangePassword" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                <EditForm Model="@_viewModel.PasswordChangeRequest">
-                    <div class="form-group">
-                    <label for="currentPassword">Current Password</label>
-                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="currentPassword" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.OldPassword" placeholder="Current Password"></InputText>
-   
-                    <label for="newPassword">New Password</label>
-                    <InputText style="margin-bottom:12px" type="password" class="form-control" id="newPasswordConfirm" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.NewPassword" placeholder="New Password"></InputText>
-
-                    <label for="newPasswordConfirm">Confirm New Password</label>
-                    <InputText style="margin-bottom:12px" type="password"  class="form-control" id="newPasswordConfirm" aria-describedby="emailHelp" @bind-Value="_viewModel.PasswordChangeRequest.NewPasswordConfirm" placeholder="Confirm New Password"></InputText>
-                    </div>
-                </EditForm>
-                </div>
-                <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="_viewModel.ChangePassword">Change Password</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="_viewModel.ToggleChangePassword">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <ChangePasswordModal SettingsService="_settings" Close="() => {ShowChangePasswordPrompt=false; InvokeAsync(()=>StateHasChanged());}"></ChangePasswordModal>
 }

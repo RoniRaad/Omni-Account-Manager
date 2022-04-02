@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AccountManager.Core.Models.RiotGames.League.Requests
+namespace AccountManager.Core.Models.RiotGames.Requests
 {
     public class InitialAuthTokenRequest
     {
