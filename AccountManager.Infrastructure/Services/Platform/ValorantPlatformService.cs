@@ -19,7 +19,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
         private readonly HttpClient _httpClient;
-        private Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
             {"iron", "#242424"},
             {"bronze", "#823012"},
@@ -61,14 +61,14 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
-                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
+                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
 
                 StartValorant();
             }
             catch
             {
-                _alertService.ErrorMessage = "There was an error signing in.";
+                _alertService.AddErrorMessage("There was an error signing in.");
             }
         }
 
@@ -85,7 +85,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            Rank rank = new Rank();
+            Rank rank;
 
             try
             {
@@ -97,14 +97,12 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
             catch
             {
-                return new(false, rank);
+                return new(false, new ());
             }
         }
 
         public async Task<(bool, string)> TryFetchId(Account account)
         {
-            string id = "";
-
             try
             {
                 if (!string.IsNullOrEmpty(account.PlatformId))
@@ -112,35 +110,32 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return new (true, account.PlatformId);
                 }
 
-                id = await _riotClient.GetPuuId(account.Username, account.Password);
-                return new(true, id);
+                var id = await _riotClient.GetPuuId(account.Username, account.Password);
+                return new(id is not null, id ?? string.Empty);
             }
             catch
             {
-                return new (false, id);
+                return new (false, string.Empty);
             }
         }
 
         private void SetRankColor(Rank rank)
         {
-            foreach (KeyValuePair<string, string> kvp in RankColorMap)
-                if (rank.Tier.ToLower().Equals(kvp.Key))
-                    rank.Color = kvp.Value;
+            rank.Color = RankColorMap.FirstOrDefault((kvp) => rank?.Tier?.ToLower()?.Equals(kvp.Key) is true, 
+                new KeyValuePair<string, string>("", "")).Value;
         }
 
-        private DriveInfo FindRiotDrive()
+        private DriveInfo? FindRiotDrive()
         {
-            DriveInfo riotDrive = null;
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-                if (Directory.Exists($"{drive.RootDirectory}\\Riot Games"))
-                    riotDrive = drive;
+            DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
+                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Riot Games"), null);
 
             return riotDrive;
         }
 
         private string GetRiotExePath()
         {
-            return @$"{FindRiotDrive().RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+            return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

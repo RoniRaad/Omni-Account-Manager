@@ -124,12 +124,14 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             string[] steamAppFiles = Directory.GetFiles($"{FindSteamDrive()}\\Program Files (x86)\\Steam\\steamapps");
             List<string[]> steamGames = new List<string[]>();
 
-            foreach (string file in steamAppFiles)
-                if (file.Contains("appmanifest"))
+
+            steamAppFiles.ToList().ForEach((file) =>
                 {
-                    string[] fileContents = File.ReadAllLines(file);
-                    steamGames.Add(fileContents);
-                }
+                    if (file.Contains("appmanifest")){
+                        string[] fileContents = File.ReadAllLines(file);
+                        steamGames.Add(fileContents);
+                    }
+                });
 
             return steamGames;
         }

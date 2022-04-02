@@ -17,12 +17,16 @@ namespace AccountManager.Blazor.Components
 
         public void Submit()
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Request.Callback(Request.Code);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
         public void Close()
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Request.Callback("");
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 }

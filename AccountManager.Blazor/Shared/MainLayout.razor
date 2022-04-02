@@ -4,20 +4,24 @@
 @inject AuthService _authService; 
 @inject AlertService _alertService; 
 
-@if (!string.IsNullOrEmpty(_alertService.ErrorMessage)){
-	<div class="alert alert-danger notification" role="alert">
-		@_alertService.ErrorMessage
-		<a class="close" @onclick="() => _alertService.ErrorMessage = string.Empty">X</a>
-	</div>
-}
-else if (!string.IsNullOrEmpty(_alertService.InfoMessage)){
-	<div class="alert alert-primary notification" role="alert">
-		@_alertService.InfoMessage
-		<a class="close" @onclick="() => _alertService.InfoMessage = string.Empty">X</a>
-	</div>
-}
+<div class = "notification">
+	@foreach(var errorMessage in _alertService.GetErrorMessages()){
+		<div class="alert alert-danger" role="alert">
+			@errorMessage
+			<a class="close" @onclick="() => _alertService.RemoveErrorMessage(errorMessage)">X</a>
+		</div>
+	}
 
-@foreach (var request in _alertService.TwoFactorRequests){
+	@foreach(var infoMessage in _alertService.GetInfoMessages()){
+		<div class="alert alert-info" role="alert">
+			@infoMessage
+			<a class="close" @onclick="() => _alertService.RemoveInfoMessage(infoMessage)">X</a>
+		</div>
+	}
+</div>
+
+
+@foreach (var request in _alertService.GetTwoFactorAuthRequests()){
 	<TwoFactorAuthModal Request="request"></TwoFactorAuthModal>
 }
 

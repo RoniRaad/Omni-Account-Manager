@@ -17,8 +17,8 @@ namespace AccountManager.Infrastructure.Clients
 {
     public class RemoteLeagueClient : ILeagueClient
     {
-        private IMemoryCache _memoryCache;
-        private IHttpClientFactory _httpClientFactory;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ITokenService _leagueTokenService;
         private readonly LocalLeagueClient _localLeagueClient;
         private readonly AlertService _alertService;
@@ -80,7 +80,6 @@ namespace AccountManager.Infrastructure.Clients
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
             var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"https://na-blue.lol.sgp.pvp.net/leagues-ledge/v2/rankedStats/puuid/{account.PlatformId}");
-            var rankedStats = rankResponse?.Queues.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
 
             if (rankResponse?.Queues is null)
                 return new List<Queue>();
@@ -125,6 +124,9 @@ namespace AccountManager.Infrastructure.Clients
 
             var response = await _riotClient.RiotAuthenticate(request, account);
 
+            if (response?.Content?.Response?.Parameters?.Uri is null)
+                return string.Empty;
+
             var matches = Regex.Matches(response.Content.Response.Parameters.Uri,
                 @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
 
@@ -133,7 +135,7 @@ namespace AccountManager.Infrastructure.Clients
             return token;
         }
 
-        private async Task<string> GetUserInfo(Account account, string riotToken)
+        private async Task<string> GetUserInfo(string riotToken)
         {
             string userInfo;
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
@@ -146,7 +148,7 @@ namespace AccountManager.Infrastructure.Clients
             return userInfo;
         }
 
-        private async Task<string> GetEntitlementJWT(Account account, string riotToken)
+        private async Task<string> GetEntitlementJWT(string riotToken)
         {
             string entitlement;
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
@@ -169,8 +171,8 @@ namespace AccountManager.Infrastructure.Clients
         {
             string token;
             var riotToken = await GetRiotAuthToken(account);
-            var userInfo = await GetUserInfo(account, riotToken);
-            var entitlement = await GetEntitlementJWT(account, riotToken);
+            var userInfo = await GetUserInfo(riotToken);
+            var entitlement = await GetEntitlementJWT(riotToken);
             if (string.IsNullOrEmpty(riotToken) 
                 || string.IsNullOrEmpty(userInfo)
                 || string.IsNullOrEmpty(entitlement))
@@ -229,9 +231,8 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string> GetLeagueSessionToken(Account account)
         {
-            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string sessionToken))
-                if (await TestLeagueToken(sessionToken))
-                    return sessionToken;
+            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string sessionToken) && await TestLeagueToken(sessionToken))
+                return sessionToken;
 
             sessionToken = await _localLeagueClient.GetLocalSessionToken();
             if (string.IsNullOrEmpty(sessionToken) || !await TestLeagueToken(sessionToken))

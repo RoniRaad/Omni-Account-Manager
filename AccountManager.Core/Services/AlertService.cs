@@ -5,68 +5,22 @@ namespace AccountManager.Core.Services
 {
     public class AlertService
     {
-        public TwoFactorAuthenticationUserRequest? TwoFactorRequest = null;
-        public ObservableCollection<TwoFactorAuthenticationUserRequest> TwoFactorRequests = new();
+        private readonly List<TwoFactorAuthenticationUserRequest> twoFactorRequests = new();
+        private readonly List<string> errorMessages = new();
+        private readonly List<string> infoMessages = new();
         public event Action Notify = delegate { };
-
-        private string errorMessage = "";
-        private string infoMessage = "";
-        private bool twoFactorPrompt = false;
-
-        public bool TwoFactorPrompt
-        {
-            get
-            {
-                return this.twoFactorPrompt;
-            }
-            set
-            {
-                twoFactorPrompt = value;
-                Notify.Invoke();
-            }
-        }
-
-        public string ErrorMessage
-        {
-            get
-            {
-                return this.errorMessage;
-            }
-            set
-            {
-                errorMessage = value;
-                Notify.Invoke();
-            }
-        }
-        public string InfoMessage
-        {
-            get
-            {
-                return this.infoMessage;
-            }
-            set
-            {
-                infoMessage = value;
-                Notify.Invoke();
-            }
-        }
 
         public async Task<string> PromptUserFor2FA(Account account, string emailHint)
         {
             string? returnCode = null;
-            Action<string>? callback = null;
             var request = new TwoFactorAuthenticationUserRequest()
             {
                 Account = account,
                 EmailHint = emailHint,
                 Callback = (code) => returnCode = code
             };
-            callback = (code) =>
-            {
-                returnCode = code;
-            };
 
-            TwoFactorRequests.Add(request);
+            twoFactorRequests.Add(request);
             Notify.Invoke();
 
             while (returnCode is null)
@@ -74,12 +28,58 @@ namespace AccountManager.Core.Services
                 await Task.Delay(100);
             }
 
-            TwoFactorRequests.Remove(request);
+            twoFactorRequests.Remove(request);
             Notify.Invoke();
 
             return returnCode;
         }
+
+        public IEnumerable<string> GetErrorMessages()
+        {
+            return errorMessages;
+        }
+
+        public IEnumerable<string> GetInfoMessages()
+        {
+            return infoMessages;
+        }
+
+        public void AddErrorMessage(string errorMessage)
+        {
+            errorMessages.Add(errorMessage);
+            Notify.Invoke();
+            Task.Run(async () =>
+            {
+                await Task.Delay(6000);
+                RemoveErrorMessage(errorMessage);
+            }); 
+        }
+
+        public void AddInfoMessage(string infoMessage)
+        {
+            infoMessages.Add(infoMessage);
+            Notify.Invoke();
+        }
+
+        public void RemoveErrorMessage(string errorMessage)
+        {
+            errorMessages.Remove(errorMessage);
+            Notify.Invoke();
+        }
+
+        public void RemoveInfoMessage(string infoMessage)
+        {
+            infoMessages.Remove(infoMessage);
+            Notify.Invoke();
+        }
+
+        public IEnumerable<TwoFactorAuthenticationUserRequest> GetTwoFactorAuthRequests()
+        {
+            return twoFactorRequests;
+        }
+
     }
+
     public class TwoFactorAuthenticationUserRequest
     {
         public Account? Account { get; set; }

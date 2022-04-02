@@ -5,16 +5,16 @@ namespace AccountManager.Core.Models.RiotGames.League
     public class Queue
     {
         [JsonPropertyName("queueType")]
-        public string QueueType { get; set; }
+        public string? QueueType { get; set; }
 
         [JsonPropertyName("provisionalGameThreshold")]
         public int ProvisionalGameThreshold { get; set; }
 
         [JsonPropertyName("tier")]
-        public string Tier { get; set; }
+        public string? Tier { get; set; }
 
         [JsonPropertyName("rank")]
-        public string Rank { get; set; }
+        public string? Rank { get; set; }
 
         [JsonPropertyName("leaguePoints")]
         public int LeaguePoints { get; set; }
@@ -29,10 +29,10 @@ namespace AccountManager.Core.Models.RiotGames.League
         public int ProvisionalGamesRemaining { get; set; }
 
         [JsonPropertyName("previousSeasonEndTier")]
-        public string PreviousSeasonEndTier { get; set; }
+        public string? PreviousSeasonEndTier { get; set; }
 
         [JsonPropertyName("previousSeasonEndRank")]
-        public string PreviousSeasonEndRank { get; set; }
+        public string? PreviousSeasonEndRank { get; set; }
 
         [JsonPropertyName("ratedRating")]
         public int RatedRating { get; set; }

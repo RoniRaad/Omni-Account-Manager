@@ -5,12 +5,14 @@ namespace AccountManager.Core.Models.RiotGames
 {
     public class RiotAuthResponse
     {
-        public TokenResponseWrapper Content { get; set; }
-        public RiotAuthCookies Cookies { get; set; }
+        public TokenResponseWrapper? Content { get; set; }
+        public RiotAuthCookies? Cookies { get; set; }
     }
 
     public class RiotAuthCookies
     {
+        public RiotAuthCookies() { }
+
         public RiotAuthCookies(CookieCollection cookies)
         {
             Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null);

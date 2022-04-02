@@ -5,8 +5,8 @@ namespace AccountManager.Core.Models.RiotGames.League
     public class QueueMap
     {
         [JsonPropertyName("RANKED_SOLO_5x5")]
-        public RankedStats RankedSoloDuoStats { get; set; }
+        public RankedStats? RankedSoloDuoStats { get; set; }
         [JsonPropertyName("RANKED_TFT")]
-        public RankedStats TFTStats { get; set; }
+        public RankedStats? TFTStats { get; set; }
     }
 }

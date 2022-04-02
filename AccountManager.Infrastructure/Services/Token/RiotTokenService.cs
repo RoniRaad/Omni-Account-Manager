@@ -26,7 +26,7 @@ namespace AccountManager.Infrastructure.Services.Token
             using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (StreamReader fileReader = new StreamReader(fileStream))
             {
-                while (!fileReader.EndOfStream)
+                if (!fileReader.EndOfStream)
                 {
                     var lockfileContents = fileReader.ReadLine();
                     if (lockfileContents == null)

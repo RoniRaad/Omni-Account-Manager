@@ -2,6 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Accurately represents object.")]
     public class RankedSolo5x5
     {
         [JsonPropertyName("currentSeasonId")]

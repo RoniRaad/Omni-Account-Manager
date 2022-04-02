@@ -1,14 +1,12 @@
-﻿
-namespace AccountManager.Infrastructure.Services.FileSystem
+﻿namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class LeagueLockFileService
+    public class LeagueFileSystemService
     {
-        private readonly FileSystemWatcher _leagueLockFileWatcher;
         public event EventHandler ClientOpened = delegate { };
 
-        public LeagueLockFileService()
+        public LeagueFileSystemService()
         {
-            _leagueLockFileWatcher = new FileSystemWatcher(@"C:\Riot Games\League of Legends\");
+            var _leagueLockFileWatcher = new FileSystemWatcher(GetLeagueInstallPath());
 
             _leagueLockFileWatcher.NotifyFilter = NotifyFilters.Attributes
                                  | NotifyFilters.CreationTime
@@ -23,6 +21,17 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             _leagueLockFileWatcher.Filter = "*lockfile";
             _leagueLockFileWatcher.Changed += (object sender, FileSystemEventArgs e) => ClientOpened(sender, EventArgs.Empty);
             _leagueLockFileWatcher.Created += (object sender, FileSystemEventArgs e) => ClientOpened(sender, EventArgs.Empty);
+        }
+
+        private DriveInfo? GetLeagueDrive()
+        {
+            return DriveInfo.GetDrives().FirstOrDefault(
+                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Program Files (x86)\\Steam"), null);
+        }
+
+        public string GetLeagueInstallPath()
+        {
+            return @$"{GetLeagueDrive()}\Riot Games\League of Legends\";
         }
     }
 }
