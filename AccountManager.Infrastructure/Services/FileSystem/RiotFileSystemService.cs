@@ -1,13 +1,17 @@
 ﻿
+using AccountManager.Core.Interfaces;
+
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
     public class RiotFileSystemService
     {
         private readonly FileSystemWatcher _riotLockFileWatcher;
+        private readonly IIOService _iOService;
         private event EventHandler clientOpened = delegate { };
         private readonly string appDataPath;
-        public RiotFileSystemService()
+        public RiotFileSystemService(IIOService iOService)
         {
+            _iOService = iOService;
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _riotLockFileWatcher = new FileSystemWatcher($@"{appDataPath}\Riot Games\Riot Client\Config\");
 
@@ -44,6 +48,39 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             }
 
             return;
+        }
+
+        public async Task WaitForClientClose()
+        {
+            var lockfilePath = $@"{appDataPath}\Riot Games\Riot Client\Config\lockfile";
+
+            var clientIsOpen = true;
+            while (clientIsOpen)
+            {
+                clientIsOpen = _iOService.IsFileLocked(lockfilePath);
+                await Task.Delay(100);
+            }
+
+            return;
+        }
+
+        public bool DeleteLockfile()
+        {
+            var lockfilePath = $@"{appDataPath}\Riot Games\Riot Client\Config\lockfile";
+            if (File.Exists(lockfilePath))
+            {
+                try
+                {
+                    File.Delete(lockfilePath);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task<string> GenerateYaml(string region, string tdid, string ssid, string sub, string csid)

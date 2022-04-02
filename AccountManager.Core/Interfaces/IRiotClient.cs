@@ -8,9 +8,8 @@ namespace AccountManager.Core.Interfaces
     {
         Task<string> GetEntitlementToken(string token);
         Task<string?> GetPuuId(string username, string password);
-        Task<RiotAuthResponse> GetRiotClientInitialCookies(InitialAuthTokenRequest request, Account account);
         Task<string?> GetValorantToken(Account account);
         Task<Rank> GetValorantRank(Account account);
-        Task<RiotAuthResponse> RiotAuthenticate(Account account, RiotAuthCookies initialCookies);
+        Task<RiotAuthResponse> RiotAuthenticate(InitialAuthTokenRequest request, Account account);
     }
 }

@@ -44,6 +44,9 @@ namespace AccountManager.Infrastructure.Services.Platform
                     if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
                         process.Kill();
 
+                await _riotFileSystemService.WaitForClientClose();
+                _riotFileSystemService.DeleteLockfile();
+
                 var request = new InitialAuthTokenRequest
                 {
                     Id = "riot-client",
@@ -53,9 +56,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     Scope = "openid offline_access lol ban profile email phone account"
                 };
 
-                var authResponse = await _riotClient.GetRiotClientInitialCookies(request, account);
-                if (authResponse.Cookies.Csid is null)
-                    authResponse = await _riotClient.RiotAuthenticate(account, authResponse.Cookies);
+                var authResponse = await _riotClient.RiotAuthenticate(request, account);
 
                 await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
                     authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
