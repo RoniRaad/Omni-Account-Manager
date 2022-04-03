@@ -1,8 +1,10 @@
-﻿using System.Net.Http;
+﻿using System.Configuration;
+using System.Net.Http;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
@@ -11,6 +13,7 @@ using AccountManager.Infrastructure.Services.Platform;
 using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using CloudFlareUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
@@ -24,12 +27,18 @@ namespace AccountManager.UI
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", "S4830:Server certificates should be verified during SSL/TLS connections", 
 			Justification = "Local requests to client require ignoring certificate")]
-        public MainWindow()
+		public IConfigurationRoot Configuration { get; set; }
+		public MainWindow()
         {
-            var serviceCollection = new ServiceCollection();
+			var builder = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+			Configuration = builder.Build();
+
+			ServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
-            serviceCollection.AddSqliteCache(options => {
+            serviceCollection.AddOptions();
+			serviceCollection.AddSqliteCache(options => {
 				options.CachePath = @".\cache.db";
 			});
 			serviceCollection.AddMemoryCache();
@@ -50,6 +59,7 @@ namespace AccountManager.UI
 
 				x.PrimaryHandler = httpClientHandler;
 			});
+			serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddSingleton<AppState>();
