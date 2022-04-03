@@ -7,13 +7,14 @@ namespace AccountManager.Core.Static
     {
         public static string EncryptString(string key, string plainText)
         {
-            byte[] iv = Encoding.ASCII.GetBytes(Hash(plainText))[^16..];
+            byte[] iv;
             byte[] array;
 
             using (Aes aes = Aes.Create())
             {
+                aes.GenerateIV();
+                iv = aes.IV;
                 aes.Key = Convert.FromBase64String(key);
-                aes.IV = iv;
 
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
@@ -59,6 +60,8 @@ namespace AccountManager.Core.Static
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", "S3329:Cipher Block Chaining IVs should be unpredictable", 
+            Justification = "This method is marked obsolete and is only used for migrating older data.")]
         [Obsolete("This method is less safe for encryption as it uses a fixed IV. Prefer the method EncryptString")]
         public static string EncryptStringFixedIV(string key, string plainText)
         {
