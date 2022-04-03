@@ -74,6 +74,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public T ReadData<T>(string password) where T : new()
         {
+            string decryptedData;
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
             if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
@@ -83,7 +84,23 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             }
 
             string encryptedData = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
-            string decryptedData = StringEncryption.DecryptString(password, encryptedData);
+            try
+            {
+                decryptedData = StringEncryption.DecryptString(password, encryptedData);
+            }
+            catch
+            {
+                try
+                {
+                    // Migrates old insecure encrypted files to new encryption scheme. Temporary addition will be removed in a newer release
+                    decryptedData = StringEncryption.DecryptStringFixedIV(password, encryptedData);
+                    File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, decryptedData));
+                }
+                catch
+                {
+                    throw new ArgumentException("Incorrect Password Given");
+                }
+            }
             return JsonSerializer.Deserialize<T>(decryptedData) ?? new T();
         }
         public T ReadData<T>() where T : new()

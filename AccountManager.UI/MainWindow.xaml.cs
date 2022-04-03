@@ -25,10 +25,11 @@ namespace AccountManager.UI
     /// </summary>
     public partial class MainWindow : Window
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", "S4830:Server certificates should be verified during SSL/TLS connections", 
-			Justification = "Local requests to client require ignoring certificate")]
 		public IConfigurationRoot Configuration { get; set; }
-		public MainWindow()
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
+			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "<Pending>")]
+        public MainWindow()
         {
 			var builder = new ConfigurationBuilder()
 			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -60,6 +61,7 @@ namespace AccountManager.UI
 				x.PrimaryHandler = httpClientHandler;
 			});
 			serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
+			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddSingleton<AppState>();

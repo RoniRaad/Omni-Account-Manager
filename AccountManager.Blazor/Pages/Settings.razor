@@ -1,8 +1,10 @@
 ﻿@page "/settings"
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Models.AppSettings
 @using AccountManager.Core.Services
 @using AccountManager.Blazor.Components
+@using Microsoft.Extensions.Options
 @inject AppState _authService
 @inject IUserSettingsService<UserSettings> _settings
 

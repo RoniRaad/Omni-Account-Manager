@@ -6,18 +6,18 @@ namespace AccountManager.Infrastructure.Services.Token
     public class LeagueTokenService : ITokenService
     {
         private readonly IIOService _iOService;
-        private readonly RiotFileSystemService _riotFileSystemService;
-        public LeagueTokenService(IIOService iOService, RiotFileSystemService riotFileSystemService)
+        private readonly LeagueFileSystemService _leagueFileSystemService;
+        public LeagueTokenService(IIOService iOService, LeagueFileSystemService leagueFileSystemService)
         {
             _iOService = iOService;
-            _riotFileSystemService = riotFileSystemService;
+            _leagueFileSystemService = leagueFileSystemService;
         }
 
         public bool TryGetPortAndToken(out string token, out string port)
         {
             port = "";
             token = "";
-            var fileName = @"C:\Riot Games\League of Legends\lockfile";
+            var fileName = $@"{_leagueFileSystemService.GetLeagueInstallPath()}\lockfile";
             if (!_iOService.IsFileLocked(fileName))
                 return false;
 
