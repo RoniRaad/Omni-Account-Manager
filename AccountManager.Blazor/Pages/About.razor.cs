@@ -6,7 +6,7 @@ namespace AccountManager.Blazor.Pages
     {
         public void OpenGitHubPage()
         {
-            Process.Start(new ProcessStartInfo("https://github.com/RoniRaad/Multi-Game-Account-Manager".Replace("&", "^&"))
+            Process.Start(new ProcessStartInfo(_aboutEndpointsOptions?.Value?.Github ?? "")
             {UseShellExecute = true});
         }
     }
