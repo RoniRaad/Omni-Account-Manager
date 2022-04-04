@@ -49,7 +49,7 @@
 
 
   <ItemGroup>
-    <Folder Include="publish\" />
+    <Folder Include="published\" />
   </ItemGroup>
 
 </Project>
