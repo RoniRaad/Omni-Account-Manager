@@ -3,7 +3,12 @@
   <assemblyIdentity name="Multi-Account-Manager.application" version="1.0.0.5" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <description asmv2:publisher="Roni" asmv2:product="Multi Account Manager" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <deployment install="true" mapFileExtensions="true" minimumRequiredVersion="1.0.0.4" co.v1:createDesktopShortcut="true">
-    <deploymentProvider codebase="https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/master/publish/Multi-Account-Manager.application" />
+    <subscription>
+      <update>
+        <beforeApplicationStartup />
+      </update>
+    </subscription>
+    <deploymentProvider codebase="https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/feature-code-cleanup/publish/Multi-Account-Manager.application" />
   </deployment>
   <compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2">
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
