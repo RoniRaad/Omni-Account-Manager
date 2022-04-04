@@ -108,6 +108,15 @@
       <dsig:DigestValue>0uBVjmOsMb1O0B5NtxB4EoCLF8AiNFXABIL2McC0Mzk=</dsig:DigestValue>
     </hash>
   </file>
+  <file name="FileTemplates\riotClientAuthTemplate.yaml" size="1428">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>b4rTzOrTwT4SgdQacNCUgPaX+Ip/0ijywFdVZXiJM8Y=</dsig:DigestValue>
+    </hash>
+  </file>
   <file name="icon.ico" size="2462">
     <hash>
       <dsig:Transforms>
@@ -447,7 +456,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>+v8OaIj3Egsit4I/f8Y9LEuGaUuJubmZSpNBJD8GRmA=</dsig:DigestValue>
+      <dsig:DigestValue>X4ZOC5cHPgtahEpjERu0rADQ0kEkllj1sP+i/InD7wA=</dsig:DigestValue>
     </hash>
   </file>
   <file name="Multi-Account-Manager.exe" size="117760">
