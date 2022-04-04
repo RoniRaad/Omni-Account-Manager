@@ -5,18 +5,18 @@ namespace AccountManager.Core.Models.RiotGames.League
     public class Seasons
     {
         [JsonPropertyName("RANKED_TFT")]
-        public RankedTFT RankedTFT { get; set; }
+        public RankedTeamFightTactics? RankedTFT { get; set; }
 
         [JsonPropertyName("RANKED_TFT_TURBO")]
-        public RankedTFTTurbo RankedTFTTurbo { get; set; }
+        public RankedTeamFightTacticsTurbo? RankedTFTTurbo { get; set; }
 
         [JsonPropertyName("RANKED_TFT_PAIRS")]
-        public RankedTFTPairs RankedTFTPairs { get; set; }
+        public RankedTeamFightTacticsPairs? RankedTFTPairs { get; set; }
 
         [JsonPropertyName("RANKED_FLEX_SR")]
-        public RankedTFTFlex RankedTFTFlex { get; set; }
+        public RankedTeamFightTacticsFlex? RankedTFTFlex { get; set; }
 
         [JsonPropertyName("RANKED_SOLO_5x5")]
-        public RankedSolo5x5 RankedSolo5x5 { get; set; }
+        public RankedSolo5x5? RankedSolo5x5 { get; set; }
     }
 }

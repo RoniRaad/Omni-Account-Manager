@@ -5,12 +5,12 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class AuthRequestPostResponse
     {
         [JsonPropertyName("client_id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         [JsonPropertyName("nonce")]
-        public string Nonce { get; set; }
+        public string? Nonce { get; set; }
         [JsonPropertyName("redirect_uri")]
-        public string RedirectUri { get; set; }
+        public string? RedirectUri { get; set; }
         [JsonPropertyName("response_type")]
-        public string ResponseType { get; set; }
+        public string? ResponseType { get; set; }
     }
 }

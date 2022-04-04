@@ -35,7 +35,14 @@ a {
 	width: 100%;
 	z-index: 2000;
 	text-align: center;
-	padding: .2rem 1rem
+	width: auto;
+	right:10px;
+	top:10px;
+}
+.alert .close {
+	float: right;
+	cursor: pointer;
+	margin-left: 10px
 }
 
 .login-form div {
@@ -63,15 +70,15 @@ a {
 	align-items: center;
 }
 
-	.top-row ::deep a, .top-row .btn-link {
-		white-space: nowrap;
-		margin-left: 1.5rem;
-	}
+.top-row ::deep a, .top-row .btn-link {
+	white-space: nowrap;
+	margin-left: 1.5rem;
+}
 
-	.top-row a:first-child {
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
+.top-row a:first-child {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 
 @media (max-width: 640.98px) {
 	.top-row:not(.auth) {

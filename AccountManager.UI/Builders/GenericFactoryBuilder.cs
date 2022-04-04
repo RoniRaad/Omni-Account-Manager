@@ -11,7 +11,7 @@ namespace AccountManager.UI.Builders
     public class GenericFactoryBuilder<TKey, TInterface> : IGenericFactoryBuilder<TKey, TInterface> where TKey : notnull, new()
     {
         private Dictionary<TKey, Type> _implementations { get; set; }
-        private ServiceCollection _services;
+        private readonly ServiceCollection _services;
         public GenericFactoryBuilder(ServiceCollection services)
         {
             _implementations = new Dictionary<TKey, Type>();

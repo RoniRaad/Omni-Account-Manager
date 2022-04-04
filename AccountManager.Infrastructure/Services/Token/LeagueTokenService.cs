@@ -1,51 +1,43 @@
 ﻿using AccountManager.Core.Interfaces;
-using AccountManager.Core.Static;
-using CloudFlareUtilities;
-using Microsoft.Extensions.Caching.Memory;
-using System.Diagnostics;
+using AccountManager.Infrastructure.Services.FileSystem;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
     public class LeagueTokenService : ITokenService
     {
-        private readonly IMemoryCache _memoryCache;
-        private readonly HttpClient _httpClient;
-        public LeagueTokenService(IMemoryCache cache, IHttpClientFactory httpClientFactory)
+        private readonly IIOService _iOService;
+        private readonly LeagueFileSystemService _leagueFileSystemService;
+        public LeagueTokenService(IIOService iOService, LeagueFileSystemService leagueFileSystemService)
         {
-            _memoryCache = cache;
-            _httpClient = httpClientFactory.CreateClient("CloudflareBypass");
+            _iOService = iOService;
+            _leagueFileSystemService = leagueFileSystemService;
         }
 
         public bool TryGetPortAndToken(out string token, out string port)
         {
-            if (!Process.GetProcessesByName("LeagueClientUx").Any())
-            {
-                token = "";
-                port = "";
+            port = "";
+            token = "";
+            var fileName = $@"{_leagueFileSystemService.GetLeagueInstallPath()}\lockfile";
+            if (!_iOService.IsFileLocked(fileName))
                 return false;
+
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader fileReader = new StreamReader(fileStream))
+            {
+                if (!fileReader.EndOfStream)
+                {
+                    var leagueLockFile = fileReader.ReadLine();
+                    if (string.IsNullOrEmpty(leagueLockFile))
+                        return false;
+
+                    var leagueParams = leagueLockFile.Split(":");
+                    token = leagueParams[3];
+                    port = leagueParams[2];
+                    return true;
+                }
             }
 
-            var leagueParams = GetLeagueCommandlineParams();
-            token = WmicHelper.GetCommandLineValue(leagueParams, "--remoting-auth-token");
-            port = WmicHelper.GetCommandLineValue(leagueParams, "--app-port");
-            return true;
-        }
-
-        private string GetLeagueCommandlineParams()
-        {
-            var queryProcess = "LeagueClientUx.exe";
-            var StartInfo = new ProcessStartInfo
-            {
-                FileName = "wmic",
-                Arguments = $"PROCESS WHERE name='{queryProcess}' GET commandline",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            };
-
-            var wmicQuery = Process.Start(StartInfo);
-            wmicQuery.WaitForExit();
-            return wmicQuery.StandardOutput.ReadToEnd();
+            return false;
         }
     }
 }

@@ -1,5 +1,9 @@
 ﻿@page "/about"
 @using System.Diagnostics
+@using AccountManager.Core.Models.AppSettings
+@using Microsoft.Extensions.Options
+@inject IOptions<AboutEndpoints> _aboutEndpointsOptions
+
 <div style="text-align:center">
     <h3>Multi Account Manager</h3>
     <hr />
@@ -11,13 +15,8 @@
 </div>
 <div>
     <p>
-        Support the project on GitHub: <a href="./about" @onclick="OpenGitHubPage">https://github.com/RoniRaad/Multi-Game-Account-Manager</a>
+        Support the project on GitHub: <a href="./about" @onclick="OpenGitHubPage">@_aboutEndpointsOptions.Value.Github</a>
     </p>
 </div>
 
-@code {
-    public void OpenGitHubPage()
-    {
-        Process.Start(new ProcessStartInfo("https://github.com/RoniRaad/Multi-Game-Account-Manager".Replace("&", "^&")) { UseShellExecute = true });
-    }
-}
+

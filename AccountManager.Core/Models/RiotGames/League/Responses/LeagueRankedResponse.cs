@@ -5,21 +5,21 @@ namespace AccountManager.Core.Models.RiotGames.League.Responses
     public class LeagueRankedResponse
     {
         [JsonPropertyName("queues")]
-        public List<Queue> Queues { get; set; }
+        public List<Queue>? Queues { get; set; }
 
         [JsonPropertyName("highestPreviousSeasonEndTier")]
-        public string HighestPreviousSeasonEndTier { get; set; }
+        public string? HighestPreviousSeasonEndTier { get; set; }
 
         [JsonPropertyName("highestPreviousSeasonEndRank")]
-        public string HighestPreviousSeasonEndRank { get; set; }
+        public string? HighestPreviousSeasonEndRank { get; set; }
 
         [JsonPropertyName("earnedRegaliaRewardIds")]
-        public List<object> EarnedRegaliaRewardIds { get; set; }
+        public List<object>? EarnedRegaliaRewardIds { get; set; }
 
         [JsonPropertyName("splitsProgress")]
-        public SplitsProgress SplitsProgress { get; set; }
+        public SplitsProgress? SplitsProgress { get; set; }
 
         [JsonPropertyName("seasons")]
-        public Seasons Seasons { get; set; }
+        public Seasons? Seasons { get; set; }
     }
 }

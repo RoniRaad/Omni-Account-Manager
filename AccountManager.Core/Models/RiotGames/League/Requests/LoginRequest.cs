@@ -7,8 +7,8 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         [JsonPropertyName("clientName")]
         public string Name { get; set; } = "lcu";
         [JsonPropertyName("entitlements")]
-        public string Entitlements { get; set; }
+        public string? Entitlements { get; set; }
         [JsonPropertyName("userinfo")]
-        public string UserInfo { get; set; }
+        public string? UserInfo { get; set; }
     }
 }

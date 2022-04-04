@@ -1,0 +1,20 @@
+﻿<div style="z-index:100000" class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Account @Request?.Account?.Username requires 2FA</h5>
+				<button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<EditForm Model="@Request">
+					<h5 style="margin-bottom: 20px;text-align: center;"> Please enter the code that was sent to @Request?.EmailHint</h5>
+					<InputText id="auth2FA" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="Request.Code" placeholder="Ex: 111111"></InputText>
+				</EditForm>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" @onclick="Submit">Submit</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="Close">Close</button>
+			</div>
+		</div>
+	</div>
+</div>

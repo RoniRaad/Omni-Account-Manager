@@ -1,30 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Services;
-using AccountManager.Core.ViewModels;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
+using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Infrastructure.Services.Platform;
 using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using CloudFlareUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
 
 namespace AccountManager.UI
@@ -34,11 +24,23 @@ namespace AccountManager.UI
     /// </summary>
     public partial class MainWindow : Window
     {
+		public IConfigurationRoot Configuration { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
+			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "<Pending>")]
         public MainWindow()
         {
-            var serviceCollection = new ServiceCollection();
+			var builder = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+			Configuration = builder.Build();
+
+			ServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
+            serviceCollection.AddOptions();
+			serviceCollection.AddSqliteCache(options => {
+				options.CachePath = @".\cache.db";
+			});
 			serviceCollection.AddMemoryCache();
 			serviceCollection.AddHttpClient("CloudflareBypass").ConfigureHttpMessageHandlerBuilder(x =>
 			{
@@ -57,21 +59,25 @@ namespace AccountManager.UI
 
 				x.PrimaryHandler = httpClientHandler;
 			});
+			serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
+			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
-			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddSingleton<AlertService>();
-			serviceCollection.AddSingleton<SettingsViewModel>();
+			serviceCollection.AddSingleton<AppState>();
+			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
+			serviceCollection.AddSingleton<RiotFileSystemService>();
+			serviceCollection.AddSingleton<LeagueFileSystemService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
-			serviceCollection.AddSingleton<AccountPageViewModel>();
+			serviceCollection.AddSingleton<IAccountService, AccountService>();
 			serviceCollection.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)
-				.AddImplementation<TFTPlatformService>(AccountType.TFT)
+				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TFT)
 				.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
 				.Build();
 			serviceCollection.AddFactory<AccountType, ITokenService>()
