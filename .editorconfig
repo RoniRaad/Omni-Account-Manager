@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# S1172: Unused method parameters should be removed
+dotnet_diagnostic.S1172.severity = none

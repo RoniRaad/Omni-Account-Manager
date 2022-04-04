@@ -1,6 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 using AccountManager.Core.Static;
-using AccountManager.Core.ViewModels;
 
 namespace AccountManager.Core.Services
 {
@@ -11,7 +11,6 @@ namespace AccountManager.Core.Services
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
-        public Action UpdateMainView { get; set; }
         public AuthService(IIOService iOService, AlertService alertService)
         {
             _iOService = iOService;
@@ -25,7 +24,7 @@ namespace AccountManager.Core.Services
             LoggedIn = _iOService.TryLogin(PasswordHash);
             if (!LoggedIn)
             {
-                _alertService.ErrorMessage = "Error incorrect password!";
+                _alertService.AddErrorMessage("Error incorrect password!");
             }
         }
 
@@ -44,7 +43,7 @@ namespace AccountManager.Core.Services
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);
 
-            var currentData = _iOService.ReadData<List<AccountListItemViewModel>>(oldPassword);
+            var currentData = _iOService.ReadData<List<Account>>(oldPassword);
             _iOService.UpdateData(currentData, newPassword);
             PasswordHash = newPassword;
         }

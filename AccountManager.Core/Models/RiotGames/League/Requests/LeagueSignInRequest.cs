@@ -10,10 +10,11 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
     public class LeagueSignInRequest
     {
         [JsonPropertyName("username")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
         [JsonPropertyName("password")]
-        public string Password { get; set; }
-        [JsonPropertyName("platformId")]
-        public string PlatformId { get; set; }
+        public string? Password { get; set; }
+        [JsonPropertyName("persistLogin")]
+        public bool StaySignedIn { get; set; }
+        
     }
 }

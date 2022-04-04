@@ -18,16 +18,11 @@ namespace AccountManager.Infrastructure.Services.Platform
             StopSteam();
             Process.Start($"{FindSteamDrive()}\\Program Files (x86)\\Steam\\steam.exe", args);
         }
-        public DriveInfo FindSteamDrive()
+        public DriveInfo? FindSteamDrive()
         {
-            DriveInfo steamDrive = null;
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
-                {
-                    steamDrive = drive;
-                }
-            }
+            DriveInfo? steamDrive = DriveInfo.GetDrives().FirstOrDefault(
+                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Program Files (x86)\\Steam"), null);
+
             return steamDrive;
         }
         public async Task LoginAsync(string userName, string password, string args)
@@ -50,13 +45,13 @@ namespace AccountManager.Infrastructure.Services.Platform
             var valueEnd = commandline.IndexOf(" ", valueStart);
             return commandline.Substring(valueStart, valueEnd - valueStart).Replace(@"\", "").Replace("\"", "");
         }
-        public async Task<(bool, Rank)> TryFetchRank(Account account)
+        public Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            return new (true, new Rank());
+            return Task.FromResult<(bool, Rank)>(new (true, new Rank()));
         }
-        public async Task<(bool, string)> TryFetchId(Account account)
+        public Task<(bool, string)> TryFetchId(Account account)
         {
-            return new(true, string.Empty);
+            return Task.FromResult<(bool, string)>(new (true,string.Empty));
         }
     }
 }

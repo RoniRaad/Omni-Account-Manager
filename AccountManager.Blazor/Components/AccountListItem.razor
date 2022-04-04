@@ -1,18 +1,18 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
-@using AccountManager.Core.ViewModels
+@using AccountManager.Core.Models
 @inherits LayoutComponentBase
     <tr>
       <th scope="row">
-                  @if (ListViewModel.AccountType == Core.Enums.AccountType.League)
+        @if (Account.AccountType == Core.Enums.AccountType.League)
         {
             <img src="./logos/league-logo.png" class="game-logo" />
         }
-        else if (ListViewModel.AccountType == Core.Enums.AccountType.TFT)
+        else if (Account.AccountType == Core.Enums.AccountType.TFT)
         {
             <img src="./logos/tft-logo.png" class="game-logo" />
         }
-        else if (ListViewModel.AccountType == Core.Enums.AccountType.Steam)
+        else if (Account.AccountType == Core.Enums.AccountType.Steam)
         {
             <div class="game-logo">
                 <svg xmlns="http://www.w3.org/2000/svg" height="34px" width="34px" class="game-logo-svg" version="1.1" viewBox="0 0 233 233">
@@ -32,7 +32,7 @@
                 </svg>
             </div>
         }
-        else if (ListViewModel.AccountType == Core.Enums.AccountType.Valorant)
+        else if (Account.AccountType == Core.Enums.AccountType.Valorant)
         {
             <div class="game-logo">
                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
@@ -43,73 +43,32 @@
         }
       </th>
       <td style=" width:32px">
-          @ListViewModel?.Name
+          @Account?.Id
       </td>
       <td>
         <div class="name-container">
             <div class="row">
-                <span style="color:@ListViewModel?.Rank?.Color" class="badge badge-secondary">@ListViewModel?.Rank?.Tier @ListViewModel?.Rank?.Ranking</span>
+                <span style="color:@Account?.Rank?.Color" class="badge badge-secondary">@Account?.Rank?.Tier @Account?.Rank?.Ranking</span>
             </div>
             <div class="row">
-                <span class="badge badge-secondary">@ListViewModel.Account.Username</span>
+                <span class="badge badge-secondary">@Account?.Username</span>
             </div>
         </div>
       </td>
       @if (RenderButtons){
         <td>
             <div class="buttons-container">
-                <span @onclick=ListViewModel.Delete class="oi oi-trash"></span>
-                <span @onclick=ListViewModel.ToggleEdit class="oi oi-wrench"></span>
-                <span @onclick=ListViewModel.Login class="oi oi-account-login"> </span>
+                <span @onclick=Delete class="oi oi-trash"></span>
+                <span @onclick="() => {EditPrompt=true; InvokeAsync(() => StateHasChanged());}" class="oi oi-wrench"></span>
+                <span @onclick="() => AccountService.Login(Account)" class="oi oi-account-login"> </span>
             </div>
         </td>
       }
  
     </tr>
-    @if (ListViewModel.IsEditing)
+    @if (EditPrompt)
     {
-        <div class="modal show" tabindex="1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                    <h5 class="modal-title">Edit</h5>
-                    <button type="button" class="btn-close btn-close-white" @onclick=ListViewModel.ToggleEdit aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="@ListViewModel">
-                            <div class="form-group">
-                            <label for="inputName">Name</label>
-                            <InputText class="form-control text-input" style="margin-bottom:12px" id="inputName" aria-describedby="emailHelp" @bind-Value="ListViewModel.Name" placeholder="Name"></InputText>
-   
-                            <label for="inputUsername">Username</label>
-                            <InputText class="form-control text-input" style="margin-bottom:12px" id="inputUsername" aria-describedby="emailHelp" @bind-Value="ListViewModel.Account.Username" placeholder="Username"></InputText>
-
-                            <label for="inputPassword">Password</label>
-                            <InputText type="password" style="margin-bottom:12px" class="text-input form-control" id="inputPassword" aria-describedby="emailHelp" @bind-Value="ListViewModel.Account.Password" placeholder="Password"></InputText>
-                            </div>
-                            <div class="form-group">
-                                <label for="accountTypeSelect">Account Type</label>
-                                <InputSelect id="accountTypeSelect" style="margin-bottom:12px" class="form-select text-input" @bind-Value="ListViewModel.AccountType">
-                                    @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
-                                    {
-                                        <option value="@accountType">@accountType</option>
-                                    }
-                                </InputSelect>
-                            </div>
-                        </EditForm>
-                    </div>
-                    <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @onclick=ListViewModel.ToggleEdit >Save</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <AccountEditModal Account="Account" AccountService="AccountService" Close="() => {EditPrompt = false; ReloadList();}"></AccountEditModal>
     }
 
-@code {
-    [Parameter]
-    public AccountListItemViewModel ListViewModel { get; set; }
 
-    [Parameter]
-    public bool RenderButtons { get; set; }
-}
