@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
