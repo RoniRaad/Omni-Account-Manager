@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="FileTemplates\riotClientAuthTemplate.yaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CloudFlareUtilities" Version="1.3.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="NeoSmart.Caching.Sqlite" Version="6.0.1" />
@@ -27,13 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="FileTemplates\riotClientAuthTemplate.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\.editorconfig" Link=".editorconfig" />
+    <None Update="FileTemplates\riotClientAuthTemplate.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
