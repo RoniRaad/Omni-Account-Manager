@@ -26,6 +26,9 @@
 
 
   <ItemGroup>
+    <None Update="FileTemplates\riotClientAuthTemplate.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
