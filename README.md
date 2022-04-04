@@ -2,4 +2,4 @@
 The multi account manager is a one stop shop for managing many gaming related accounts. It currently supports the following platforms/games: Steam, Riot, League of Legends, Valorant, and Team Fight Tactics. Ranks are also displayed for the latter 3 games.
 
 Download the most current release here:
-https://github.com/RoniRaad/Multi-Game-Account-Manager/releases/tag/v1.0.0
+https://github.com/RoniRaad/Multi-Game-Account-Manager/blob/master/publish/setup.exe?raw=true
