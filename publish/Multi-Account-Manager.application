@@ -8,7 +8,7 @@
         <beforeApplicationStartup />
       </update>
     </subscription>
-    <deploymentProvider codebase="https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/master/publish/Multi-Account-Manager.application" />
+    <deploymentProvider codebase="https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/feature-code-cleanup/publish/Multi-Account-Manager.application" />
   </deployment>
   <compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2">
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
