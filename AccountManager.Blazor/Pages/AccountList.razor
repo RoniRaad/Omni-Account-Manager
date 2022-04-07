@@ -46,6 +46,6 @@
     </div>
     @if (addAccountPrompt)
     {
-        <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; LoadList();}"></NewAccountPrompt>
+        <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountPrompt>
     }
 </div>
