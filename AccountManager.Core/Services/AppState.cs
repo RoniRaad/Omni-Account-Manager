@@ -12,13 +12,14 @@ namespace AccountManager.Core.Services
         {
             _accountService = accountService;
             Accounts = _accountService.GetAllAccountsMin();
-
-            _ = UpdateAccounts();
-
             Notify = delegate
             {
 
             };
+
+            _ = UpdateAccounts();
+
+
 
             StartUpdateTimer();
         }
@@ -37,19 +38,15 @@ namespace AccountManager.Core.Services
         public async Task UpdateAccounts()
         {
             var minAccounts = _accountService.GetAllAccountsMin();
-            foreach (var account in Accounts)
-            {
-                var relevantAccount = minAccounts.FirstOrDefault((acc) => acc.Guid == account.Guid, null);
-                if (relevantAccount is null)
-                {
-                    Accounts.Remove(account);
-                }
-                else
-                {
-                    minAccounts.Remove(relevantAccount);
-                }
-            }
+
+            Accounts.RemoveAll(acc => 
+                !minAccounts.Any(minAcc => minAcc.Guid == acc.Guid));
+
+            minAccounts.RemoveAll(
+                acc => Accounts.Any(minAcc => minAcc.Guid == acc.Guid));
+
             Accounts.AddRange(minAccounts);
+
             Notify.Invoke();
 
             var fullAccounts = await _accountService.GetAllAccounts();

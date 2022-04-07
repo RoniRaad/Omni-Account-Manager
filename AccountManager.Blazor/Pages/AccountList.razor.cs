@@ -19,10 +19,7 @@ namespace AccountManager.Blazor.Pages
         }
         public void LoadList()
         {
-            _ = Task.Run(async () =>
-            {
-                await _appState.UpdateAccounts();
-            });
+            _ = _appState.UpdateAccounts();
         }
         public void StartAddAccount()
         {
