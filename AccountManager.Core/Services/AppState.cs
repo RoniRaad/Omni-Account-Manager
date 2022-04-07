@@ -36,6 +36,22 @@ namespace AccountManager.Core.Services
 
         public async Task UpdateAccounts()
         {
+            var minAccounts = _accountService.GetAllAccountsMin();
+            foreach (var account in Accounts)
+            {
+                var relevantAccount = minAccounts.FirstOrDefault((acc) => acc.Guid == account.Guid, null);
+                if (relevantAccount is null)
+                {
+                    Accounts.Remove(account);
+                }
+                else
+                {
+                    minAccounts.Remove(relevantAccount);
+                }
+            }
+            Accounts.AddRange(minAccounts);
+            Notify.Invoke();
+
             var fullAccounts = await _accountService.GetAllAccounts();
             Accounts = fullAccounts;
             Notify.Invoke();
