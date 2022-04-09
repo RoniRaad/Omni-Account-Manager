@@ -15,7 +15,7 @@
         else if (Account.AccountType == Core.Enums.AccountType.Steam)
         {
             <div class="game-logo">
-                <svg xmlns="http://www.w3.org/2000/svg" height="34px" width="34px" class="game-logo-svg" version="1.1" viewBox="0 0 233 233">
+                <svg style="margin-top: -8px;" xmlns="http://www.w3.org/2000/svg" height="34px" width="34px" class="game-logo-svg" version="1.1" viewBox="0 0 233 233">
                     <defs>
                     <linearGradient id="a" x2="50%" x1="50%" y2="100%">
                     <stop stop-color="#111D2E" offset="0"/>
@@ -58,9 +58,9 @@
       @if (RenderButtons){
         <td>
             <div class="buttons-container">
-                <span @onclick=Delete class="oi oi-trash"></span>
-                <span @onclick="() => {EditPrompt=true; InvokeAsync(() => StateHasChanged());}" class="oi oi-wrench"></span>
-                <span @onclick="() => AccountService.Login(Account)" class="oi oi-account-login"> </span>
+                <span @onclick=Delete class="oi oi-trash" title="Delete"></span>
+                <span @onclick="() => {EditPrompt=true; InvokeAsync(() => StateHasChanged());}" class="oi oi-wrench" title="Edit"></span>
+                <span @onclick="() => AccountService.Login(Account)" class="oi oi-account-login" title="Login"> </span>
             </div>
         </td>
       }
