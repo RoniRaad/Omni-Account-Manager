@@ -90,10 +90,10 @@ namespace AccountManager.Infrastructure.Clients
             }
         }
 
-        public async Task<RiotAuthResponse> RiotAuthenticate(InitialAuthTokenRequest request, Account account)
+        public async Task<RiotAuthResponse?> RiotAuthenticate(InitialAuthTokenRequest request, Account account)
         {
             var initialAuth = await GetRiotClientInitialCookies(request, account);
-            if (initialAuth?.Cookies?.Ssid?.Expired is false)
+            if (initialAuth?.Content?.Type == "response")
                 return initialAuth;
 
             var initialCookies = initialAuth?.Cookies ?? new();
@@ -130,7 +130,21 @@ namespace AccountManager.Infrastructure.Clients
 
                 if (tokenResponse?.Type == "multifactor")
                 {
+                    if (_memoryCache.Get<bool>($"{account.Username}.riot.mfa"))
+                        return null;
+
+                    if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
+                    {
+                        _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
+                        return null;
+                    }    
+
                     var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
+                    if (mfCode == string.Empty)
+                    {
+                        _memoryCache.Set($"{account.Username}.riot.mfa", true);
+                        return null;
+                    }
 
                     authResponse = await client.PutAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", new MultifactorRequest()
                     {
@@ -173,7 +187,7 @@ namespace AccountManager.Infrastructure.Clients
 
             var riotAuthResponse = await RiotAuthenticate(initialAuthTokenRequest, account);
 
-            if (riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
+            if (riotAuthResponse is null || riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
                 return null;
 
             var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,

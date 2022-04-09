@@ -60,6 +60,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
+                if (authResponse is null)
+                    return;
 
                 await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
                     authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
