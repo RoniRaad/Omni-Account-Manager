@@ -24,8 +24,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#242424"},
-            {"bronze", "#823012"},
+            {"iron", "#000000"},
+            {"bronze", "#ac3d14"},
             {"silver", "#7e878b"},
             {"gold", "#FFD700"},
             {"platinum", "#25cb6e"},
@@ -67,11 +67,15 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
-                if (authResponse is null)
+                if (authResponse is null || authResponse?.Cookies?.Tdid?.Value is null || authResponse?.Cookies?.Ssid?.Value is null ||
+                    authResponse?.Cookies?.Sub?.Value is null || authResponse?.Cookies?.Csid?.Value is null)
+                {
+                    _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
                     return;
+                }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
-                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
+                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
                 StartLeague();
             }
