@@ -27,7 +27,7 @@
                     <TextBlock Margin="7 0 0 0" VerticalAlignment="Center" Foreground="White">Multi Account Manager</TextBlock>
                 </Grid>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">
-                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="20px" Click="Close" Width="40px" BorderThickness="0" Background="#202020" Foreground="White">
+                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Click="Close" Width="40px" BorderThickness="0" Background="#202020" Foreground="White">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Background" Value="LightBlue" />
@@ -49,7 +49,7 @@
                         </Button.Style>
                         &#128473;&#xFE0E;
                     </Button>
-                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="20px" Width="40px" BorderThickness="0" Background="#202020" Foreground="White" Click="Minimize">
+                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Width="40px" BorderThickness="0" Background="#202020" Foreground="White" Click="Minimize">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Background" Value="LightBlue" />
