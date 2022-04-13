@@ -2,3 +2,7 @@
     display: block;
     color: var(--primary-dark);
 }
+label {
+    font-size: 15px;
+    margin-bottom: 3px;
+}

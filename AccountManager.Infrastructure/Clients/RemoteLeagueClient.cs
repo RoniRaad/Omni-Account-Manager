@@ -129,7 +129,7 @@ namespace AccountManager.Infrastructure.Clients
 
             var response = await _riotClient.RiotAuthenticate(request, account);
 
-            if (response?.Content?.Response?.Parameters?.Uri is null)
+            if (response is null || response?.Content?.Response?.Parameters?.Uri is null)
                 return string.Empty;
 
             var matches = Regex.Matches(response.Content.Response.Parameters.Uri,

@@ -21,11 +21,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#242424"},
-            {"bronze", "#823012"},
+            {"iron", "#000000"},
+            {"bronze", "#ab370d"},
             {"silver", "#999c9b"},
             {"gold", "#e2cd5f"},
-            {"platinum", "#308798"},
+            {"platinum", "#32a4bb"},
             {"diamond", "#f195f4"},
             {"immortal", "#ac3654"},
         };
@@ -60,6 +60,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
+                if (authResponse is null)
+                    return;
 
                 await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
                     authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
