@@ -22,14 +22,12 @@ td {
 
 .game-logo {
     margin-right: 10px;
-    height: 34px;
     width: 34px
 }
 
 .game-logo-svg {
-    margin-right: 10px;
-    height: 34px;
-    width: 34px
+    margin: auto;
+    display: block;
 }
 
 .name-container span {
