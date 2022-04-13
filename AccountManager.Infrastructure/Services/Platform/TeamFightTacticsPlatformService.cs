@@ -17,8 +17,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
-            {"iron", "#242424"},
-            {"bronze", "#823012"},
+            {"iron", "#000000"},
+            {"bronze", "#ac3d14"},
             {"silver", "#7e878b"},
             {"gold", "#FFD700"},
             {"platinum", "#25cb6e"},

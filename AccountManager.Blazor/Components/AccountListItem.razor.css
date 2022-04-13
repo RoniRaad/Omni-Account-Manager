@@ -5,9 +5,11 @@ p {
     font-family: Roboto;
     font-size: 25px
 }
+
 th {
     width: 32px
 }
+
 tr {
     vertical-align: middle;
     font-family: Roboto;
@@ -15,6 +17,7 @@ tr {
     color: white;
     border-color: #787b7c;
 }
+
 td {
     max-width:32vw;
     word-wrap:break-word;
@@ -22,14 +25,12 @@ td {
 
 .game-logo {
     margin-right: 10px;
-    height: 34px;
     width: 34px
 }
 
 .game-logo-svg {
-    margin-right: 10px;
-    height: 34px;
-    width: 34px
+    margin: auto;
+    display: block;
 }
 
 .name-container span {
@@ -45,12 +46,13 @@ td {
 .name-container {
     margin-left: 40px
 }
+
 .buttons-container {
     display: flex;
     justify-content: flex-end;
     padding-right: 0px;
     align-content: flex-start;
-    font-size: 24px;
+    font-size: 20px;
     gap: 24px
 }
 

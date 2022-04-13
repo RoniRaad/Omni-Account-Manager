@@ -13,6 +13,9 @@
 @namespace AccountManager.Blazor.Pages
 
 <div class="container-fluid">
+    @if (DragMode){
+        <h6 style="text-align:center">Drag the accounts to reorder them.</h6>
+    }
     <table class="table table-fit">
         <tbody>
             @if (!DragMode){
@@ -34,12 +37,12 @@
         <div class="col" style="margin-left: -3px" >
             @if (!DragMode)
             {
-                <span @onclick="()=>DragMode = true" class="oi oi-list"></span>
-                <span @onclick="() => addAccountPrompt = true" class="oi oi-plus"> </span>
+                <span @onclick="()=>DragMode = true" class="oi oi-list" title="Reorder List"></span>
+                <span @onclick="() => addAccountPrompt = true" class="oi oi-plus" title="Add Account"> </span>
             }
             else
             {
-                <span @onclick="()=>{DragMode = false; SaveList();}" class="oi oi-check"></span>
+                <span @onclick="()=>{DragMode = false; SaveList();}" class="oi oi-check" title="Save Order"></span>
             }
 
         </div>

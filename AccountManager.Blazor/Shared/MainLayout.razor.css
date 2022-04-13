@@ -30,19 +30,34 @@ a {
 }
 
 .notification {
-	opacity: .9;
 	position: absolute;
 	width: 100%;
 	z-index: 2000;
 	text-align: center;
 	width: auto;
-	right:10px;
-	top:10px;
+	right: 10px;
+	top: 10px;
 }
 .alert .close {
 	float: right;
 	cursor: pointer;
 	margin-left: 10px
+}
+
+.alert {
+	opacity: 1;
+	animation: fade 6s linear;
+}
+
+
+@keyframes fade {
+	0% {
+		opacity: 1
+	}
+
+	100% {
+		opacity: 0
+	}
 }
 
 .login-form div {
