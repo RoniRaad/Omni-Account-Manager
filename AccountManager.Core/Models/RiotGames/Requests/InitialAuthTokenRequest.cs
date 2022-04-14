@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Requests
 {
-    public class InitialAuthTokenRequest
+    public class RiotSessionRequest
     {
         [JsonPropertyName("client_id")]
         public string? Id { get; set; }

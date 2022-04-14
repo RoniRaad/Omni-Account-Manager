@@ -10,6 +10,6 @@ namespace AccountManager.Core.Interfaces
         Task<string?> GetPuuId(string username, string password);
         Task<string?> GetValorantToken(Account account);
         Task<Rank> GetValorantRank(Account account);
-        Task<RiotAuthResponse?> RiotAuthenticate(InitialAuthTokenRequest request, Account account);
+        Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account);
     }
 }

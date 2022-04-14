@@ -11,6 +11,7 @@ using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Requests;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -21,6 +22,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
         private readonly AlertService _alertService;
+        private readonly IMemoryCache _memoryCache;
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
@@ -36,7 +38,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         };
 
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService )
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache )
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -44,6 +46,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
+            _memoryCache = memoryCache;
         }
 
         public async Task Login(Account account)
@@ -57,7 +60,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new InitialAuthTokenRequest
+                var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -98,7 +101,11 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            Rank rank = new Rank();
+            var rankCacheString = $"{account.Username}.leagueoflegends.rank";
+            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+                return (true, rank);
+            
+            rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
@@ -108,6 +115,13 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 rank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
                 SetRankColor(rank);
+
+                if (!string.IsNullOrEmpty(rank?.Tier))
+                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+
+                if (rank is null)
+                    return (false, new());
+
                 return (true, rank);
             }
             catch

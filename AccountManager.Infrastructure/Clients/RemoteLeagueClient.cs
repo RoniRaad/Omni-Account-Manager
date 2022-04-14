@@ -118,7 +118,7 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<string> GetRiotAuthToken(Account account)
         {
-            var request = new InitialAuthTokenRequest
+            var request = new RiotSessionRequest
             {
                 Id = "lol",
                 Nonce = "1",
