@@ -51,9 +51,14 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request)
+        private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
+            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
+
             var cookieContainer = new CookieContainer();
+            if (cachedSessionCookie is not null)
+                cookieContainer.Add(cachedSessionCookie);
 
             var innerHandler = new HttpClientHandler()
             {
@@ -70,22 +75,21 @@ namespace AccountManager.Infrastructure.Clients
                 authResponse = await client.PostAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", request);
 
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                var authObject = new RiotAuthResponse()
+                RiotAuthResponse authObject = new ()
                 {
                     Content = authResponseDeserialized,
                     Cookies = new(cookieContainer.GetAllCookies())
                 };
-
-#pragma warning disable CS8603 // Possible null reference return.
+                
+                await _persistantCache.SetAsync(sessionCacheKey, authObject.Cookies.Ssid);
                 return authObject;
-#pragma warning restore CS8603 // Possible null reference return.
             }
         }
 
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
-            var initialAuth = await GetRiotSessionCookies(request);
-            if (initialAuth?.Content?.Type == "response")
+            var initialAuth = await GetRiotSessionCookies(request, account);
+            if (initialAuth?.Content?.Type == "response" && initialAuth?.Cookies?.Validate() is true)
                 return initialAuth;
 
             var initialCookies = initialAuth?.Cookies ?? new();

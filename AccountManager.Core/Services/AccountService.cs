@@ -57,9 +57,9 @@ namespace AccountManager.Core.Services
                     account.Rank = rank;
             }
 
+            WriteAllAccounts(accounts);
             _memoryCache.Set(accountCacheKey, accounts);
 
-            WriteAllAccounts(accounts);
             return accounts;
         }
 
