@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using AccountManager.Core.Static;
+using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models.RiotGames.Requests
 {
@@ -14,5 +15,9 @@ namespace AccountManager.Core.Models.RiotGames.Requests
         public string? ResponseType { get; set; }
         [JsonPropertyName("scope")]
         public string? Scope { get; set; }
+        public string GetHashId()
+        {
+            return StringEncryption.Hash($"{Id}.{ResponseType}.{Scope}");
+        }
     }
 }
