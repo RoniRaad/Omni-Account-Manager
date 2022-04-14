@@ -2,6 +2,7 @@
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services
 {
@@ -10,11 +11,17 @@ namespace AccountManager.Core.Services
         private readonly IIOService _iOService;
         private readonly AuthService _authService;
         private readonly GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
-        public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory)
+        private readonly IMemoryCache _memoryCache;
+        private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
+        private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";
+
+        public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
+            , IMemoryCache memoryCache)
         {
             _iOService = iOService;
             _authService = authService;
             _platformServiceFactory = platformServiceFactory;
+            _memoryCache = memoryCache;
         }
 
         public void AddAccount(Account account)
@@ -34,7 +41,11 @@ namespace AccountManager.Core.Services
 
         public async Task<List<Account>> GetAllAccounts()
         {
-            var accounts = GetAllAccountsMin();
+            if (_memoryCache.TryGetValue<List<Account>>(accountCacheKey, out var accounts) && accounts is not null)
+                return accounts;
+                
+           accounts = GetAllAccountsMin();
+
             var accountsCount = accounts.Count;
             for (int i = 0; i < accountsCount; i++)
             {
@@ -46,13 +57,21 @@ namespace AccountManager.Core.Services
                     account.Rank = rank;
             }
 
+            _memoryCache.Set(accountCacheKey, accounts);
+
             WriteAllAccounts(accounts);
             return accounts;
         }
 
         public List<Account> GetAllAccountsMin()
         {
-            var accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
+            if (!_memoryCache.TryGetValue(minAccountCacheKey, out List<Account>? accounts) && accounts is not null)
+                return accounts;
+
+            accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
+
+            _memoryCache.Set(minAccountCacheKey, accounts);
+
             return accounts;
         }
 
@@ -71,6 +90,7 @@ namespace AccountManager.Core.Services
                 }
             });
             WriteAllAccounts(accounts);
+
         }
 
         public void Login(Account account)
@@ -82,6 +102,8 @@ namespace AccountManager.Core.Services
         public void WriteAllAccounts(List<Account> accounts)
         {
             _iOService.UpdateData(accounts, _authService.PasswordHash);
+            _memoryCache.Remove(accountCacheKey);
+            _memoryCache.Remove(minAccountCacheKey);
         }
     }
 }
