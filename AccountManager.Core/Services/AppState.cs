@@ -19,8 +19,6 @@ namespace AccountManager.Core.Services
 
             _ = UpdateAccounts();
 
-
-
             StartUpdateTimer();
         }
 
