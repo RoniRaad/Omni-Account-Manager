@@ -6,6 +6,7 @@ using AccountManager.Core.Factories;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Core.Services;
 using AccountManager.Core.Models.RiotGames.Requests;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -15,6 +16,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
+        private readonly IMemoryCache _memoryCache;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
             {"iron", "#000000"},
@@ -28,12 +30,13 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"challenger", "#4ee1ff"},
         };
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
-            RiotFileSystemService riotFileSystemService, AlertService alertService)
+            RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
+            _memoryCache = memoryCache;
         }
 
         public async Task Login(Account account)
@@ -47,7 +50,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new InitialAuthTokenRequest
+                var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -82,13 +85,28 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
+            var rankCacheString = $"{account.Username}.teamfighttactics.rank";
+            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+                return (true, rank);
+
+            rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    return (false, rank);
 
-                var rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
+                rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
+
                 SetRankColor(rank);
+
+                if (!string.IsNullOrEmpty(rank?.Tier))
+                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+
+                if (rank is null)
+                    return (false, new());
+
                 return (true, rank);
             }
             catch
