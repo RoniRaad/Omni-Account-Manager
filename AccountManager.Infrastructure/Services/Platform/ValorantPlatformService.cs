@@ -2,13 +2,11 @@
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
+using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -18,6 +16,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
+        private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
         private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
         {
@@ -30,13 +29,14 @@ namespace AccountManager.Infrastructure.Services.Platform
             {"immortal", "#ac3654"},
         };
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService)
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, IMemoryCache memoryCache)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotLockFileService;
             _alertService = alertService;
+            _memoryCache = memoryCache;
         }
 
         public async Task Login(Account account)
@@ -50,7 +50,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new InitialAuthTokenRequest
+                var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -87,14 +87,27 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
-            Rank rank;
+            var rankCacheString = $"{account.Username}.valorant.rank";
+            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+                return (true, rank);
 
+            rank = new Rank();
             try
             {
-                account.PlatformId ??= await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    return (false, rank);
 
                 rank = await _riotClient.GetValorantRank(account);
                 SetRankColor(rank);
+
+                if (!string.IsNullOrEmpty(rank?.Tier))
+                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+
+                if (rank is null)
+                    return (false, new());
+
                 return new(true, rank);
             }
             catch

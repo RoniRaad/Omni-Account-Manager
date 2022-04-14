@@ -51,12 +51,12 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        private async Task<RiotAuthResponse> GetRiotClientInitialCookies(InitialAuthTokenRequest request, Account account)
+        private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
-            var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
-            var cookieContainer = new CookieContainer();
-            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(ssidCacheKey);
+            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
 
+            var cookieContainer = new CookieContainer();
             if (cachedSessionCookie is not null)
                 cookieContainer.Add(cachedSessionCookie);
 
@@ -75,34 +75,30 @@ namespace AccountManager.Infrastructure.Clients
                 authResponse = await client.PostAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", request);
 
                 var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                var authObject = new RiotAuthResponse()
+                RiotAuthResponse authObject = new ()
                 {
                     Content = authResponseDeserialized,
                     Cookies = new(cookieContainer.GetAllCookies())
                 };
-
-                if (authObject?.Cookies?.Ssid?.Expired is false)
-                    await _persistantCache.SetAsync(ssidCacheKey, authObject.Cookies.Ssid);
-
-#pragma warning disable CS8603 // Possible null reference return.
+                
+                await _persistantCache.SetAsync(sessionCacheKey, authObject.Cookies.Ssid);
                 return authObject;
-#pragma warning restore CS8603 // Possible null reference return.
             }
         }
 
-        public async Task<RiotAuthResponse?> RiotAuthenticate(InitialAuthTokenRequest request, Account account)
+        public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
-            var initialAuth = await GetRiotClientInitialCookies(request, account);
-            if (initialAuth?.Content?.Type == "response")
+            var initialAuth = await GetRiotSessionCookies(request, account);
+            if (initialAuth?.Content?.Type == "response" && initialAuth?.Cookies?.Validate() is true)
                 return initialAuth;
 
             var initialCookies = initialAuth?.Cookies ?? new();
 
-            var ssidCacheKey = $"{account.Username}.riot.auth.ssid";
+            var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
             var cookieContainer = new CookieContainer();
             cookieContainer.Add(initialCookies.GetCollection());
 
-            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(ssidCacheKey);
+            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
             if (cachedSessionCookie is not null)
                 cookieContainer.Add(cachedSessionCookie);
 
@@ -160,10 +156,10 @@ namespace AccountManager.Infrastructure.Clients
                 }
 
                 var cookies = cookieContainer.GetAllCookies();
-                var sessionCookie = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null);
+                var tdidCookie = cookies.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
 
-                if (sessionCookie is not null)
-                    await _persistantCache.SetAsync(ssidCacheKey, sessionCookie);
+                if (tdidCookie is not null)
+                    await _persistantCache.SetAsync(tdidCacheKey, tdidCookie);
 
                 var response = new RiotAuthResponse
                 {
@@ -177,7 +173,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetValorantToken(Account account)
         {
-            var initialAuthTokenRequest = new InitialAuthTokenRequest
+            var initialAuthTokenRequest = new RiotSessionRequest
             {
                 Id = "play-valorant-web-prod",
                 Nonce = "1",
