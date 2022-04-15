@@ -11,6 +11,6 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         [JsonPropertyName("password")]
         public string? Password { get; set; }
         [JsonPropertyName("remember")]
-        public bool Remember { get; set; };
+        public bool Remember { get; set; }
     }
 }
