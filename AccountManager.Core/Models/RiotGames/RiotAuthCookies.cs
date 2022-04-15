@@ -52,7 +52,7 @@ namespace AccountManager.Core.Models.RiotGames
         public bool Validate()
         {
             return Tdid is not null && Ssid is not null && Sub is not null 
-                && Csid is not null && Clid is not null && Asid is not null;
+                && Csid is not null && Clid is not null;
         }
     }
 }

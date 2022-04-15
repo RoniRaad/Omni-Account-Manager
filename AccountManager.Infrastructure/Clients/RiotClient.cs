@@ -53,6 +53,7 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
+            var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
             var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
             var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
 
@@ -82,6 +83,9 @@ namespace AccountManager.Infrastructure.Clients
                 };
                 
                 await _persistantCache.SetAsync(sessionCacheKey, authObject.Cookies.Ssid);
+                if (authObject?.Content?.Type == "response" && authObject?.Cookies?.Validate() is true)
+                    await _persistantCache.SetAsync(tdidCacheKey, authObject.Cookies.Tdid);
+
                 return authObject;
             }
         }
@@ -95,6 +99,8 @@ namespace AccountManager.Infrastructure.Clients
             var initialCookies = initialAuth?.Cookies ?? new();
 
             var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
+            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+
             var cookieContainer = new CookieContainer();
             cookieContainer.Add(initialCookies.GetCollection());
 
@@ -158,9 +164,12 @@ namespace AccountManager.Infrastructure.Clients
 
                 var cookies = cookieContainer.GetAllCookies();
                 var tdidCookie = cookies.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
+                var ssidCookie = cookies.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "ssid", null);
 
                 if (tdidCookie is not null)
                     await _persistantCache.SetAsync(tdidCacheKey, tdidCookie);
+                if (tdidCookie is not null)
+                    await _persistantCache.SetAsync(sessionCacheKey, ssidCookie);
 
                 var response = new RiotAuthResponse
                 {
