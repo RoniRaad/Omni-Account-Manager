@@ -119,7 +119,8 @@ namespace AccountManager.Infrastructure.Clients
                 {
                     Type = "auth",
                     Username = account.Username,
-                    Password = account.Password
+                    Password = account.Password,
+                    Remember = true
                 });
 
                 var tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
