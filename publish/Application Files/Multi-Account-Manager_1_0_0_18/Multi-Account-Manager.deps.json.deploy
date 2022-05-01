@@ -9,7 +9,6 @@
       "Multi-Account-Manager/1.0.0": {
         "dependencies": {
           "AccountManager.Blazor": "1.0.0",
-          "ClickOnceApplicationDeploymentWrapper": "1.0.4",
           "Microsoft.AspNetCore.Components.WebView.Wpf": "6.0.200-preview.13.2865",
           "Microsoft.Extensions.Caching.Memory": "7.0.0-preview.1.22076.8",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "6.0.0",
@@ -29,18 +28,6 @@
           "lib/net6.0/Plk.Blazor.DragDrop.dll": {
             "assemblyVersion": "2.2.2.0",
             "fileVersion": "2.2.2.0"
-          }
-        }
-      },
-      "ClickOnceApplicationDeploymentWrapper/1.0.4": {
-        "runtime": {
-          "lib/net5.0-windows7.0/ClickOnceApplicationDeployment.dll": {
-            "assemblyVersion": "1.0.0.4",
-            "fileVersion": "1.0.0.4"
-          },
-          "lib/net5.0-windows7.0/PureManApplicationDeployment.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -1344,13 +1331,6 @@
       "sha512": "sha512-gLw4kjHNV/q1x/KeNLDMvr1SHOU9XsbYuJ0k9Bta3I9DqJqqwBgiuCJPYT+YgoMVzMHPwQMlpSA7eO0Jsk+b7g==",
       "path": "blazor-dragdrop/2.4.0",
       "hashPath": "blazor-dragdrop.2.4.0.nupkg.sha512"
-    },
-    "ClickOnceApplicationDeploymentWrapper/1.0.4": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-tpGo7U//BUZOcwA2vblumdF4ccQiPR0vQKaJNoopI6BG2ClQDKyAgAZjC3gWIu7gCgpqE0OFis1j68LiBcbsjg==",
-      "path": "clickonceapplicationdeploymentwrapper/1.0.4",
-      "hashPath": "clickonceapplicationdeploymentwrapper.1.0.4.nupkg.sha512"
     },
     "CloudFlareUtilities/1.3.0": {
       "type": "package",
