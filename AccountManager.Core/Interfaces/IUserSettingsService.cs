@@ -7,7 +7,7 @@ namespace AccountManager.Core.Interfaces
         T Settings { get; set; }
 
         bool ChangePassword(PasswordChangeRequest changeRequest);
-
+        void ClearCookies();
         void Save();
     }
 }
