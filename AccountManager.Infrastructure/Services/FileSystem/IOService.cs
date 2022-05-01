@@ -1,6 +1,8 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
@@ -103,6 +105,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             }
             return JsonSerializer.Deserialize<T>(decryptedData) ?? new T();
         }
+
         public T ReadData<T>() where T : new()
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);
@@ -114,18 +117,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             string data = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
             return JsonSerializer.Deserialize<T>(data) ?? new T();
-        }
-
-        public string GetEncryptedUsername()
-        {
-            try
-            {
-                return File.ReadAllText($"{_dataPath}\\username.txt");
-            }
-            catch
-            {
-                return "";
-            }
         }
 
         public DriveInfo FindSteamDrive()
@@ -144,7 +135,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             steamAppFiles.ToList().ForEach((file) =>
                 {
-                    if (file.Contains("appmanifest")){
+                    if (file.Contains("appmanifest"))
+                    {
                         string[] fileContents = File.ReadAllLines(file);
                         steamGames.Add(fileContents);
                     }
@@ -152,6 +144,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             return steamGames;
         }
+
+        public void DeleteCacheFile()
+        {
+            File.Create(@".\deletecache");
+            Environment.Exit(0);
+        }
     }
 }
-
