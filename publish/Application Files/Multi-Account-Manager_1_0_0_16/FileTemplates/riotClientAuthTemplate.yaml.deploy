@@ -1,0 +1,45 @@
+riot-login:
+    persist:
+        region: "{region}"
+        session:
+            cookies:
+            -   domain: "riotgames.com"
+                hostOnly: false
+                httpOnly: true
+                name: "tdid"
+                path: "/"
+                persistent: true
+                secureOnly: true
+                value: "{tdid}"
+            -   domain: "auth.riotgames.com"
+                hostOnly: true
+                httpOnly: true
+                name: "ssid"
+                path: "/"
+                persistent: true
+                secureOnly: true
+                value: "{ssid}"
+            -   domain: "auth.riotgames.com"
+                hostOnly: true
+                httpOnly: true
+                name: "clid"
+                path: "/"
+                persistent: true
+                secureOnly: true
+                value: "ue1"
+            -   domain: "auth.riotgames.com"
+                hostOnly: true
+                httpOnly: false
+                name: "sub"
+                path: "/"
+                persistent: true
+                secureOnly: true
+                value: "{sub}"
+            -   domain: "auth.riotgames.com"
+                hostOnly: true
+                httpOnly: false
+                name: "csid"
+                path: "/"
+                persistent: true
+                secureOnly: true
+                value: "{csid}"
