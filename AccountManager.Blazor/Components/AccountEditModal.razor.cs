@@ -6,6 +6,7 @@ namespace AccountManager.Blazor.Components
 {
     public partial class AccountEditModal
     {
+
         [Parameter, EditorRequired]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Account Account { get; set; }
@@ -18,7 +19,15 @@ namespace AccountManager.Blazor.Components
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Action Close { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
+        private bool passwordVisible = false;
+        public string PasswordType
+        {
+            get { return passwordVisible ? "" : "password"; }
+        }
+        public string PasswordToggleButtonColor
+        {
+            get { return passwordVisible ? "var(--primary-dark)" : "var(--secondary-dark)"; }
+        }
         public void Submit()
         {
             AccountService.EditAccount(Account);
