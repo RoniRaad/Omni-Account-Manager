@@ -49,10 +49,19 @@ namespace AccountManager.Core.Models.RiotGames
             return cookies;
         }
 
+        public void ClearExpiredCookies()
+        {
+            Tdid = Tdid?.Expired is true ? null : Tdid;
+            Ssid = Ssid?.Expired is true ? null : Ssid;
+            Sub = Sub?.Expired is true ? null : Sub;
+            Csid = Csid?.Expired is true ? null : Csid;
+            Clid = Clid?.Expired is true ? null : Clid;
+        }
+
         public bool Validate()
         {
-            return Tdid is not null && Ssid is not null && Sub is not null 
-                && Csid is not null && Clid is not null;
+            return (Tdid is not null && Ssid is not null && Sub is not null 
+                && Csid is not null && Clid is not null);
         }
     }
 }

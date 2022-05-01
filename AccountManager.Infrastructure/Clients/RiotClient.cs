@@ -56,9 +56,8 @@ namespace AccountManager.Infrastructure.Clients
             var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
             var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
             var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
-
             var cookieContainer = new CookieContainer();
-            if (cachedSessionCookie is not null)
+            if (cachedSessionCookie is not null && !cachedSessionCookie.Expired)
                 cookieContainer.Add(cachedSessionCookie);
 
             var innerHandler = new HttpClientHandler()
@@ -93,6 +92,7 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
             var initialAuth = await GetRiotSessionCookies(request, account);
+            initialAuth?.Cookies?.ClearExpiredCookies();
             if (initialAuth?.Content?.Type == "response" && initialAuth?.Cookies?.Validate() is true)
                 return initialAuth;
 
