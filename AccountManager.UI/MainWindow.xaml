@@ -24,7 +24,10 @@
                     <ColumnDefinition></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0">
-                    <TextBlock Margin="7 0 0 0" VerticalAlignment="Center" Foreground="White">Multi Account Manager</TextBlock>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" >
+                        <TextBlock Margin="7,0,0,0" VerticalAlignment="Center" Foreground="White">Multi Account Manager</TextBlock>
+                        <TextBlock x:Name="versionNum" Margin="7,0,315,0" VerticalAlignment="Center" Foreground="White">v1.0.0.16</TextBlock>
+                    </StackPanel>
                 </Grid>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">
                     <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Click="Close" Width="40px" BorderThickness="0" Background="#202020" Foreground="White">
