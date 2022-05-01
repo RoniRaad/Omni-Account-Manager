@@ -4,6 +4,7 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Services.FileSystem;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace AccountManager.Infrastructure.Services
 {
@@ -38,6 +39,12 @@ namespace AccountManager.Infrastructure.Services
 
             _authService.ChangePassword(changeRequest.OldPassword, changeRequest.NewPassword);
             return true;
+        }
+
+        public void ClearCookies()
+        {
+            _iOService.AddCacheDeleteFlag();
+            Environment.Exit(0);
         }
     }
 }

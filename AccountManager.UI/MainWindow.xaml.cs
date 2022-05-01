@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
@@ -30,6 +31,12 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "<Pending>")]
         public MainWindow()
         {
+			// This file acts as a flag to delete the cache file before initializing
+			if (File.Exists(@".\deletecache"))
+            {
+				File.Delete(@".\cache.db");
+				File.Delete(@".\deletecache");
+			}
 			var builder = new ConfigurationBuilder()
 			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 			Configuration = builder.Build();

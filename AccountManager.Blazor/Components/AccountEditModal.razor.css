@@ -6,3 +6,10 @@ label {
     font-size: 15px;
     margin-bottom: 3px;
 }
+.btn-password-show {
+    position: inherit;
+    background-color: white;
+    font-family: 'Icons';
+    border-radius: 0px;
+    border-color: #ced4da;
+}

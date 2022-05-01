@@ -3,7 +3,6 @@
     public interface IIOService
     {
         DriveInfo FindSteamDrive();
-        string GetEncryptedUsername();
         List<string[]> GetInstalledGamesManifest();
         bool IsFileLocked(string filePath);
         T ReadData<T>(string password) where T : new();
@@ -12,5 +11,6 @@
         void UpdateData<T>(T data, string password);
         void UpdateData<T>(T data);
         bool ValidateData();
+        void AddCacheDeleteFlag();
     }
 }
