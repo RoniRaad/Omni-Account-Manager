@@ -145,10 +145,9 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             return steamGames;
         }
 
-        public void DeleteCacheFile()
+        public void AddCacheDeleteFlag()
         {
             File.Create(@".\deletecache");
-            Environment.Exit(0);
         }
     }
 }
