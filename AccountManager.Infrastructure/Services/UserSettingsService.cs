@@ -43,7 +43,8 @@ namespace AccountManager.Infrastructure.Services
 
         public void ClearCookies()
         {
-            _iOService.DeleteCacheFile();
+            _iOService.AddCacheDeleteFlag();
+            Environment.Exit(0);
         }
     }
 }

@@ -11,6 +11,6 @@
         void UpdateData<T>(T data, string password);
         void UpdateData<T>(T data);
         bool ValidateData();
-        void DeleteCacheFile();
+        void AddCacheDeleteFlag();
     }
 }
