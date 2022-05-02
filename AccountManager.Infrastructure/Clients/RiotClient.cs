@@ -91,6 +91,9 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
+            if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
+                return null;
+
             var initialAuth = await GetRiotSessionCookies(request, account);
             initialAuth?.Cookies?.ClearExpiredCookies();
             if (initialAuth?.Content?.Type == "response" && initialAuth?.Cookies?.Validate() is true)
@@ -133,9 +136,6 @@ namespace AccountManager.Infrastructure.Clients
 
                 if (tokenResponse?.Type == "multifactor")
                 {
-                    if (_memoryCache.Get<bool>($"{account.Username}.riot.mfa"))
-                        return null;
-
                     if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
                     {
                         _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
@@ -145,7 +145,7 @@ namespace AccountManager.Infrastructure.Clients
                     var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
                     if (mfCode == string.Empty)
                     {
-                        _memoryCache.Set($"{account.Username}.riot.mfa", true);
+                        await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", true);
                         return null;
                     }
 
