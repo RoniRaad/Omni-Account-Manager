@@ -2,6 +2,8 @@
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Static;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services
@@ -12,16 +14,18 @@ namespace AccountManager.Core.Services
         private readonly AuthService _authService;
         private readonly GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
         private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
         private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
         private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";
 
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
-            , IMemoryCache memoryCache)
+            , IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
             _iOService = iOService;
             _authService = authService;
             _platformServiceFactory = platformServiceFactory;
             _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
         }
 
         public void AddAccount(Account account)
@@ -93,10 +97,11 @@ namespace AccountManager.Core.Services
 
         }
 
-        public void Login(Account account)
+        public async Task Login(Account account)
         {
+            await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", false);
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-            platformService.Login(account);
+            _ = platformService.Login(account);
         }
 
         public void WriteAllAccounts(List<Account> accounts)

@@ -8,7 +8,7 @@ namespace AccountManager.Core.Interfaces
         void EditAccount(Account editedAccount);
         Task<List<Account>> GetAllAccounts();
         List<Account> GetAllAccountsMin();
-        void Login(Account account);
+        Task Login(Account account);
         void RemoveAccount(Account account);
         void WriteAllAccounts(List<Account> accounts);
     }
