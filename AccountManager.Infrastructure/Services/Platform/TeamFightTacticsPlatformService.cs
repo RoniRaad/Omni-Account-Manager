@@ -115,6 +115,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
+
         public async Task<(bool, string)> TryFetchId(Account account)
         {
             try
@@ -150,6 +151,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private string GetRiotExePath()
         {
             return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+        }
+
+        public Task<(bool, Rank)> TryFetchRankedGraphData(Account account)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -53,5 +53,10 @@ namespace AccountManager.Infrastructure.Services.Platform
         {
             return Task.FromResult<(bool, string)>(new (true,string.Empty));
         }
+
+        public Task<(bool, Rank)> TryFetchRankedGraphData(Account account)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

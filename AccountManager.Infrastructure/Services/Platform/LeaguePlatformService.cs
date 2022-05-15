@@ -88,6 +88,37 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
+        public async Task<(bool, Rank)> TryFetchRankedGraphData(Account account)
+        {
+            var rankCacheString = $"{account.Username}.leagueoflegends.rankgraphdata";
+            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+                return (true, rank);
+
+            rank = new Rank();
+            try
+            {
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    return (false, rank);
+
+                rank = await _leagueClient.GetUserMatchHistory(account, 0, 5);
+
+                SetRankColor(rank);
+
+                if (!string.IsNullOrEmpty(rank?.Tier))
+                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+
+                if (rank is null)
+                    return (false, new());
+
+                return (true, rank);
+            }
+            catch
+            {
+                return (false, new Rank());
+            }
+        }
         private void StartLeague()
         {
             var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";

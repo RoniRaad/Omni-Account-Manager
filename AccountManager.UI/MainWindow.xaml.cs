@@ -12,6 +12,9 @@ using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Infrastructure.Services.Platform;
 using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,6 +82,12 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
+			serviceCollection.AddBlazorise(options =>
+			{
+				options.Immediate = true;
+			})
+			.AddBootstrapProviders()
+			.AddFontAwesomeIcons();
 			serviceCollection.AddSingleton<IAccountService, AccountService>();
 			serviceCollection.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
