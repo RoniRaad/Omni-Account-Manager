@@ -249,6 +249,16 @@ namespace AccountManager.Infrastructure.Clients
             return sessionToken;
         }
 
+        public async Task<MatchHistoryRequest?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            var token = await GetLeagueSessionToken(account);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
+            
+            return rankResponse;
+        }
+
         public async Task<bool> TestLeagueToken(string token)
         {
             var client = _httpClientFactory.CreateClient("CloudflareBypass");

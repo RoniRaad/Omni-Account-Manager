@@ -12,12 +12,11 @@
 @inject AlertService _alertSerivce
 @namespace AccountManager.Blazor.Pages
 
-<div class="container-fluid">
+<div class="container-fluid" style="padding-left:0px;padding-right:0px">
     @if (DragMode){
         <h6 style="text-align:center">Drag the accounts to reorder them.</h6>
     }
-    <table class="table table-fit">
-        <tbody>
+        <div class="row" style="--bs-gutter-x: 0rem;">
             @if (!DragMode){
                 @foreach (var account in _appState.Accounts)
                 {
@@ -31,24 +30,9 @@
                     </div>
                 </Dropzone>
             }
-        </tbody>
-    </table>
-    <div class="row">
-        <div class="col" style="margin-left: -3px" >
-            @if (!DragMode)
-            {
-                <span @onclick="()=>DragMode = true" class="oi oi-list" title="Reorder List"></span>
-                <span @onclick="() => addAccountPrompt = true" class="oi oi-plus" title="Add Account"> </span>
-            }
-            else
-            {
-                <span @onclick="()=>{DragMode = false; SaveList();}" class="oi oi-check" title="Save Order"></span>
-            }
-
-        </div>
     </div>
-    @if (addAccountPrompt)
-    {
-        <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountPrompt>
-    }
 </div>
+@if (addAccountPrompt)
+{
+    <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountPrompt>
+}

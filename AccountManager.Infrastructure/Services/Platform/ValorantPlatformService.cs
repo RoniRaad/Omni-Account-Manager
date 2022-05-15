@@ -152,5 +152,10 @@ namespace AccountManager.Infrastructure.Services.Platform
         {
             return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
         }
+
+        public Task<(bool, Rank)> TryFetchRankedGraphData(Account account)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

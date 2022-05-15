@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames.League.Requests;
 
 namespace AccountManager.Core.Interfaces
 {
@@ -6,5 +7,6 @@ namespace AccountManager.Core.Interfaces
     {
         Task<Rank> GetSummonerRankByPuuidAsync(Account account);
         Task<Rank> GetTFTRankByPuuidAsync(Account account);
+        Task<MatchHistoryRequest?> GetUserMatchHistory(Account account, int startIndex, int endIndex);
     }
 }
