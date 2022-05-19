@@ -6,10 +6,11 @@ using AccountManager.Core.Models.RiotGames.League;
 using System.Net.Http.Json;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using System.Net.Http;
+using AccountManager.Core.Models.RiotGames.League.Requests;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public partial class LocalLeagueClient : ILeagueClient
+    public partial class LocalLeagueClient
     {
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -86,6 +87,36 @@ namespace AccountManager.Infrastructure.Clients
             };
 
             return rank;
+        }
+
+        public async Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
+                return null;
+
+            var client = _httpClientFactory.CreateClient("SSLBypass");
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var rankResponse = await client.GetFromJsonAsync<LocalLeagueMatchHistoryResponse>($"https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{account.PlatformId}/matches?begIndex={startIndex}&endIndex={endIndex}");
+
+            var matchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse.Games.Games.Select((game) =>
+                {
+                var usersTeam = game.Participants[0].TeamId;
+                    var queueTypeMap = new Dictionary<int, string>() { { 440, "Solo Duo" }, { 420, "Flex" }, { 400, "Casual" } };
+
+                    return new GameMatch()
+                    {
+                        Id = game?.GameId?.ToString(),
+                        Win = game.Teams.FirstOrDefault((team) => team.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
+                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
+                        Type = queueTypeMap.ContainsKey(game.QueueId) ? queueTypeMap[game.QueueId] : "other"
+                    };    
+                })
+            };
+
+            return matchHistory;
         }
     }
 }

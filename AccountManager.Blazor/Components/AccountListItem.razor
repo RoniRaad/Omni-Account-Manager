@@ -2,6 +2,7 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using Blazorise.Charts
+@using Blazorise.Charts.Trendline
 
 @inherits LayoutComponentBase
 <div class="card" style="width: 18rem;color: white;margin: 10px;background-color: #292929;width: 30%;">
@@ -21,7 +22,9 @@
 						<p style="text-align: center;font-size: 12px; color:@Account?.Rank?.Color">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
                     <div style="">
-                        <LineChart @ref="lineChart" TItem="double" />
+                        <LineChart @ref="lineChart" TItem="CoordinatePair">   
+                            <ChartTrendline @ref="chartTrendline" TItem="double?" />
+                        </LineChart>
                     </div>  
             </div>
         </li>
@@ -46,7 +49,9 @@
 }
 
 @code{
-    LineChart<double> lineChart;
+    LineChart<CoordinatePair> lineChart;
+    List<string> Labels;
+    ChartTrendline<double?> chartTrendline;
 
     protected override async Task OnAfterRenderAsync( bool firstRender )
     {
@@ -59,43 +64,104 @@
     async Task HandleRedraw()
     {
         await lineChart.Clear();
+        var datasets = Account?.Graphs;
+        if (datasets is null)
+            return;
 
-        await lineChart.AddLabelsDatasetsAndUpdate( Labels, GetLineChartDataset() );
+        foreach (var dataset in datasets)
+        {
+            var data = new LineChartDataset<CoordinatePair>
+            {
+                Label = dataset.Label,
+                Data = dataset.Data,
+                BackgroundColor = backgroundColors,
+                BorderColor = borderColors,
+                Fill = false,
+                PointRadius = 3,
+            };
+
+            await lineChart.AddLabelsDatasetsAndUpdate(dataset.Tags, data);
+        }
+
         lineChart.Options = new()
             {
                 MaintainAspectRatio = false,
+                Scales = new()
+                {
+                    X = new()
+                    {
+                        Ticks = new()
+                        {
+                            Font = new()
+                            {
+                                Family = "Roboto",
+                                Size = 10
+                            },
+                            
+                        },
+                        Title = new()
+                        {
+                            Font = new()
+                            {
+                                Family = "Roboto",
+                                Size = 10
+                            }
+                        },
+                        Time = new()
+                        {
+                            Unit = "day",
+                        },
+                        Type = "timeseries",
+                    },
+                    Y = new()
+                    {
+                        Ticks = new()
+                        {
+                            Font = new()
+                            {
+                                Family = "Roboto",
+                                Size = 10
+                            }
+                        },
+                        Title = new()
+                        {
+                            Font = new()
+                            {
+                                Family = "Roboto",
+                                Size = 10
+                            }
+                        }
+                    },
+                },
+                Plugins = new(){
+                    Legend = new()
+                    {
+                        Labels = new()
+                        {
+                            Font = new()
+                            {
+                                Family = "Roboto",
+                                Size = 10
+                            },
+                            BoxHeight = 10,
+                            BoxWidth = 16
+                        },
+                    }
+                }
             };
+            var trendlineData = new List<ChartTrendlineData>
+            {
+                new ChartTrendlineData
+                {
+                    Width = 10,
+                    Color = ChartColor.FromRgba( 54, 162, 235, .6f )
+                }
+            };
+
+            await chartTrendline.AddTrendLineOptions( trendlineData );
     }
 
-    LineChartDataset<double> GetLineChartDataset()
-    {
-        return new LineChartDataset<double>
-        {
-            Label = "SILVER LP",
-            Data = RandomizeData(),
-            BackgroundColor = backgroundColors,
-            BorderColor = borderColors,
-            Fill = true,
-            PointRadius = 3,
-            CubicInterpolationMode = "monotone",
-        };
-    }
 
-    string[] Labels = { "Red", "Blue", "Yellow", "Green", "Purple", "Orange" };
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 0.2f ), ChartColor.FromRgba( 54, 162, 235, 0.2f ), ChartColor.FromRgba( 255, 206, 86, 0.2f ), ChartColor.FromRgba( 75, 192, 192, 0.2f ), ChartColor.FromRgba( 153, 102, 255, 0.2f ), ChartColor.FromRgba( 255, 159, 64, 0.2f ) };
     List<string> borderColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 1f ), ChartColor.FromRgba( 54, 162, 235, 1f ), ChartColor.FromRgba( 255, 206, 86, 1f ), ChartColor.FromRgba( 75, 192, 192, 1f ), ChartColor.FromRgba( 153, 102, 255, 1f ), ChartColor.FromRgba( 255, 159, 64, 1f ) };
-
-    List<double> RandomizeData()
-    {
-        var r = new Random( DateTime.Now.Millisecond );
-
-        return new List<double> { 
-            30,
-            45,
-            31,
-            20,
-            15,
-            24
-        };
-    }
 }

@@ -248,15 +248,43 @@ namespace AccountManager.Infrastructure.Clients
 
             return sessionToken;
         }
-
-        public async Task<MatchHistoryRequest?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        
+        public async Task<List<LeagueQueueMapResponse>> GetLeagueQueueMappings()
         {
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>("https://static.developer.riotgames.com/docs/lol/queues.json");
+            
+            return response;
+        }
+
+        public async Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (_localLeagueClient.IsClientOpen())
+                return await _localLeagueClient.GetUserMatchHistory(account, startIndex, endIndex);
+
+            if (!_settings.Settings.UseAccountCredentials)
+                return new();
+
             var token = await GetLeagueSessionToken(account);
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
-            
-            return rankResponse;
+            var queueTypeMap = new Dictionary<int, string>() { { 440, "Solo Duo" }, { 420, "Flex" }, { 400, "Casual" } };
+            var queueMapping = await GetLeagueQueueMappings();
+
+            var userMatchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse.Games
+                    .Select((game) => new GameMatch()
+                    {
+                        Id = game.Metadata.MatchId,
+                        Win = game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.Win ?? false,
+                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.Json.GameEndTimestamp).ToLocalTime(),
+                        Type = queueMapping.First((map) => map.QueueId == game.Json.QueueId).Description.Replace("games", "").Replace("5v5", "").Replace("Ranked", "")
+                    })
+            };
+
+            return userMatchHistory;
         }
 
         public async Task<bool> TestLeagueToken(string token)

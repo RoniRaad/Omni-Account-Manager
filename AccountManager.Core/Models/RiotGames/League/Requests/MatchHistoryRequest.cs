@@ -460,7 +460,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         public int GameDuration { get; set; }
 
         [JsonPropertyName("gameEndTimestamp")]
-        public object GameEndTimestamp { get; set; }
+        public long GameEndTimestamp { get; set; }
 
         [JsonPropertyName("gameId")]
         public object GameId { get; set; }

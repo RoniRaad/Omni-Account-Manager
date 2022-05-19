@@ -7,6 +7,6 @@ namespace AccountManager.Core.Interfaces
         Task Login(Account account);
         Task<(bool, string)> TryFetchId(Account account);
         Task<(bool, Rank)> TryFetchRank(Account account);
-        Task<(bool, Rank)> TryFetchRankedGraphData(Account account);
+        Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account);
     }
 }
