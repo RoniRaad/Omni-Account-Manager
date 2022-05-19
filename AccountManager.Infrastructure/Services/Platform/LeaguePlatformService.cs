@@ -8,7 +8,6 @@ using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
-using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
@@ -88,35 +87,70 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        public async Task<(bool, Rank)> TryFetchRankedGraphData(Account account)
+        public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
         {
             var rankCacheString = $"{account.Username}.leagueoflegends.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
-                return (true, rank);
+            if (_memoryCache.TryGetValue(rankCacheString, out List <RankedGraphData> ? rankedGraphDatas) && rankedGraphDatas is not null)
+                return (true, rankedGraphDatas);
 
-            rank = new Rank();
+            var matchHistoryResponse = new UserMatchHistory();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    return (false, rank);
+                    return (false, new());
+                matchHistoryResponse = await _leagueClient.GetUserMatchHistory(account, 0, 10);
+                rankedGraphDatas = new();
+                var matchesGroups = matchHistoryResponse.Matches.Reverse().GroupBy((match) => match.Type);
+                var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
 
-                rank = await _leagueClient.GetUserMatchHistory(account, 0, 5);
+                foreach (var matchGroup in orderedGroups)
+                {
+                    var matchWinDelta = 0;
+                    var isFirst = true;
+                    var rankedGraphData = new RankedGraphData()
+                    {
+                        Label = matchGroup.FirstOrDefault(new GameMatch())?.Type ?? "Other",
+                        Data = new(),
+                        Tags = new()
+                    };
+                    foreach (var match in matchGroup)
+                    {
+                        if (!isFirst)
+                        {
+                            if (match.Win)
+                                matchWinDelta += 1;
+                            else
+                                matchWinDelta -= 1;
+                        }
 
-                SetRankColor(rank);
+                        var dateTime = match.EndTime;
 
-                if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                        rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
 
-                if (rank is null)
+                        var currentDate = dateTime.ToString("M/d/y");
+
+                        if (dateTime.ToString("hh\\:mm tt") == "07:35 PM")
+                            _ = "";
+
+                        isFirst = false;
+                    }
+                    if (rankedGraphData.Data.Count > 1)
+                        rankedGraphDatas.Add(rankedGraphData);
+                }
+
+                if (matchHistoryResponse is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDatas, TimeSpan.FromHours(1));
+
+                if (matchHistoryResponse is null)
                     return (false, new());
 
-                return (true, rank);
+                return (true, rankedGraphDatas);
             }
             catch
             {
-                return (false, new Rank());
+                return (false, new());
             }
         }
         private void StartLeague()

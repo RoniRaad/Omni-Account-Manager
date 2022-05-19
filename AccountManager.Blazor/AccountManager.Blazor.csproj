@@ -15,6 +15,7 @@
     <PackageReference Include="blazor-dragdrop" Version="2.4.0" />
     <PackageReference Include="Blazorise" Version="1.0.4" />
     <PackageReference Include="Blazorise.Charts" Version="1.0.4" />
+    <PackageReference Include="Blazorise.Charts.Trendline" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="8.37.0.45539">
       <PrivateAssets>all</PrivateAssets>
