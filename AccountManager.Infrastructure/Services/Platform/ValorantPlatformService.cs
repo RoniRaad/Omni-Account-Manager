@@ -155,7 +155,25 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
         {
-            return new();
+            var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account);
+            if (matchHistory?.Matches?.Any() is not true)
+                return new(false, new List<RankedGraphData>());
+
+            var graphData = new RankedGraphData()
+            {
+                Data = matchHistory.Matches.Select((match) =>
+                {
+                    return new CoordinatePair()
+                    {
+                        Y = match.RankedRatingAfterUpdate,
+                        X = match.MatchStartTime
+                    };
+                }).ToList(),
+                Tags = new(),
+                Label = "Competitive LP"
+            };
+
+            return (true, new List<RankedGraphData>() { graphData });
         }
     }
 }

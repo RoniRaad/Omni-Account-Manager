@@ -16,6 +16,6 @@ namespace AccountManager.Core.Models
         public string Password { get; set; } = string.Empty;
         public Rank? Rank { get; set; }
         public AccountType AccountType { get; set; }
-        public List<RankedGraphData> Graphs { get; set; }
+        public List<RankedGraphData>? Graphs { get; set; }
     }
 }
