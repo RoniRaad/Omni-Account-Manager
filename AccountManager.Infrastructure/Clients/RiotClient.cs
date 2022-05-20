@@ -51,14 +51,17 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request, Account account)
+        private async Task<RiotAuthResponse?> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
             var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
             var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
-            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
+            var cachedSessionCookie = _memoryCache.Get<Cookie>(sessionCacheKey);
+            var cachedTdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
             var cookieContainer = new CookieContainer();
             if (cachedSessionCookie is not null && !cachedSessionCookie.Expired)
                 cookieContainer.Add(cachedSessionCookie);
+            if (cachedTdidCookie is not null && !cachedTdidCookie.Expired)
+                cookieContainer.Add(cachedTdidCookie);
 
             var innerHandler = new HttpClientHandler()
             {
@@ -81,8 +84,10 @@ namespace AccountManager.Infrastructure.Clients
                     Cookies = new(cookieContainer.GetAllCookies())
                 };
                 
-                await _persistantCache.SetAsync(sessionCacheKey, authObject.Cookies.Ssid);
-                if (authObject?.Content?.Type == "response" && authObject?.Cookies?.Validate() is true)
+                if (authObject?.Content?.Type == "response" && authObject?.Cookies?.Ssid is not null && !authObject?.Cookies?.Ssid?.Expired is false)
+                    _memoryCache.Set(sessionCacheKey, authObject?.Cookies?.Ssid, authObject.Cookies.Ssid.Expires.AddMinutes(-5));
+
+                if (authObject?.Cookies?.Tdid is not null && authObject?.Cookies?.Tdid?.Expired is false)
                     await _persistantCache.SetAsync(tdidCacheKey, authObject.Cookies.Tdid);
 
                 return authObject;
@@ -168,8 +173,8 @@ namespace AccountManager.Infrastructure.Clients
 
                 if (tdidCookie is not null)
                     await _persistantCache.SetAsync(tdidCacheKey, tdidCookie);
-                if (tdidCookie is not null)
-                    await _persistantCache.SetAsync(sessionCacheKey, ssidCookie);
+                if (ssidCookie is not null)
+                    _memoryCache.Set(sessionCacheKey, ssidCookie, ssidCookie.Expires.AddMinutes(-5));
 
                 var response = new RiotAuthResponse
                 {
@@ -238,14 +243,13 @@ namespace AccountManager.Infrastructure.Clients
             return response?.PuuId;
         }
 
-        public async Task<Rank> GetValorantRank(Account account)
+        public async Task<ValorantRankedResponse?> GetValorantCompetitiveHistory(Account account)
         {
-            int rankNumber;
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             await AddHeadersToClient(client);
             var bearerToken = await GetValorantToken(account);
             if (bearerToken is null)
-                return new Rank();
+                return new();
 
             var entitlementToken = await GetEntitlementToken(bearerToken);
 
@@ -253,15 +257,22 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive");
-            
-            if (response?.Matches?.Any() is false)
+            return response;
+        }
+
+        public async Task<Rank> GetValorantRank(Account account)
+        {
+            int rankNumber;
+            var rankedHistory = await GetValorantCompetitiveHistory(account);
+
+            if (rankedHistory?.Matches?.Any() is false)
                 return new Rank()
                 {
                     Tier = "UNRANKED",
                     Ranking = $""
                 };
 
-            var mostRecentMatch = response?.Matches?.First();
+            var mostRecentMatch = rankedHistory?.Matches?.First();
             rankNumber = mostRecentMatch?.TierAfterUpdate ?? 0;
 
             var valorantRanking = new List<string>() {

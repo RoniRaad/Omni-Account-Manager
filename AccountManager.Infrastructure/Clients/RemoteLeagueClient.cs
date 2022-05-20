@@ -236,7 +236,9 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string> GetLeagueSessionToken(Account account)
         {
-            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string sessionToken) && await TestLeagueToken(sessionToken))
+            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken) 
+                && sessionToken is not null 
+                && await TestLeagueToken(sessionToken))
                 return sessionToken;
 
             sessionToken = await _localLeagueClient.GetLocalSessionToken();
@@ -249,7 +251,7 @@ namespace AccountManager.Infrastructure.Clients
             return sessionToken;
         }
         
-        public async Task<List<LeagueQueueMapResponse>> GetLeagueQueueMappings()
+        public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>("https://static.developer.riotgames.com/docs/lol/queues.json");
@@ -269,8 +271,10 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
-            var queueTypeMap = new Dictionary<int, string>() { { 440, "Solo Duo" }, { 420, "Flex" }, { 400, "Casual" } };
             var queueMapping = await GetLeagueQueueMappings();
+
+            if (rankResponse is null && queueMapping is null)
+                return null;
 
             var userMatchHistory = new UserMatchHistory()
             {
@@ -278,9 +282,13 @@ namespace AccountManager.Infrastructure.Clients
                     .Select((game) => new GameMatch()
                     {
                         Id = game.Metadata.MatchId,
-                        Win = game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.Win ?? false,
+                        Win = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false,
                         EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.Json.GameEndTimestamp).ToLocalTime(),
-                        Type = queueMapping.First((map) => map.QueueId == game.Json.QueueId).Description.Replace("games", "").Replace("5v5", "").Replace("Ranked", "")
+                        Type = queueMapping.First((map) => map.QueueId == game.Json.QueueId).Description
+                            .Replace("games", "")
+                            .Replace("5v5", "")
+                            .Replace("Ranked", "")
+                            .Trim()
                     })
             };
 

@@ -24,8 +24,11 @@ td {
 }
 
 .game-logo {
-    margin-right: 10px;
-    width: 34px
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .game-logo-svg {
@@ -67,4 +70,10 @@ div .modal {
 
 .form-control {
     margin-bottom: 12px
+}
+
+.card-body {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

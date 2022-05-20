@@ -16,21 +16,20 @@
     @if (DragMode){
         <h6 style="text-align:center">Drag the accounts to reorder them.</h6>
     }
-        <div class="row" style="--bs-gutter-x: 0rem;">
-            @if (!DragMode){
-                @foreach (var account in _appState.Accounts)
-                {
-                    <AccountListItem AccountService="_accountService" Account="account" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
-                }
+    <div class="row" style="--bs-gutter-x: 0rem">
+        @if (!DragMode){
+            @foreach (var account in _appState.Accounts)
+            {
+                <AccountListItem AccountService="_accountService" Account="account" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
             }
-            else{
-                <Dropzone Items="_appState.Accounts" TItem="Account">
-                    <div>
-                        <AccountListItem AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" ></AccountListItem>
-                    </div>
-                </Dropzone>
-            }
+        }
+        else{
+            <Dropzone Items="_appState.Accounts" TItem="Account">
+                    <AccountListItem AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" ></AccountListItem>
+            </Dropzone>
+        }
     </div>
+    <button @onclick="()=>addAccountPrompt=true">Add Account</button>
 </div>
 @if (addAccountPrompt)
 {

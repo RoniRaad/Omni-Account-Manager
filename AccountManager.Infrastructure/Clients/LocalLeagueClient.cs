@@ -99,20 +99,26 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
             var rankResponse = await client.GetFromJsonAsync<LocalLeagueMatchHistoryResponse>($"https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{account.PlatformId}/matches?begIndex={startIndex}&endIndex={endIndex}");
 
+            if (rankResponse is null)
+                return new();
+
             var matchHistory = new UserMatchHistory()
             {
                 Matches = rankResponse.Games.Games.Select((game) =>
                 {
-                var usersTeam = game.Participants[0].TeamId;
+                    var usersTeam = game.Participants[0].TeamId;
                     var queueTypeMap = new Dictionary<int, string>() { { 440, "Solo Duo" }, { 420, "Flex" }, { 400, "Casual" } };
 
-                    return new GameMatch()
-                    {
-                        Id = game?.GameId?.ToString(),
-                        Win = game.Teams.FirstOrDefault((team) => team.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
-                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
-                        Type = queueTypeMap.ContainsKey(game.QueueId) ? queueTypeMap[game.QueueId] : "other"
-                    };    
+                    if (game is not null && game?.GameCreation is not null)
+                        return new GameMatch()
+                        {
+                            Id = game?.GameId?.ToString() ?? "None",
+                            Win = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
+                            Type = queueTypeMap.ContainsKey(game.QueueId) ? queueTypeMap[game.QueueId] : "other"
+                        };
+
+                    return new();
                 })
             };
 

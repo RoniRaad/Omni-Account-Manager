@@ -100,9 +100,14 @@ namespace AccountManager.Infrastructure.Services.Platform
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return (false, new());
+
                 matchHistoryResponse = await _leagueClient.GetUserMatchHistory(account, 0, 10);
                 rankedGraphDatas = new();
-                var matchesGroups = matchHistoryResponse.Matches.Reverse().GroupBy((match) => match.Type);
+
+                var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
+                if (matchesGroups is null)
+                    return (false, new());
+                
                 var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
 
                 foreach (var matchGroup in orderedGroups)
@@ -128,12 +133,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                         var dateTime = match.EndTime;
 
                         rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
-
-                        var currentDate = dateTime.ToString("M/d/y");
-
-                        if (dateTime.ToString("hh\\:mm tt") == "07:35 PM")
-                            _ = "";
-
                         isFirst = false;
                     }
                     if (rankedGraphData.Data.Count > 1)
