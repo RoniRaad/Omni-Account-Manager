@@ -8,6 +8,7 @@ using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Services;
+using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -28,10 +29,11 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IDistributedCache _persistantCache;
         private readonly IRiotClient _riotClient;
         private readonly RiotApiUri _riotApiUri;
+        private readonly IMapper _autoMapper;
 
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory,
             LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService, IDistributedCache persistantCache,
-            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions)
+            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper)
         {
             _memoryCache = memoryCache;
             _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
@@ -43,6 +45,7 @@ namespace AccountManager.Infrastructure.Clients
             _persistantCache = persistantCache;
             _riotClient = riotClient;
             _riotApiUri = riotApiOptions.Value;
+            _autoMapper = autoMapper;
         }
 
         public async Task<string> GetRankByUsernameAsync(string username)
@@ -70,11 +73,11 @@ namespace AccountManager.Infrastructure.Clients
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
 
-            return new Rank()
+            return _autoMapper.Map<LeagueRank>(new Rank()
             {
                 Tier = rankedStats?.Tier,
                 Ranking = rankedStats?.Rank,
-            };
+            });
         }
 
         public async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
@@ -103,17 +106,17 @@ namespace AccountManager.Infrastructure.Clients
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_TFT");
             if (rankedStats?.Tier?.ToLower() == "none" || rankedStats?.Tier is null)
-                return new Rank()
+                return _autoMapper.Map<TeamFightTacticsRank>(new Rank()
                 {
                     Tier = "UNRANKED",
                     Ranking = ""
-                };
+                });
 
-            return new Rank()
+            return _autoMapper.Map<TeamFightTacticsRank>(new Rank()
             {
                 Tier = rankedStats?.Tier,
                 Ranking = rankedStats?.Rank,
-            };
+            });
         }
 
         private async Task<string> GetRiotAuthToken(Account account)
@@ -259,10 +262,47 @@ namespace AccountManager.Infrastructure.Clients
             return response;
         }
 
-        public async Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        public async Task<UserMatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
         {
             if (_localLeagueClient.IsClientOpen())
                 return await _localLeagueClient.GetUserMatchHistory(account, startIndex, endIndex);
+
+            if (!_settings.Settings.UseAccountCredentials)
+                return new();
+
+            var token = await GetLeagueSessionToken(account);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
+            var queueMapping = await GetLeagueQueueMappings();
+
+            if (rankResponse is null || queueMapping is null)
+                return null;
+
+            var userMatchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse.Games
+                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.Json.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
+                    .Select((game) => new GameMatch()
+                    {
+                        Id = game.Metadata.MatchId,
+                        Win = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false,
+                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.Json.GameEndTimestamp).ToLocalTime(),
+                        Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.Json.QueueId, null)?.Description
+                            ?.Replace("games", "")
+                            ?.Replace("5v5", "")
+                            ?.Replace("Ranked", "")
+                            ?.Trim() ?? "Other"
+                    })
+            };
+
+            return userMatchHistory;
+        }
+
+        public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (_localLeagueClient.IsClientOpen())
+                return await _localLeagueClient.GetUserTeamFightTacticsMatchHistory(account, startIndex, endIndex);
 
             if (!_settings.Settings.UseAccountCredentials)
                 return new();
@@ -279,16 +319,17 @@ namespace AccountManager.Infrastructure.Clients
             var userMatchHistory = new UserMatchHistory()
             {
                 Matches = rankResponse.Games
+                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.Json.QueueId, null)?.Description?.Contains("Teamfights Tactics") is true)
                     .Select((game) => new GameMatch()
                     {
                         Id = game.Metadata.MatchId,
                         Win = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false,
                         EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.Json.GameEndTimestamp).ToLocalTime(),
-                        Type = queueMapping.First((map) => map.QueueId == game.Json.QueueId).Description
-                            .Replace("games", "")
-                            .Replace("5v5", "")
-                            .Replace("Ranked", "")
-                            .Trim()
+                        Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.Json.QueueId, null)?.Description
+                            ?.Replace("games", "")
+                            ?.Replace("5v5", "")
+                            ?.Replace("Ranked", "")
+                            ?.Trim() ?? "Other"
                     })
             };
 

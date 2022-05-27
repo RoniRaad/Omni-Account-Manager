@@ -1,10 +1,13 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
+using AccountManager.Core.Models.RiotGames.League;
+using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
@@ -75,6 +78,24 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddSingleton<AppState>();
 			serviceCollection.AddSingleton<AuthService>();
+			serviceCollection.AddAutoMapper((cfg) =>
+			{
+				cfg.CreateMap<int, ValorantRank>()
+				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => ValorantRank.RankMap[src / 3]))
+				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => new string('I', src % 3 + 1)))
+				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => ValorantRank.RankedColorMap[ValorantRank.RankMap[src / 3].ToLower()]));
+
+				cfg.CreateMap<Rank, LeagueRank>()
+				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
+				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
+				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => LeagueRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
+
+				cfg.CreateMap<Rank, TeamFightTacticsRank>()
+				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
+				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
+				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => TeamFightTacticsRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
+
+			});
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();

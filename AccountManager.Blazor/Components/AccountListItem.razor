@@ -1,14 +1,15 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Static
 @using Blazorise.Charts
 @using Blazorise.Charts.Trendline
+@using System.Drawing
 
 @inherits LayoutComponentBase
-<div class="col-md-4 col-sm-6 col-xxl-2">
-    <div class="card" style="color: white;margin: 10px;background-color: #292929;">
-        <div class="card-body" style="display: flex;align-items: center;padding: 10px;justify-content:space-between">
-            <div style="background-color: #1d1d1d;width: fit-content;padding: 3px;border-radius: 6px;">
+    <div class="card">
+        <div class="card-body" >
+            <div class="card-logo-slot">
                 @if (Account.AccountType == Core.Enums.AccountType.League)
                 {
                     <img src="./logos/league-logo.png" class="game-logo" />
@@ -47,51 +48,44 @@
                     </div>
                 }
             </div>
-            <h5 class="card-title" style="text-align: center;margin: 0px;padding: 0px;margin-left: 7px;">@Account?.Id</h5>
+            <h5 class="card-title">@Account?.Id</h5>
             <div style="width: 40px;"><!--this is a spacer!--></div>
         </div>
-	    <ul class="list-group list-group-flush" style="/* background-color: black; */">
-		    <li class="list-group-item" style="background-color: #444444;color: white;">
+	    <ul class="list-group list-group-flush">
+		    <li class="list-group-item">
                 <div>
-                    <p style="text-align: center;font-size: 12px;">@Account?.Username</p>
+                    <p class="account-title">@Account?.Username</p>
 					    @if (Account?.Rank?.Tier is null && Account?.Rank?.Ranking is null){
-						    <p style="text-align: center;font-size: 12px;">N/A</p>
+						    <p class="account-rank">N/A</p>
 					    }
 					    else
 					    {
-						    <p style="text-align: center;font-size: 12px; color:@Account?.Rank?.Color">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
+						    <p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					    }
-                        <div style="">
+                        <div>
                             <LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair">   
-                                <ChartTrendline @ref="chartTrendline" TItem="double?" />
                             </LineChart>
                         </div>  
                 </div>
             </li>
 	    </ul>
-	    <div class="container" style="text-align: center;">
+	    <div class="container account-btn-container">
 	        <div class="row">
-		        <div class="col-sm">
+		        <div class="col">
                     <span @onclick=Delete class="oi oi-trash" title="Delete" ></span>
                 </div>
-		        <div class="col-sm">
-		            <span @onclick="() => {EditPrompt=true; InvokeAsync(() => StateHasChanged());}" class="oi oi-wrench" title="Edit"></span>
+		        <div class="col">
+		            <span @onclick="() => OpenEditModal()" class="oi oi-wrench" title="Edit"></span>
 		        </div>
-		        <div class="col-sm">
+		        <div class="col">
 		            <span @onclick="() => AccountService.Login(Account)" class="oi oi-account-login" title="Login"></span>
 		        </div>
 	        </div>
 	    </div>
     </div>
-</div>
-@if (EditPrompt)
-{
-    <AccountEditModal Account="Account" AccountService="AccountService" Close="() => {EditPrompt = false; ReloadList();}"></AccountEditModal>
-}
 
 @code{
     LineChart<CoordinatePair>? lineChart;
-    ChartTrendline<double?>? chartTrendline;
     LineChartOptions lineChartOptions = new()
         {
             MaintainAspectRatio = false,
@@ -106,8 +100,8 @@
                             Family = "Roboto",
                             Size = 10
                         },
-                            
-                            
+
+
                     },
                     Title = new()
                     {
@@ -178,22 +172,30 @@
         if (datasets is null)
             return;
 
+        datasets = datasets.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
+
         foreach (var dataset in datasets)
         {
             var data = new LineChartDataset<CoordinatePair>
             {
                 Label = dataset.Label,
                 Data = dataset.Data,
-                BackgroundColor = backgroundColors,
-                BorderColor = borderColors,
+                BackgroundColor = dataset?.ColorHex != null 
+                    ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
+                    : backgroundColors,
+                BorderColor = dataset?.ColorHex != null 
+                    ? new List<string> { dataset.ColorHex } 
+                    : borderColors,
                 Fill = false,
                 PointRadius = 3,
+                Hidden = dataset?.Hidden ?? false,
+                PointBorderColor = borderColors,
+                
             };
 
             await lineChart.AddDatasetsAndUpdate(data);
         }
     }
-
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 0.2f ), ChartColor.FromRgba( 54, 162, 235, 0.2f ), ChartColor.FromRgba( 255, 206, 86, 0.2f ), ChartColor.FromRgba( 75, 192, 192, 0.2f ), ChartColor.FromRgba( 153, 102, 255, 0.2f ), ChartColor.FromRgba( 255, 159, 64, 0.2f ) };
     List<string> borderColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 1f ), ChartColor.FromRgba( 54, 162, 235, 1f ), ChartColor.FromRgba( 255, 206, 86, 1f ), ChartColor.FromRgba( 75, 192, 192, 1f ), ChartColor.FromRgba( 153, 102, 255, 1f ), ChartColor.FromRgba( 255, 159, 64, 1f ) };

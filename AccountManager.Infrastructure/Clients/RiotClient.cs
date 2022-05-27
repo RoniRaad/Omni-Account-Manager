@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
+using AutoMapper;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -25,14 +26,17 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly RiotApiUri _riotApiUri;
+        private readonly IMapper _autoMapper;
 
-        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions)
+        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
+            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper)
         {
             _httpClientFactory = httpClientFactory;
             _alertService = alertService;
             _memoryCache = memoryCache;
             _persistantCache = persistantCache;
             _riotApiUri = riotApiOptions.Value;
+            _autoMapper = autoMapper;
         }
 
         private async Task AddHeadersToClient(HttpClient httpClient)
@@ -256,7 +260,8 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive");
+            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=30");
+            
             return response;
         }
 
@@ -266,32 +271,12 @@ namespace AccountManager.Infrastructure.Clients
             var rankedHistory = await GetValorantCompetitiveHistory(account);
 
             if (rankedHistory?.Matches?.Any() is false)
-                return new Rank()
-                {
-                    Tier = "UNRANKED",
-                    Ranking = $""
-                };
+                return _autoMapper.Map<ValorantRank>(0);
 
             var mostRecentMatch = rankedHistory?.Matches?.First();
             rankNumber = mostRecentMatch?.TierAfterUpdate ?? 0;
 
-            var valorantRanking = new List<string>() {
-                "Unrated",
-                "IRON",
-                "BRONZE",
-                "SILVER" ,
-                "GOLD" ,
-                "PLATINUM" ,
-                "DIAMOND" ,
-                "IMMORTAL" ,
-                "RADIANT"
-            };
-
-            var rank = new Rank()
-            {
-                Tier = valorantRanking[rankNumber / 3],
-                Ranking = new string('I', rankNumber % 3 + 1)
-            };
+            var rank = _autoMapper.Map<ValorantRank>(rankNumber);
 
             return rank;
         }

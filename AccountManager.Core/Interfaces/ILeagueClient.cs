@@ -6,9 +6,10 @@ namespace AccountManager.Core.Interfaces
 {
     public interface ILeagueClient
     {
-        Task<List<LeagueQueueMapResponse>> GetLeagueQueueMappings();
+        Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings();
         Task<Rank> GetSummonerRankByPuuidAsync(Account account);
         Task<Rank> GetTFTRankByPuuidAsync(Account account);
-        Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex);
+        Task<UserMatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex);
+        Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex);
     }
 }
