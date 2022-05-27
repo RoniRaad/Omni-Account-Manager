@@ -23,18 +23,6 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly RiotFileSystemService _riotFileSystemService;
-        private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
-        {
-            {"iron", "#000000"},
-            {"bronze", "#ac3d14"},
-            {"silver", "#7e878b"},
-            {"gold", "#FFD700"},
-            {"platinum", "#25cb6e"},
-            {"diamond", "#9e7ad6"},
-            {"master", "#f359f9"},
-            {"grandmaster", "#f8848f"},
-            {"challenger", "#4ee1ff"},
-        };
 
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache )
@@ -90,8 +78,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
         {
             var rankCacheString = $"{account.Username}.leagueoflegends.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out List <RankedGraphData> ? rankedGraphDatas) && rankedGraphDatas is not null)
-                return (true, rankedGraphDatas);
+            if (_memoryCache.TryGetValue(rankCacheString, out List <RankedGraphData> ? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return (true, rankedGraphDataSets);
 
             var matchHistoryResponse = new UserMatchHistory();
             try
@@ -101,8 +89,9 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return (false, new());
 
-                matchHistoryResponse = await _leagueClient.GetUserMatchHistory(account, 0, 10);
-                rankedGraphDatas = new();
+                matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 10);
+                rankedGraphDataSets = new();
+                var soloQueueRank = await TryFetchRank(account);
 
                 var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
                 if (matchesGroups is null)
@@ -120,6 +109,9 @@ namespace AccountManager.Infrastructure.Services.Platform
                         Data = new(),
                         Tags = new()
                     };
+                    if (rankedGraphData.Label == "Solo")
+                        rankedGraphData.ColorHex = soloQueueRank.Item2.HexColor;
+
                     foreach (var match in matchGroup)
                     {
                         if (!isFirst)
@@ -135,17 +127,21 @@ namespace AccountManager.Infrastructure.Services.Platform
                         rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
                         isFirst = false;
                     }
+
+
                     if (rankedGraphData.Data.Count > 1)
-                        rankedGraphDatas.Add(rankedGraphData);
+                        rankedGraphDataSets.Add(rankedGraphData);
                 }
 
                 if (matchHistoryResponse is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDatas, TimeSpan.FromHours(1));
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 if (matchHistoryResponse is null)
                     return (false, new());
 
-                return (true, rankedGraphDatas);
+                rankedGraphDataSets = rankedGraphDataSets.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
+
+                return (true, rankedGraphDataSets);
             }
             catch
             {
@@ -178,13 +174,12 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return (false, rank);
 
                 rank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
-                SetRankColor(rank);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
                     _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return (false, new());
+                    return (false, new Rank());
 
                 return (true, rank);
             }
@@ -208,14 +203,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             {
                 return (false, string.Empty);
             }
-        }
-
-        private void SetRankColor(Rank rank)
-        {
-            if (rank.Tier is null)
-                return;
-
-            rank.Color = RankColorMap.FirstOrDefault((kvp) => rank.Tier.ToLower().Equals(kvp.Key)).Value;
         }
 
         private DriveInfo? FindRiotDrive()

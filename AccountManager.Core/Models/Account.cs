@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

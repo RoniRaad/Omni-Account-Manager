@@ -3,6 +3,7 @@ using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Requests;
+using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,16 +19,6 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
-        private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
-        {
-            {"iron", "#000000"},
-            {"bronze", "#ab370d"},
-            {"silver", "#999c9b"},
-            {"gold", "#e2cd5f"},
-            {"platinum", "#32a4bb"},
-            {"diamond", "#f195f4"},
-            {"immortal", "#ac3654"},
-        };
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, IMemoryCache memoryCache)
         {
@@ -100,19 +91,18 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return (false, rank);
 
                 rank = await _riotClient.GetValorantRank(account);
-                SetRankColor(rank);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
                     _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return (false, new());
+                    return (false, new Rank());
 
                 return new(true, rank);
             }
             catch
             {
-                return new(false, new ());
+                return new(false, new Rank());
             }
         }
 
@@ -134,12 +124,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private void SetRankColor(Rank rank)
-        {
-            rank.Color = RankColorMap.FirstOrDefault((kvp) => rank?.Tier?.ToLower()?.Equals(kvp.Key) is true, 
-                new KeyValuePair<string, string>("", "")).Value;
-        }
-
         private DriveInfo? FindRiotDrive()
         {
             DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
@@ -159,21 +143,27 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (matchHistory?.Matches?.Any() is not true)
                 return new(false, new List<RankedGraphData>());
 
-            var graphData = new RankedGraphData()
+            var matches = matchHistory.Matches.GroupBy((match) => match.TierAfterUpdate);
+            var graphData = matches.Select((match) =>
             {
-                Data = matchHistory.Matches.Select((match) =>
+                return new RankedGraphData()
                 {
-                    return new CoordinatePair()
+                    Data = match.Select((match) =>
                     {
-                        Y = match.RankedRatingAfterUpdate,
-                        X = match.MatchStartTime
-                    };
-                }).ToList(),
-                Tags = new(),
-                Label = "Competitive LP"
-            };
+                        return new CoordinatePair()
+                        {
+                            Y = match.RankedRatingAfterUpdate,
+                            X = match.MatchStartTime
+                        };
+                    }).ToList(),
+                    Tags = new(),
+                    Label = $"{ValorantRank.RankMap[match.Key / 3]} {new string('I', match.Key % 3 + 1)} RR",
+                    Hidden = match.Key != matchHistory.Matches.First().TierAfterUpdate,
+                    ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()]
+                };
+            }).OrderBy((graph) => graph.Hidden).ToList();
 
-            return (true, new List<RankedGraphData>() { graphData });
+            return (true, graphData);
         }
     }
 }

@@ -3,7 +3,7 @@
 div .container-fluid {
     font-family: Roboto;
     background-color: var(--primary-light);
-    color: var(--secondary-light)
+    color: white
 }
 .row{
     margin-right:0px;
@@ -34,4 +34,15 @@ div .modal {
 
 .input-text {
     margin-bottom: 12px
+}
+
+.clickable-card {
+    background-color: var(--primary-light);
+    color: #d7d7d7 !important;
+}
+
+.clickable-card:hover {
+    background-color: var(--secondary-dark);
+    cursor: pointer;
+    color: #ffffff !important;
 }

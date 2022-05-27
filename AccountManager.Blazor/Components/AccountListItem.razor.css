@@ -77,3 +77,54 @@ div .modal {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.account-btn-container {
+    text-align: center;
+}
+
+.account-btn-container span {
+    cursor: pointer;
+    padding: 3px;
+}
+
+.card-logo-slot {
+    background-color: #1a1a1a;
+    width: fit-content;
+    padding: 3px;
+    border-radius: 6px;
+}
+
+.card-body {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    justify-content: space-between
+}
+
+.card {
+    color: white;
+    margin: 10px;
+    background-color: var(--secondary-dark);
+}
+
+.card-title {
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    margin-left: 7px;
+}
+
+.list-group-item {
+    background-color: var(--secondary-light);
+    color: white;
+}
+
+.account-title {
+    text-align: center;
+    font-size: 12px;
+}
+
+.account-rank {
+    text-align: center;
+    font-size: 12px;
+}

@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0-preview.2.22152.2" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.37.0.45539">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.39.0.47922">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

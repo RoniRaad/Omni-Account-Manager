@@ -17,18 +17,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
-        private readonly Dictionary<string, string> RankColorMap = new Dictionary<string, string>()
-        {
-            {"iron", "#000000"},
-            {"bronze", "#ac3d14"},
-            {"silver", "#7e878b"},
-            {"gold", "#FFD700"},
-            {"platinum", "#25cb6e"},
-            {"diamond", "#9e7ad6"},
-            {"master", "#f359f9"},
-            {"grandmaster", "#f8848f"},
-            {"challenger", "#4ee1ff"},
-        };
+
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
             RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache)
         {
@@ -99,13 +88,11 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
 
-                SetRankColor(rank);
-
                 if (!string.IsNullOrEmpty(rank?.Tier))
                     _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return (false, new());
+                    return (false, new Rank());
 
                 return (true, rank);
             }
@@ -132,14 +119,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private void SetRankColor(Rank rank)
-        {
-            if (rank.Tier is null)
-                return;
-
-            rank.Color = RankColorMap.FirstOrDefault((kvp) => rank.Tier.ToLower().Equals(kvp.Key)).Value;
-        }
-
         private DriveInfo? FindRiotDrive()
         {
             DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
@@ -155,7 +134,76 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
         {
-            return (true, await Task.FromResult(new List<RankedGraphData>()));
+            var rankCacheString = $"{account.Username}.tft.rankgraphdata";
+            if (_memoryCache.TryGetValue(rankCacheString, out List<RankedGraphData>? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return (true, rankedGraphDataSets);
+
+            var matchHistoryResponse = new UserMatchHistory();
+            try
+            {
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                if (string.IsNullOrEmpty(account.PlatformId))
+                    return (false, new());
+
+                matchHistoryResponse = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account, 0, 10);
+                rankedGraphDataSets = new();
+                var soloQueueRank = await TryFetchRank(account);
+
+                var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
+                if (matchesGroups is null)
+                    return (false, new());
+
+                var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
+
+                foreach (var matchGroup in orderedGroups)
+                {
+                    var matchWinDelta = 0;
+                    var isFirst = true;
+                    var rankedGraphData = new RankedGraphData()
+                    {
+                        Label = matchGroup.FirstOrDefault(new GameMatch())?.Type ?? "Other",
+                        Data = new(),
+                        Tags = new()
+                    };
+                    if (rankedGraphData.Label == "Solo")
+                        rankedGraphData.ColorHex = soloQueueRank.Item2.HexColor;
+
+                    foreach (var match in matchGroup)
+                    {
+                        if (!isFirst)
+                        {
+                            if (match.Win)
+                                matchWinDelta += 1;
+                            else
+                                matchWinDelta -= 1;
+                        }
+
+                        var dateTime = match.EndTime;
+
+                        rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
+                        isFirst = false;
+                    }
+
+
+                    if (rankedGraphData.Data.Count > 1)
+                        rankedGraphDataSets.Add(rankedGraphData);
+                }
+
+                if (matchHistoryResponse is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+
+                if (matchHistoryResponse is null)
+                    return (false, new());
+
+                rankedGraphDataSets = rankedGraphDataSets.OrderByDescending((dataset) => string.IsNullOrEmpty(dataset.ColorHex)).ToList();
+
+                return (true, rankedGraphDataSets);
+            }
+            catch
+            {
+                return (false, new());
+            }
         }
     }
 }

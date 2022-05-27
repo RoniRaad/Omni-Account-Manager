@@ -4,8 +4,8 @@ namespace AccountManager.Blazor.Pages
 {
     public partial class AccountList
     {
+        private Account? editAccountTarget;
         private bool addAccountPrompt { get; set; } = false;
-        private bool DragMode = false;
         protected override void OnInitialized()
         {
             _appState.Notify += () =>

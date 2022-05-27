@@ -89,6 +89,14 @@ namespace AccountManager.Infrastructure.Clients
             return rank;
         }
 
+        public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>("https://static.developer.riotgames.com/docs/lol/queues.json");
+
+            return response;
+        }
+
         public async Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
@@ -102,12 +110,58 @@ namespace AccountManager.Infrastructure.Clients
             if (rankResponse is null)
                 return new();
 
+            var queueMapping = await GetLeagueQueueMappings();
+
             var matchHistory = new UserMatchHistory()
             {
-                Matches = rankResponse.Games.Games.Select((game) =>
+                Matches = rankResponse.Games.Games
+                .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
+                .Select((game) =>
                 {
                     var usersTeam = game.Participants[0].TeamId;
-                    var queueTypeMap = new Dictionary<int, string>() { { 440, "Solo Duo" }, { 420, "Flex" }, { 400, "Casual" } };
+
+                    if (game is not null && game?.GameCreation != null)
+                        return new GameMatch()
+                        {
+                            Id = game?.GameId?.ToString() ?? "None",
+                            Win = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description
+                                ?.Replace("games", "")
+                                ?.Replace("5v5", "")
+                                ?.Replace("Ranked", "")
+                                ?.Trim() ?? "Other"
+                        };
+
+                    return new();
+                })
+            };
+
+            return matchHistory;
+        }
+        
+        public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
+                return null;
+
+            var client = _httpClientFactory.CreateClient("SSLBypass");
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var rankResponse = await client.GetFromJsonAsync<LocalLeagueMatchHistoryResponse>($"https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{account.PlatformId}/matches?begIndex={startIndex}&endIndex={endIndex}");
+
+            if (rankResponse is null)
+                return new();
+
+            var queueMapping = await GetLeagueQueueMappings();
+
+            var matchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse.Games.Games
+                .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is true)
+                .Select((game) =>
+                {
+                    var usersTeam = game.Participants[0].TeamId;
 
                     if (game is not null && game?.GameCreation is not null)
                         return new GameMatch()
@@ -115,7 +169,11 @@ namespace AccountManager.Infrastructure.Clients
                             Id = game?.GameId?.ToString() ?? "None",
                             Win = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
                             EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
-                            Type = queueTypeMap.ContainsKey(game.QueueId) ? queueTypeMap[game.QueueId] : "other"
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description
+                                ?.Replace("games", "")
+                                ?.Replace("5v5", "")
+                                ?.Replace("Ranked", "")
+                                ?.Trim() ?? "Other"
                         };
 
                     return new();
