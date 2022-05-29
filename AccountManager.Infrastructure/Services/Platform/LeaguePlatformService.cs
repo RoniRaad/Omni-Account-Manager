@@ -36,7 +36,89 @@ namespace AccountManager.Infrastructure.Services.Platform
             _memoryCache = memoryCache;
         }
 
-        public async Task Login(Account account)
+        private async Task<bool> TryLoginUsingRCU(Account account)
+        {
+            try
+            {
+                foreach (var process in Process.GetProcesses())
+                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
+                        process.Kill();
+
+                await _riotFileSystemService.WaitForClientClose();
+                _riotFileSystemService.DeleteLockfile();
+
+                var startRiot = new ProcessStartInfo
+                {
+                    FileName = GetRiotExePath(),
+                };
+                Process.Start(startRiot);
+
+                await _riotFileSystemService.WaitForClientInit();
+
+                if (!_riotService.TryGetPortAndToken(out var token, out var port))
+                    return false;
+
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+                await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
+
+                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
+                {
+                    LoginStrategy = "riot_identity",
+                    PersistLogin = true,
+                    RequireRiotID = true,
+                    Scopes = new()
+                    {
+                        "openid",
+                        "offline_access",
+                        "lol",
+                        "ban",
+                        "profile",
+                        "email",
+                        "phone",
+                        "account"
+                    }
+                });
+
+
+                var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
+                {
+                    Username = account.Username,
+                    Password = account.Password,
+                    PersistLogin = true,
+                    Region = "NA1"
+                });
+
+                var credentialsResponse = await resp.Content.ReadFromJsonAsync<RiotClientApi.CredentialsResponse>();
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Type))
+                {
+                    _alertService.AddErrorMessage("There was an error signing in, please try again later.");
+                }
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
+                {
+                    StartLeague();
+                    return true;
+                }
+
+                var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
+
+                await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new RiotClientApi.MultifactorLoginResponse
+                {
+                    Code = mfaCode,
+                    Retry = false,
+                    TrustDevice = true
+                });
+
+                StartLeague();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private async Task<bool> TryLoginUsingApi(Account account)
         {
             try
             {
@@ -61,18 +143,28 @@ namespace AccountManager.Infrastructure.Services.Platform
                     authResponse?.Cookies?.Sub?.Value is null || authResponse?.Cookies?.Csid?.Value is null)
                 {
                     _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
-                    return;
+                    return true;
                 }
 
                 await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
                     authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
                 StartLeague();
+                return true;
             }
             catch
             {
-                _alertService.AddErrorMessage("There was an error signing in.");
+                return false;
             }
+        }     
+        public async Task Login(Account account)
+        {
+            if (await TryLoginUsingApi(account))
+                return;
+            if (await TryLoginUsingRCU(account))
+                return;
+
+            _alertService.AddErrorMessage("There was an error attempting to sign in.");
         }
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)

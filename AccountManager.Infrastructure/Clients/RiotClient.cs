@@ -16,6 +16,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using AutoMapper;
+using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -46,6 +47,8 @@ namespace AccountManager.Infrastructure.Clients
 
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+            httpClient.DefaultRequestVersion = HttpVersion.Version20;
         }
 
         public async Task<string?> GetExpectedClientVersion()
@@ -78,6 +81,7 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
+                await AddHeadersToClient(client);
                 HttpResponseMessage authResponse;
                 authResponse = await client.PostAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", request);
 
@@ -132,6 +136,26 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
+                await AddHeadersToClient(client);
+                //var response = new CurlResponse<TokenResponseWrapper>();
+                
+                /*await CliWrap.Cli.Wrap("curl")
+                .WithArguments((builder) => builder
+                .Add("-i -X PUT", false)
+                .Add("-H").Add("Content-Type: application/json")
+                .Add("-H").Add($"User-Agent: RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .Add("-d").Add(JsonSerializer.Serialize(new AuthRequest
+                {
+                    Type = "auth",
+                    Username = account.Username,
+                    Password = account.Password,
+                    Remember = true
+                }))
+                .Add($"{_riotApiUri.Auth}/api/v1/authorization"))
+                .WithValidation(CliWrap.CommandResultValidation.None)
+                .WithStandardOutputPipe(response.GetPipeTarget())
+                .ExecuteAsync();
+                */
 
                 HttpResponseMessage authResponse = await client.PutAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", new AuthRequest
                 {
@@ -260,9 +284,9 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=30");
+            var response = await client.GetAsync($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=20");
             
-            return response;
+            return await response.Content.ReadFromJsonAsync<ValorantRankedResponse>();
         }
 
         public async Task<Rank> GetValorantRank(Account account)

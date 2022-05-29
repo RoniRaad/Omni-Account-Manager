@@ -139,7 +139,7 @@ namespace AccountManager.Infrastructure.Clients
 
             return matchHistory;
         }
-        
+
         public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
