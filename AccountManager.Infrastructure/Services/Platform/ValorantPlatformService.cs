@@ -8,6 +8,7 @@ using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
+using System.Net.Http.Json;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -19,7 +20,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
-        public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
+        public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, IMemoryCache memoryCache)
         {
             _riotClient = riotClient;
@@ -41,7 +42,71 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new RiotSessionRequest
+                var startRiot = new ProcessStartInfo
+                {
+                    FileName = GetRiotExePath(),
+                };
+                Process.Start(startRiot);
+
+                await _riotFileSystemService.WaitForClientInit();
+
+                if (!_riotService.TryGetPortAndToken(out var token, out var port))
+                    return;
+
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+                await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
+
+                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
+                {
+                    LoginStrategy = "riot_identity",
+                    PersistLogin = true,
+                    RequireRiotID = true,
+                    Scopes = new()
+                    {
+                        "openid", 
+                        "offline_access",  
+                        "lol",  
+                        "ban", 
+                        "profile",
+                        "email",
+                        "phone",
+                        "account"
+                    }
+                });
+
+
+                var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
+                {
+                    Username = account.Username,
+                    Password = account.Password,
+                    PersistLogin = true,
+                    Region = "NA1"
+                });
+
+                var credentialsResponse = await resp.Content.ReadFromJsonAsync<RiotClientApi.CredentialsResponse>();
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Type))
+                {
+                    _alertService.AddErrorMessage("There was an error signing in, please try again later.");
+                }
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
+                {
+                    StartValorant();
+                    return;
+                }
+
+                var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
+
+                await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new RiotClientApi.MultifactorLoginResponse
+                {
+                    Code = mfaCode,
+                    Retry = false,
+                    TrustDevice = true
+                });
+
+                StartValorant();
+                /*var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -55,9 +120,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return;
 
                 await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
-                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
+                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");*/
 
-                StartValorant();
             }
             catch
             {

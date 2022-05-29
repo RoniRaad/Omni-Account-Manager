@@ -31,17 +31,9 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public async Task WaitForClientInit()
         {
-            EventHandler? openEvent = null;
-            var clientIsOpen = false;
-            openEvent = new EventHandler((args, param) =>
-            {
-                clientIsOpen = true;
-                clientOpened -= openEvent;
-            });
+            var lockfilePath = $@"{appDataPath}\Riot Games\Riot Client\Config\lockfile";
 
-            clientOpened += openEvent;
-
-            while (!clientIsOpen)
+            while (!_iOService.IsFileLocked(lockfilePath))
             {
                 await Task.Delay(100);
             }
@@ -51,10 +43,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             var lockfilePath = $@"{appDataPath}\Riot Games\Riot Client\Config\lockfile";
 
-            var clientIsOpen = true;
-            while (clientIsOpen)
+            while (_iOService.IsFileLocked(lockfilePath))
             {
-                clientIsOpen = _iOService.IsFileLocked(lockfilePath);
                 await Task.Delay(100);
             }
         }
@@ -94,6 +84,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             var yaml = await GenerateYaml(region, tdid, ssid, sub, csid);
             await File.WriteAllTextAsync(@$"{appDataPath}\Riot Games\Riot Client\Data\RiotGamesPrivateSettings.yaml", yaml);
+        }
+
+        public async Task<string> GetRiotExecutableAsync()
+        {
+            return @"C:\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

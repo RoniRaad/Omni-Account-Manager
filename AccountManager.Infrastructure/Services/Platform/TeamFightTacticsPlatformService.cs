@@ -7,22 +7,27 @@ using AccountManager.Infrastructure.Services.FileSystem;
 using AccountManager.Core.Services;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
+using System.Net.Http.Json;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
     public class TeamFightTacticsPlatformService : IPlatformService
     {
+        private readonly ITokenService _riotService;
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-        private readonly RiotFileSystemService _riotFileSystemService;
+        private readonly HttpClient _httpClient;
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
+        private readonly RiotFileSystemService _riotFileSystemService;
 
-        public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, 
-            RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache)
+        public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
+            _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
+            _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
             _memoryCache = memoryCache;
@@ -39,7 +44,71 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new RiotSessionRequest
+                var startRiot = new ProcessStartInfo
+                {
+                    FileName = GetRiotExePath(),
+                };
+                Process.Start(startRiot);
+
+                await _riotFileSystemService.WaitForClientInit();
+
+                if (!_riotService.TryGetPortAndToken(out var token, out var port))
+                    return;
+
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+                await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
+
+                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
+                {
+                    LoginStrategy = "riot_identity",
+                    PersistLogin = true,
+                    RequireRiotID = true,
+                    Scopes = new()
+                    {
+                        "openid",
+                        "offline_access",
+                        "lol",
+                        "ban",
+                        "profile",
+                        "email",
+                        "phone",
+                        "account"
+                    }
+                });
+
+
+                var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
+                {
+                    Username = account.Username,
+                    Password = account.Password,
+                    PersistLogin = true,
+                    Region = "NA1"
+                });
+
+                var credentialsResponse = await resp.Content.ReadFromJsonAsync<RiotClientApi.CredentialsResponse>();
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Type))
+                {
+                    _alertService.AddErrorMessage("There was an error signing in, please try again later.");
+                }
+
+                if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
+                {
+                    StartLeague();
+                    return;
+                }
+
+                var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
+
+                await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new RiotClientApi.MultifactorLoginResponse
+                {
+                    Code = mfaCode,
+                    Retry = false,
+                    TrustDevice = true
+                });
+
+                StartLeague();
+                /* var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -49,11 +118,17 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
+                if (authResponse is null || authResponse?.Cookies?.Tdid?.Value is null || authResponse?.Cookies?.Ssid?.Value is null ||
+                    authResponse?.Cookies?.Sub?.Value is null || authResponse?.Cookies?.Csid?.Value is null)
+                {
+                    _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
+                    return;
+                }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
-                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
+                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
-                StartLeague();
+                StartLeague();*/
             }
             catch
             {
