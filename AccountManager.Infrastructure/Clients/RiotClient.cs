@@ -42,6 +42,7 @@ namespace AccountManager.Infrastructure.Clients
 
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
+            httpClient.DefaultRequestVersion = HttpVersion.Version20;
         }
 
         public async Task<string?> GetExpectedClientVersion()
@@ -71,6 +72,7 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
+                await AddHeadersToClient(client);
                 HttpResponseMessage authResponse;
                 authResponse = await client.PostAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", request);
 
@@ -123,7 +125,7 @@ namespace AccountManager.Infrastructure.Clients
 
             using (var client = new HttpClient(handler))
             {
-
+                await AddHeadersToClient(client);
                 HttpResponseMessage authResponse = await client.PutAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", new AuthRequest
                 {
                     Type = "auth",
@@ -233,6 +235,7 @@ namespace AccountManager.Infrastructure.Clients
             var entitlementToken = await GetEntitlementToken(bearerToken);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var response = await client.GetFromJsonAsync<UserInfoResponse>($"{_riotApiUri.Auth}/userinfo");
             return response?.PuuId;
