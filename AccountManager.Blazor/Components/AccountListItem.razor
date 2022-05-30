@@ -156,10 +156,7 @@
 
     protected override async Task OnAfterRenderAsync( bool firstRender )
     {
-        if ( firstRender )
-        {
-            await HandleRedraw();
-        }
+        await HandleRedraw();
     }
 
     async Task HandleRedraw()
@@ -180,7 +177,7 @@
             {
                 Label = dataset.Label,
                 Data = dataset.Data,
-                BackgroundColor = dataset?.ColorHex != null 
+                BackgroundColor = !string.IsNullOrEmpty(dataset?.ColorHex)
                     ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
                     : backgroundColors,
                 BorderColor = dataset?.ColorHex != null 

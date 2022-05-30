@@ -12,6 +12,7 @@ using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -149,6 +150,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
             var userInfoResponse = await client.GetAsync($"{_riotApiUri.Auth}/userinfo");
             userInfoResponse.EnsureSuccessStatusCode();
             userInfo = await userInfoResponse.Content.ReadAsStringAsync();
@@ -163,6 +165,7 @@ namespace AccountManager.Infrastructure.Clients
 
             client.DefaultRequestHeaders.Remove("Authorization");
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var entitlementResponse = await client.PostAsJsonAsync($"{_riotApiUri.Entitlement}/api/token/v1", new { urn = "urn:entitlement" });
             entitlementResponse.EnsureSuccessStatusCode();
@@ -189,6 +192,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var loginResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/login-queue/v2/login/products/lol/regions/na1", new LoginRequest
             {
@@ -220,6 +224,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var sessionResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/session-external/v1/session/create", new PostSessionsRequest
             {
