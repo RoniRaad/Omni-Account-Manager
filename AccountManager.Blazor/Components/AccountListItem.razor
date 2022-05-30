@@ -85,6 +85,7 @@
     </div>
 
 @code{
+    static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
         {
@@ -156,42 +157,56 @@
 
     protected override async Task OnAfterRenderAsync( bool firstRender )
     {
+        if (firstRender)
+        {
+            lineChart.Clear();
+        }
         await HandleRedraw();
+        semaphoreSlim.Release();
     }
 
     async Task HandleRedraw()
     {
+        await semaphoreSlim.WaitAsync();
+        var dataNeedsUpdate = false;
+        
         if (lineChart is null)
             return;
 
-        await lineChart.Clear();
         var datasets = Account?.Graphs;
         if (datasets is null)
             return;
 
         datasets = datasets.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
-
-        foreach (var dataset in datasets)
+        var datas = datasets.Select((dataset) => new LineChartDataset<CoordinatePair>
         {
-            var data = new LineChartDataset<CoordinatePair>
-            {
-                Label = dataset.Label,
-                Data = dataset.Data,
-                BackgroundColor = !string.IsNullOrEmpty(dataset?.ColorHex)
-                    ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
-                    : backgroundColors,
-                BorderColor = dataset?.ColorHex != null 
-                    ? new List<string> { dataset.ColorHex } 
-                    : borderColors,
-                Fill = false,
-                PointRadius = 3,
-                Hidden = dataset?.Hidden ?? false,
-                PointBorderColor = borderColors,
-                
-            };
+            Label = dataset.Label,
+            Data = dataset.Data,
+            BackgroundColor = !string.IsNullOrEmpty(dataset?.ColorHex)
+                ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
+                : backgroundColors,
+            BorderColor = dataset?.ColorHex != null 
+                ? new List<string> { dataset.ColorHex } 
+                : borderColors,
+            Fill = false,
+            PointRadius = 3,
+            Hidden = dataset?.Hidden ?? false,
+            PointBorderColor = borderColors,
 
-            await lineChart.AddDatasetsAndUpdate(data);
+        });
+        foreach (var data in datas)
+        {
+            if (!lineChart.Data.Datasets.Any((dataset) => data.BackgroundColor == dataset.BackgroundColor
+            && data.Label == dataset.Label
+            && data.Data.Sum((line) => line.Y) == dataset.Data.Sum((line) => line.Y)))
+                dataNeedsUpdate = true;
         }
+
+        if (!dataNeedsUpdate)
+            return;
+
+        await lineChart.Clear();
+        await lineChart.AddDatasetsAndUpdate(datas.ToArray());
     }
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 0.2f ), ChartColor.FromRgba( 54, 162, 235, 0.2f ), ChartColor.FromRgba( 255, 206, 86, 0.2f ), ChartColor.FromRgba( 75, 192, 192, 0.2f ), ChartColor.FromRgba( 153, 102, 255, 0.2f ), ChartColor.FromRgba( 255, 159, 64, 0.2f ) };
