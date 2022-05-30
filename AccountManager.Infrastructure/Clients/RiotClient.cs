@@ -284,8 +284,8 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetAsync($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=20");
-            
+            var response = await client.GetAsync($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=15");
+
             return await response.Content.ReadFromJsonAsync<ValorantRankedResponse>();
         }
 

@@ -7,6 +7,7 @@ using System.Net.Http.Json;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using System.Net.Http;
 using AccountManager.Core.Models.RiotGames.League.Requests;
+using AutoMapper;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -14,10 +15,12 @@ namespace AccountManager.Infrastructure.Clients
     {
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;
-        public LocalLeagueClient(GenericFactory<AccountType, ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory)
+        private readonly IMapper _autoMapper;
+        public LocalLeagueClient(GenericFactory<AccountType, ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, IMapper autoMapper)
         {
             _leagueTokenService = tokenServiceFactory.CreateImplementation(AccountType.League);
             _httpClientFactory = httpClientFactory;
+            _autoMapper = autoMapper;
         }
 
         public bool IsClientOpen() =>
@@ -64,21 +67,21 @@ namespace AccountManager.Infrastructure.Clients
                 Ranking = queueMap?.RankedSoloDuoStats?.Division,
             };
 
-            return rank;
+            return _autoMapper.Map<LeagueRank>(rank);
         }        
 
         public async Task<Rank> GetTFTRankByPuuidAsync(Account account)
         {
-            if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
+            if (!_leagueTokenService.TryGetPortAndToken(out _, out _))
                 return new Rank();
 
             var queueMap = await GetRankQueuesByPuuidAsync(account);
             if (queueMap?.TFTStats?.Tier?.ToLower() == "none")
-                return new Rank()
+                return _autoMapper.Map<TeamFightTacticsRank>(new Rank()
                 {
                     Tier = "UNRANKED",
                     Ranking = ""
-                };
+                });
 
             var rank = new Rank()
             {
@@ -86,7 +89,7 @@ namespace AccountManager.Infrastructure.Clients
                 Ranking = queueMap?.TFTStats?.Division,
             };
 
-            return rank;
+            return _autoMapper.Map<TeamFightTacticsRank>(rank);
         }
 
         public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
