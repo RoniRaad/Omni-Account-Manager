@@ -1,10 +1,12 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Services
 @using AccountManager.Core.Static
 @using Blazorise.Charts
 @using Blazorise.Charts.Trendline
 @using System.Drawing
+@inject AppState _state
 
 @inherits LayoutComponentBase
     <div class="card">
@@ -85,7 +87,6 @@
     </div>
 
 @code{
-    static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
         {
@@ -159,16 +160,18 @@
     {
         if (firstRender)
         {
-            lineChart.Clear();
+            await HandleRedraw();
+            _state.Notify += async () =>
+            {
+                await HandleRedraw();
+            };
         }
-        await HandleRedraw();
-        semaphoreSlim.Release();
+
     }
 
     async Task HandleRedraw()
     {
-        await semaphoreSlim.WaitAsync();
-        var dataNeedsUpdate = false;
+        lineChart.Clear();
         
         if (lineChart is null)
             return;
@@ -178,7 +181,7 @@
             return;
 
         datasets = datasets.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
-        var datas = datasets.Select((dataset) => new LineChartDataset<CoordinatePair>
+        var chartDatasets = datasets.Select((dataset) => new LineChartDataset<CoordinatePair>
         {
             Label = dataset.Label,
             Data = dataset.Data,
@@ -194,19 +197,8 @@
             PointBorderColor = borderColors,
 
         });
-        foreach (var data in datas)
-        {
-            if (!lineChart.Data.Datasets.Any((dataset) => data.BackgroundColor == dataset.BackgroundColor
-            && data.Label == dataset.Label
-            && data.Data.Sum((line) => line.Y) == dataset.Data.Sum((line) => line.Y)))
-                dataNeedsUpdate = true;
-        }
 
-        if (!dataNeedsUpdate)
-            return;
-
-        await lineChart.Clear();
-        await lineChart.AddDatasetsAndUpdate(datas.ToArray());
+        await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
     }
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba( 255, 99, 132, 0.2f ), ChartColor.FromRgba( 54, 162, 235, 0.2f ), ChartColor.FromRgba( 255, 206, 86, 0.2f ), ChartColor.FromRgba( 75, 192, 192, 0.2f ), ChartColor.FromRgba( 153, 102, 255, 0.2f ), ChartColor.FromRgba( 255, 159, 64, 0.2f ) };
