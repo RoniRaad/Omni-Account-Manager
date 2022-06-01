@@ -118,6 +118,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return false;
             }
         }
+
         private async Task<bool> TryLoginUsingApi(Account account)
         {
             try
@@ -139,15 +140,15 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
-                if (authResponse is null || authResponse?.Cookies?.Tdid?.Value is null || authResponse?.Cookies?.Ssid?.Value is null ||
-                    authResponse?.Cookies?.Sub?.Value is null || authResponse?.Cookies?.Csid?.Value is null)
+                if (authResponse is null || string.IsNullOrEmpty(authResponse?.Cookies?.Tdid)|| string.IsNullOrEmpty(authResponse?.Cookies?.Ssid) ||
+                    string.IsNullOrEmpty(authResponse?.Cookies?.Sub) || string.IsNullOrEmpty(authResponse?.Cookies?.Csid))
                 {
                     _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
                     return true;
                 }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
-                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid, authResponse.Cookies.Ssid,
+                    authResponse.Cookies.Sub, authResponse.Cookies.Csid);
 
                 StartLeague();
                 return true;
@@ -157,6 +158,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return false;
             }
         }     
+
         public async Task Login(Account account)
         {
             if (await TryLoginUsingApi(account))
@@ -208,10 +210,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     {
                         if (!isFirst)
                         {
-                            if (match.Win)
-                                matchWinDelta += 1;
-                            else
-                                matchWinDelta -= 1;
+                                matchWinDelta += match.GraphValueChange;
                         }
 
                         var dateTime = match.EndTime;

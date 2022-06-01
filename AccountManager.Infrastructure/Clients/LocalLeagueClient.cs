@@ -8,6 +8,7 @@ using AccountManager.Core.Models.RiotGames.League.Responses;
 using System.Net.Http;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AutoMapper;
+using AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -123,13 +124,13 @@ namespace AccountManager.Infrastructure.Clients
                 {
                     var usersTeam = game.Participants[0].TeamId;
 
-                    if (game is not null && game?.GameCreation != null)
+                    if (game is not null && game?.GameCreation is not null)
                         return new GameMatch()
                         {
                             Id = game?.GameId?.ToString() ?? "None",
-                            Win = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
-                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
-                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description
+                            GraphValueChange = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false ? 1 : -1,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.GameCreation ?? 0).ToLocalTime(),
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.QueueId, null)?.Description
                                 ?.Replace("games", "")
                                 ?.Replace("5v5", "")
                                 ?.Replace("Ranked", "")
@@ -151,8 +152,8 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("SSLBypass");
 
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var rankResponse = await client.GetFromJsonAsync<LocalLeagueMatchHistoryResponse>($"https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{account.PlatformId}/matches?begIndex={startIndex}&endIndex={endIndex}");
-
+            var rankHttpResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-match-history/v1/products/tft/{account.PlatformId}/matches?begin={startIndex}&count={endIndex}");
+            var rankResponse = await rankHttpResponse.Content.ReadFromJsonAsync<TeamFightTacticsMatchHistoryResponse>();
             if (rankResponse is null)
                 return new();
 
@@ -160,19 +161,17 @@ namespace AccountManager.Infrastructure.Clients
 
             var matchHistory = new UserMatchHistory()
             {
-                Matches = rankResponse.Games.Games
-                .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is true)
-                .Select((game) =>
+                Matches = rankResponse?.Games
+                ?.Select((game) =>
                 {
-                    var usersTeam = game.Participants[0].TeamId;
-
-                    if (game is not null && game?.GameCreation is not null)
+                    if (game is not null && game?.Metadata?.Timestamp is not null)
                         return new GameMatch()
                         {
-                            Id = game?.GameId?.ToString() ?? "None",
-                            Win = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false,
-                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game.GameCreation).ToLocalTime(),
-                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description
+                            Id = game?.Json?.GameId?.ToString() ?? "None",
+                            // 4th place grants no value while going up and down adds 1 positive and negative value for each movement
+                            GraphValueChange = (game?.Json?.Participants?.First((participant) => participant.Puuid == account.PlatformId)?.Placement - 4) * -1 ?? 0,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Metadata?.Timestamp ?? 0).ToLocalTime(),
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
                                 ?.Replace("games", "")
                                 ?.Replace("5v5", "")
                                 ?.Replace("Ranked", "")

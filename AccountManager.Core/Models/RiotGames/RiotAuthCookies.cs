@@ -13,55 +13,61 @@ namespace AccountManager.Core.Models.RiotGames
     {
         public RiotAuthCookies() { }
 
-        public RiotAuthCookies(CookieCollection cookies)
+        public RiotAuthCookies(IList<KeyValuePair<string, IEnumerable<string>>> headers)
         {
-            Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null);
-            Clid = cookies.FirstOrDefault((cookie) => cookie?.Name == "clid", null);
-            Csid = cookies.FirstOrDefault((cookie) => cookie?.Name == "csid", null);
-            Tdid = cookies.FirstOrDefault((cookie) => cookie?.Name == "tdid", null);
-            Sub = cookies.FirstOrDefault((cookie) => cookie?.Name == "sub", null);
-            Ssid = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null);
+            var cookies = headers.FirstOrDefault(cookie => 
+                cookie.Key.ToUpper() == "Set-Cookie".ToUpper()).Value;
+
+            if (cookies is null)
+                return;
+
+            foreach (var cookie in cookies)
+            {
+                var trimmedCookie = cookie.Substring(0, cookie.IndexOf(";"));
+                if (trimmedCookie.StartsWith("tdid"))
+                    Tdid = trimmedCookie;
+                if (trimmedCookie.StartsWith("ssid"))
+                    Ssid = trimmedCookie;
+                if (trimmedCookie.StartsWith("sub"))
+                    Sub = trimmedCookie;
+                if (trimmedCookie.StartsWith("csid"))
+                    Csid = trimmedCookie;
+                if (trimmedCookie.StartsWith("clid"))
+                    Clid = trimmedCookie;
+                if (trimmedCookie.StartsWith("asid"))
+                    Asid = trimmedCookie;
+                if (trimmedCookie.StartsWith("__cf"))
+                    CloudFlare = trimmedCookie;
+            }
         }
 
-        public Cookie? Tdid { get; set; }
-        public Cookie? Ssid { get; set; }
-        public Cookie? Sub { get; set; }
-        public Cookie? Csid { get; set; }
-        public Cookie? Clid { get; set; }
-        public Cookie? Asid { get; set; }
-
-        public CookieCollection GetCollection()
+        public string GetCookieHeader()
         {
-            var cookies = new CookieCollection();
-            if (Tdid is not null)
-                cookies.Add(Tdid);
-            if (Ssid is not null)
-                cookies.Add(Ssid);
-            if (Sub is not null)
-                cookies.Add(Sub);
-            if (Csid is not null)
-                cookies.Add(Csid);
-            if (Clid is not null)
-                cookies.Add(Clid);
-            if (Asid is not null)
-                cookies.Add(Asid);
+            var header = string.Empty;
+            if (!string.IsNullOrEmpty(Tdid))
+                header += $"{Tdid};";
+            if (!string.IsNullOrEmpty(Ssid))
+                header += $"{Ssid};";
+            if (!string.IsNullOrEmpty(Sub))
+                header += $"{Sub};";
+            if (!string.IsNullOrEmpty(Csid))
+                header += $"{Csid};";
+            if (!string.IsNullOrEmpty(Clid))
+                header += $"{Clid};";
+            if (!string.IsNullOrEmpty(Asid))
+                header += $"{Asid};";
+            if (!string.IsNullOrEmpty(CloudFlare))
+                header += $"{CloudFlare};";
 
-            return cookies;
+            return header;
         }
 
-        public void ClearExpiredCookies()
-        {
-            Tdid = Tdid?.Expired is true ? null : Tdid;
-            Ssid = Ssid?.Expired is true ? null : Ssid;
-            Sub = Sub?.Expired is true ? null : Sub;
-            Csid = Csid?.Expired is true ? null : Csid;
-            Clid = Clid?.Expired is true ? null : Clid;
-        }
-
-        public bool Validate()
-        {
-            return (Tdid is not null && Ssid is not null && Sub is not null 
-                && Csid is not null && Clid is not null);
-        }
+        public string? Tdid { get; set; }
+        public string? Ssid { get; set; }
+        public string? Sub { get; set; }
+        public string? Csid { get; set; }
+        public string? Clid { get; set; }
+        public string? Asid { get; set; }
+        public string? CloudFlare { get; set; }
     }
 }

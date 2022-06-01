@@ -102,7 +102,7 @@ namespace AccountManager.Core.Services
         {
             await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", false);
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-            _ = platformService.Login(account);
+            await platformService.Login(account);
         }
 
         public void WriteAllAccounts(List<Account> accounts)

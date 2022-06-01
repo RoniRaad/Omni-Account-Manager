@@ -80,13 +80,15 @@
 		            <span @onclick="() => OpenEditModal()" class="oi oi-wrench" title="Edit"></span>
 		        </div>
 		        <div class="col">
-		            <span @onclick="() => AccountService.Login(Account)" class="oi oi-account-login" title="Login"></span>
+		            <span @onclick="Login" class="oi oi-account-login" title="Login" style="@loginBtnStyle"></span>
 		        </div>
 	        </div>
 	    </div>
     </div>
 
 @code{
+    bool loginDisabled = false;
+    string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
         {
@@ -166,12 +168,21 @@
                 await HandleRedraw();
             };
         }
+    }
 
+    async Task Login()
+    {
+        if (loginDisabled)
+            return;
+
+        loginDisabled = true; 
+        await AccountService.Login(Account); 
+        loginDisabled = false;
     }
 
     async Task HandleRedraw()
     {
-        lineChart.Clear();
+        lineChart?.Clear();
         
         if (lineChart is null)
             return;
@@ -195,7 +206,6 @@
             PointRadius = 3,
             Hidden = dataset?.Hidden ?? false,
             PointBorderColor = borderColors,
-
         });
 
         await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
