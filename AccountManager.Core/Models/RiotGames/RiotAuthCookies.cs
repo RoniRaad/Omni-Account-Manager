@@ -23,43 +23,50 @@ namespace AccountManager.Core.Models.RiotGames
 
             foreach (var cookie in cookies)
             {
-                var trimmedCookie = cookie.Substring(0, cookie.IndexOf(";"));
-                if (trimmedCookie.StartsWith("tdid"))
-                    Tdid = trimmedCookie;
-                if (trimmedCookie.StartsWith("ssid"))
-                    Ssid = trimmedCookie;
-                if (trimmedCookie.StartsWith("sub"))
-                    Sub = trimmedCookie;
-                if (trimmedCookie.StartsWith("csid"))
-                    Csid = trimmedCookie;
-                if (trimmedCookie.StartsWith("clid"))
-                    Clid = trimmedCookie;
-                if (trimmedCookie.StartsWith("asid"))
-                    Asid = trimmedCookie;
-                if (trimmedCookie.StartsWith("__cf"))
-                    CloudFlare = trimmedCookie;
+                if (cookie.StartsWith("tdid"))
+                    Tdid = cookie;
+                if (cookie.StartsWith("ssid"))
+                    Ssid = cookie;
+                if (cookie.StartsWith("sub"))
+                    Sub = cookie;
+                if (cookie.StartsWith("csid"))
+                    Csid = cookie;
+                if (cookie.StartsWith("clid"))
+                    Clid = cookie;
+                if (cookie.StartsWith("asid"))
+                    Asid = cookie;
+                if (cookie.StartsWith("__cf"))
+                    CloudFlare = cookie;
             }
         }
 
-        public string GetCookieHeader()
+        public IEnumerable<string> GetCookies()
         {
-            var header = string.Empty;
-            if (!string.IsNullOrEmpty(Tdid))
-                header += $"{Tdid};";
-            if (!string.IsNullOrEmpty(Ssid))
-                header += $"{Ssid};";
-            if (!string.IsNullOrEmpty(Sub))
-                header += $"{Sub};";
-            if (!string.IsNullOrEmpty(Csid))
-                header += $"{Csid};";
-            if (!string.IsNullOrEmpty(Clid))
-                header += $"{Clid};";
-            if (!string.IsNullOrEmpty(Asid))
-                header += $"{Asid};";
-            if (!string.IsNullOrEmpty(CloudFlare))
-                header += $"{CloudFlare};";
+            var cookieList = new List<string>();
 
-            return header;
+            // For some reason the order here matters.
+            if (!string.IsNullOrEmpty(Asid))
+                cookieList.Add(Asid);
+
+            if (!string.IsNullOrEmpty(Tdid))
+                cookieList.Add(Tdid);
+
+            if (!string.IsNullOrEmpty(CloudFlare))
+                cookieList.Add(CloudFlare);
+
+            if (!string.IsNullOrEmpty(Clid))
+                cookieList.Add(Clid);
+
+            if (!string.IsNullOrEmpty(Ssid))
+                cookieList.Add(Ssid);
+
+            if (!string.IsNullOrEmpty(Sub))
+                cookieList.Add(Sub);
+
+            if (!string.IsNullOrEmpty(Csid))
+                cookieList.Add(Csid);
+
+            return cookieList;
         }
 
         public string? Tdid { get; set; }
