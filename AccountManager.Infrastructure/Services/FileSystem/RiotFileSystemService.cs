@@ -82,7 +82,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public async Task WriteRiotYaml(string region, string tdid, string ssid, string sub, string csid)
         {
-            var yaml = await GenerateYaml(region, tdid, ssid, sub, csid);
+            var yaml = await GenerateYaml(region, tdid.Substring(tdid.IndexOf("=") + 1).Split(";")[0], ssid.Substring(tdid.IndexOf("=") + 1).Split(";")[0]
+                , sub.Substring(tdid.IndexOf("=") + 1).Split(";")[0], csid.Substring(tdid.IndexOf("=") + 1).Split(";")[0]);
             await File.WriteAllTextAsync(@$"{appDataPath}\Riot Games\Riot Client\Data\RiotGamesPrivateSettings.yaml", yaml);
         }
 

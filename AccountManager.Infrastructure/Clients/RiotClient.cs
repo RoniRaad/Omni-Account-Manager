@@ -42,8 +42,17 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task AddHeadersToClient(HttpClient httpClient)
         {
-            if (httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
-                return;
+            //if (httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
+            // return;
+            var response = await CliWrap.Cli.Wrap("curl")
+             .WithArguments((builder) => builder
+             .Add("-i -X PUT", false)
+             .Add("-H").Add("Content-Type: application/json")
+             .Add("-H").Add($"User-Agent: RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+             .Add("-d").Add(JsonSerializer.Serialize(requestContent))
+             .Add($"{uri}"))
+             .WithValidation(CliWrap.CommandResultValidation.None)
+             .ExecuteBufferedAsync();
 
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
         }
@@ -59,36 +68,37 @@ namespace AccountManager.Infrastructure.Clients
         {
             var tdidCacheKey = $"riot.auth.tdid";
             var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
-            _memoryCache.TryGetValue(sessionCacheKey, out var sessionCookie);
+            _memoryCache.TryGetValue(sessionCacheKey, out string? sessionCookie);
             var cachedTdidCookie = await _persistantCache.GetStringAsync(tdidCacheKey);
-            var cookieHeader = "";
             var client = _httpClientFactory.CreateClient("RiotAuth");
             await AddHeadersToClient(client);
-            if (cachedTdidCookie is not null)
-                cookieHeader += cachedTdidCookie + ";";
 
-            if (sessionCookie is not null)
-                cookieHeader += sessionCookie + ";";
+            var authRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/authorization");
+            authRequest.Version = HttpVersion.Version20;
+            authRequest.Content = JsonContent.Create(request);
+            if (!string.IsNullOrEmpty(cachedTdidCookie))
+                authRequest.Headers.Add("Cookie", cachedTdidCookie);
 
-            client.DefaultRequestHeaders.Add("Cookie", cookieHeader.Split(";"));
+            if (!string.IsNullOrEmpty(sessionCookie))
+                authRequest.Headers.Add("Cookie", sessionCookie);
 
-            var authResponse = await client.PostAsJsonAsync($"/api/v1/authorization", request);
+            var authResponse = await client.SendAsync(authRequest);
             authResponse.EnsureSuccessStatusCode();
 
             var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-            RiotAuthResponse authObject = new()
+            RiotAuthResponse authResponseContent = new()
             {
                 Content = authResponseDeserialized,
                 Cookies = new(authResponse.Headers.ToList())
             };
                 
-            if (authObject?.Content?.Type == "response" && authObject?.Cookies?.Ssid is not null)
-                _memoryCache.Set(sessionCacheKey, authObject?.Cookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
+            if (authResponseContent?.Content?.Type == "response" && !string.IsNullOrEmpty(authResponseContent?.Cookies?.Ssid))
+                _memoryCache.Set(sessionCacheKey, authResponseContent?.Cookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
-            if (authObject?.Cookies?.Tdid is not null)
-                await _persistantCache.SetStringAsync(tdidCacheKey, authObject.Cookies.Tdid);
+            if (!string.IsNullOrEmpty(authResponseContent?.Cookies?.Tdid))
+                await _persistantCache.SetStringAsync(tdidCacheKey, authResponseContent.Cookies.Tdid);
 
-            return authObject;
+            return authResponseContent;
         }
 
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
@@ -105,11 +115,9 @@ namespace AccountManager.Infrastructure.Clients
                 return initialAuth;
 
             var initialCookies = initialAuth?.Cookies ?? new();
-            var cookieHeader = initialCookies.GetCookieHeader();
             var client = _httpClientFactory.CreateClient("RiotAuth");
 
             await AddHeadersToClient(client);
-            client.DefaultRequestHeaders.Add("Cookie", cookieHeader.Split(";"));
 
             var authRequest = new HttpRequestMessage(HttpMethod.Put, "/api/v1/authorization");
             authRequest.Version = HttpVersion.Version20;
@@ -120,18 +128,18 @@ namespace AccountManager.Infrastructure.Clients
                 Password = account.Password,
                 Remember = true
             });
-
-            authRequest.Headers.Add("Cookie", cookieHeader.Split(";"));
+            var cookieHeader = string.Join("; ", initialCookies.GetCookies());
+            authRequest.Headers.Add("Cookie", cookieHeader);
             authRequest.Version = HttpVersion.Version20;
 
             var authResponse = await client.SendAsync(authRequest);
             authResponse.EnsureSuccessStatusCode();
 
             responseCookies = new(authResponse.Headers.ToList());
-            if (responseCookies?.Ssid is not null)
+            if (!string.IsNullOrEmpty(responseCookies?.Ssid))
                 _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
-            if (responseCookies?.Tdid is not null)
+            if (!string.IsNullOrEmpty(responseCookies?.Tdid))
                 await _persistantCache.SetStringAsync(tdidCacheKey, responseCookies?.Tdid);
 
             var tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
@@ -143,7 +151,7 @@ namespace AccountManager.Infrastructure.Clients
                     return null;
                 }
 
-                if (responseCookies?.Tdid is not null)
+                if (!string.IsNullOrEmpty(responseCookies?.Tdid))
                     _alertService.AddErrorMessage($"MFA with cached cookie! Value {responseCookies?.Tdid}");
                 else
                     _alertService.AddInfoMessage("MFA without cached cookie!");
@@ -164,15 +172,15 @@ namespace AccountManager.Infrastructure.Clients
                     RememberDevice = true
                 });
                 mfaRequest.Version = HttpVersion.Version20;
-                mfaRequest.Headers.Add("Cookie", responseCookies?.GetCookieHeader() ?? "");
+                mfaRequest.Headers.Add("Cookie", responseCookies?.GetCookies());
                 authResponse = await client.SendAsync(mfaRequest);
                 authResponse.EnsureSuccessStatusCode();
 
                 responseCookies = new RiotAuthCookies(authResponse.Headers.ToList());
-                if (responseCookies?.Ssid is not null)
+                if (!string.IsNullOrEmpty(responseCookies?.Ssid))
                     _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
-                if (responseCookies?.Tdid is not null)
+                if (!string.IsNullOrEmpty(responseCookies?.Tdid))
                     await _persistantCache.SetStringAsync(tdidCacheKey, responseCookies?.Tdid);
 
                 tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
@@ -215,7 +223,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetEntitlementToken(string token)
         {
-            var client = _httpClientFactory.CreateClient("Entitlement");
+            var client = _httpClientFactory.CreateClient("RiotEntitlement");
 
             await AddHeadersToClient(client);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -243,10 +251,14 @@ namespace AccountManager.Infrastructure.Clients
             var tdidCookie = _persistantCache.GetString(tdidCacheKey);
             var entitlementToken = await GetEntitlementToken(bearerToken);
 
-            var request = new HttpRequestMessage(HttpMethod.Get, "/userinfo");
-            request.Version = HttpVersion.Version20;
+            var request = new HttpRequestMessage(HttpMethod.Get, "/userinfo")
+            {
+                Version = HttpVersion.Version20
+            };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            request.Headers.Add("Cookie", tdidCookie);
+            if (!string.IsNullOrEmpty(tdidCookie))
+                request.Headers.Add("Cookie", tdidCookie);
+
             request.Headers.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.SendAsync(request);
