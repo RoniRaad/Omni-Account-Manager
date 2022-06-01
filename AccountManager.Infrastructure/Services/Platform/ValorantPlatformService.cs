@@ -30,8 +30,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
         }
-
-        public async Task Login(Account account)
+        private async Task<bool> TryLoginUsingRCU(Account account)
         {
             try
             {
@@ -51,7 +50,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientInit();
 
                 if (!_riotService.TryGetPortAndToken(out var token, out var port))
-                    return;
+                    return false;
 
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
                 await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
@@ -63,17 +62,16 @@ namespace AccountManager.Infrastructure.Services.Platform
                     RequireRiotID = true,
                     Scopes = new()
                     {
-                        "openid", 
-                        "offline_access",  
-                        "lol",  
-                        "ban", 
+                        "openid",
+                        "offline_access",
+                        "lol",
+                        "ban",
                         "profile",
                         "email",
                         "phone",
                         "account"
                     }
                 });
-
 
                 var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
                 {
@@ -93,7 +91,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
                 {
                     StartValorant();
-                    return;
+                    return true;
                 }
 
                 var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
@@ -106,7 +104,26 @@ namespace AccountManager.Infrastructure.Services.Platform
                 });
 
                 StartValorant();
-                /*var request = new RiotSessionRequest
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> TryLoginUsingApi(Account account)
+        {
+            try
+            {
+                foreach (var process in Process.GetProcesses())
+                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
+                        process.Kill();
+
+                await _riotFileSystemService.WaitForClientClose();
+                _riotFileSystemService.DeleteLockfile();
+
+                var request = new RiotSessionRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -116,17 +133,33 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
-                if (authResponse is null)
-                    return;
+                if (authResponse is null || string.IsNullOrEmpty(authResponse?.Cookies?.Tdid) || string.IsNullOrEmpty(authResponse?.Cookies?.Ssid) ||
+                    string.IsNullOrEmpty(authResponse?.Cookies?.Sub) || string.IsNullOrEmpty(authResponse?.Cookies?.Csid))
+                {
+                    _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
+                    return true;
+                }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse?.Cookies?.Tdid?.Value ?? "", authResponse?.Cookies?.Ssid?.Value ?? "",
-                    authResponse?.Cookies?.Sub?.Value ?? "", authResponse?.Cookies?.Csid?.Value ?? "");*/
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid, authResponse.Cookies.Ssid,
+                    authResponse.Cookies.Sub, authResponse.Cookies.Csid);
 
+                StartValorant();
+                return true;
             }
             catch
             {
-                _alertService.AddErrorMessage("There was an error signing in.");
+                return false;
             }
+        }
+
+        public async Task Login(Account account)
+        {
+            if (await TryLoginUsingApi(account))
+                return;
+            if (await TryLoginUsingRCU(account))
+                return;
+
+            _alertService.AddErrorMessage("There was an error attempting to sign in.");
         }
 
         private void StartValorant()

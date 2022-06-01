@@ -2,6 +2,6 @@
 {
     public class UserMatchHistory
     {
-        public IEnumerable<GameMatch> Matches { get; set; }
+        public IEnumerable<GameMatch>? Matches { get; set; }
     }
 }

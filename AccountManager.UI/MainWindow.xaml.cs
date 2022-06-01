@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Windows;
 using AccountManager.Core.Enums;
@@ -34,7 +36,7 @@ namespace AccountManager.UI
 		public IConfigurationRoot Configuration { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
-			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "<Pending>")]
+			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
 			// This file acts as a flag to delete the cache file before initializing
@@ -55,11 +57,83 @@ namespace AccountManager.UI
 				options.CachePath = @".\cache.db";
 			});
 			serviceCollection.AddMemoryCache();
-			serviceCollection.AddHttpClient("CloudflareBypass").ConfigureHttpMessageHandlerBuilder(x =>
+			var riotApiUri = Configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
+			serviceCollection.AddHttpClient("RiotAuth", (httpClient) =>
+            {
+				httpClient.BaseAddress = new Uri(riotApiUri?.Auth ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
 			{
-				x.PrimaryHandler = new ClearanceHandler
+				x.PrimaryHandler = new HttpClientHandler
 				{
-					MaxRetries = 2
+					UseCookies = false,
+				};
+			});
+			serviceCollection.AddHttpClient("RiotEntitlement", (httpClient) =>
+			{
+				httpClient.BaseAddress = new Uri(riotApiUri?.Entitlement ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
+			{
+				x.PrimaryHandler = new HttpClientHandler
+				{
+					UseCookies = false
+				};
+			});
+			serviceCollection.AddHttpClient("RiotSessionNA", (httpClient) =>
+			{
+				httpClient.BaseAddress = new Uri(riotApiUri?.LeagueSessionUS ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
+			{
+				x.PrimaryHandler = new HttpClientHandler
+				{
+					UseCookies = false
+				};
+			});
+			serviceCollection.AddHttpClient("LeagueNA", (httpClient) =>
+			{
+				httpClient.BaseAddress = new Uri(riotApiUri?.LeagueNA ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
+			{
+				x.PrimaryHandler = new HttpClientHandler
+				{
+					UseCookies = false
+				};
+			});
+			serviceCollection.AddHttpClient("Valorant", (httpClient) =>
+			{
+				httpClient.BaseAddress = new Uri(riotApiUri?.Valorant ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
+			{
+				x.PrimaryHandler = new HttpClientHandler
+				{
+					UseCookies = false
+				};
+			});
+			serviceCollection.AddHttpClient("ValorantNA", (httpClient) =>
+			{
+				httpClient.BaseAddress = new Uri(riotApiUri?.ValorantNA ?? "");
+				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+				httpClient.DefaultRequestVersion = HttpVersion.Version20;
+			}).ConfigureHttpMessageHandlerBuilder(x =>
+			{
+				x.PrimaryHandler = new HttpClientHandler
+				{
+					UseCookies = false
 				};
 			});
 			serviceCollection.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
@@ -72,6 +146,7 @@ namespace AccountManager.UI
 
 				x.PrimaryHandler = httpClientHandler;
 			});
+
 			serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();

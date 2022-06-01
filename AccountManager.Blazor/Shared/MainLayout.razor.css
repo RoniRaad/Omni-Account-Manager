@@ -30,7 +30,7 @@ a {
 }
 
 .notification {
-	position: absolute;
+	position: fixed;
 	width: 100%;
 	z-index: 2000;
 	text-align: center;
