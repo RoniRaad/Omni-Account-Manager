@@ -59,6 +59,7 @@ namespace AccountManager.Core.Services
                 var rank = (await platformService.TryFetchRank(account)).Item2;
                 if (!string.IsNullOrEmpty(rank.Tier))
                     account.Rank = rank;
+                account.Graphs = (await platformService.TryFetchRankedGraphData(account)).Item2;
             }
 
             WriteAllAccounts(accounts);
@@ -101,7 +102,7 @@ namespace AccountManager.Core.Services
         {
             await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", false);
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-            _ = platformService.Login(account);
+            await platformService.Login(account);
         }
 
         public void WriteAllAccounts(List<Account> accounts)

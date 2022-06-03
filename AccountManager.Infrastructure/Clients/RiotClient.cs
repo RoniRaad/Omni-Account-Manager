@@ -15,6 +15,8 @@ using System.Text.RegularExpressions;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
+using AutoMapper;
+using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -25,162 +27,137 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly RiotApiUri _riotApiUri;
+        private readonly IMapper _autoMapper;
+        private readonly ICurlRequestBuilder _curlRequestBuilder;
 
-        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions)
+        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
+            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
         {
             _httpClientFactory = httpClientFactory;
             _alertService = alertService;
             _memoryCache = memoryCache;
             _persistantCache = persistantCache;
             _riotApiUri = riotApiOptions.Value;
-        }
-
-        private async Task AddHeadersToClient(HttpClient httpClient)
-        {
-            if (httpClient.DefaultRequestHeaders.Contains("X-Riot-ClientVersion"))
-                return;
-
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
-            httpClient.DefaultRequestVersion = HttpVersion.Version20;
+            _autoMapper = autoMapper;
+            _curlRequestBuilder = curlRequestBuilder;
         }
 
         public async Task<string?> GetExpectedClientVersion()
         {
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
-            var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>($"{_riotApiUri.Valorant}/v1/version");
+            var client = _httpClientFactory.CreateClient("Valorant");
+            var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>($"/v1/version");
             return response?.Data?.RiotClientVersion;
         }
 
-        private async Task<RiotAuthResponse> GetRiotSessionCookies(RiotSessionRequest request, Account account)
+        private async Task<RiotAuthResponse?> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
-            var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
             var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
-            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(sessionCacheKey);
-            var cookieContainer = new CookieContainer();
-            if (cachedSessionCookie is not null && !cachedSessionCookie.Expired)
-                cookieContainer.Add(cachedSessionCookie);
+            _memoryCache.TryGetValue(sessionCacheKey, out Cookie? sessionCookie);
+            var cookieCollection = new CookieCollection();
+            if (sessionCookie is not null)
+                cookieCollection.Add(sessionCookie);
 
-            var innerHandler = new HttpClientHandler()
+            var authResponse = await _curlRequestBuilder.CreateBuilder()
+                .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                .SetContent(request)
+                .AddCookies(cookieCollection)
+                .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+                .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .Post<TokenResponseWrapper>();
+
+            var authResponseDeserialized = authResponse.ResponseContent;
+            RiotAuthResponse authResponseContent = new()
             {
-                CookieContainer = cookieContainer
+                Content = authResponseDeserialized,
+                Cookies = new(authResponse.Cookies ?? new())
             };
-            var handler = new ClearanceHandler(innerHandler)
-            {
-                MaxRetries = 2
-            };
-
-            using (var client = new HttpClient(handler))
-            {
-                await AddHeadersToClient(client);
-                HttpResponseMessage authResponse;
-                authResponse = await client.PostAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", request);
-
-                var authResponseDeserialized = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-                RiotAuthResponse authObject = new ()
-                {
-                    Content = authResponseDeserialized,
-                    Cookies = new(cookieContainer.GetAllCookies())
-                };
                 
-                await _persistantCache.SetAsync(sessionCacheKey, authObject.Cookies.Ssid);
-                if (authObject?.Content?.Type == "response" && authObject?.Cookies?.Validate() is true)
-                    await _persistantCache.SetAsync(tdidCacheKey, authObject.Cookies.Tdid);
+            if (authResponseContent?.Content?.Type == "response" && authResponseContent?.Cookies?.Ssid is not null)
+                _memoryCache.Set(sessionCacheKey, authResponseContent?.Cookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
-                return authObject;
-            }
+            return authResponseContent;
         }
 
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
+            RiotAuthCookies responseCookies;
+            
+            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+
             if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
                 return null;
 
             var initialAuth = await GetRiotSessionCookies(request, account);
-            initialAuth?.Cookies?.ClearExpiredCookies();
-            if (initialAuth?.Content?.Type == "response" && initialAuth?.Cookies?.Validate() is true)
+            if (initialAuth?.Content?.Type == "response")
                 return initialAuth;
 
             var initialCookies = initialAuth?.Cookies ?? new();
 
-            var tdidCacheKey = $"{account.Username}.riot.auth.tdid";
-            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
-
-            var cookieContainer = new CookieContainer();
-            cookieContainer.Add(initialCookies.GetCollection());
-
-            var cachedSessionCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
-            if (cachedSessionCookie is not null)
-                cookieContainer.Add(cachedSessionCookie);
-
-            var innerHandler = new HttpClientHandler()
+            var authResponse = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+            .SetContent(new AuthRequest
             {
-                CookieContainer = cookieContainer
-            };
+                Type = "auth",
+                Username = account.Username,
+                Password = account.Password,
+                Remember = true
+            })
+            .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .AddCookies(initialCookies.GetCookies())
+            .Put<TokenResponseWrapper>();
 
-            var handler = new ClearanceHandler(innerHandler)
-            {
-                MaxRetries = 2
-            };
+            responseCookies = new(authResponse.Cookies ?? new());
 
-            using (var client = new HttpClient(handler))
+            if (responseCookies?.Ssid is not null)
+                _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
+
+            var tokenResponse = authResponse.ResponseContent;
+            if (tokenResponse?.Type == "multifactor")
             {
-                await AddHeadersToClient(client);
-                HttpResponseMessage authResponse = await client.PutAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", new AuthRequest
+                if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
                 {
-                    Type = "auth",
-                    Username = account.Username,
-                    Password = account.Password,
-                    Remember = true
-                });
-
-                var tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-
-                if (tokenResponse?.Type == "multifactor")
-                {
-                    if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
-                    {
-                        _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
-                        return null;
-                    }    
-
-                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
-                    if (mfCode == string.Empty)
-                    {
-                        await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", true);
-                        return null;
-                    }
-
-                    authResponse = await client.PutAsJsonAsync($"{_riotApiUri.Auth}/api/v1/authorization", new MultifactorRequest()
-                    {
-                        Code = mfCode,
-                        Type = "multifactor",
-                        RememberDevice = true
-                    });
-
-                    tokenResponse = await authResponse.Content.ReadFromJsonAsync<TokenResponseWrapper>();
-
-                    if (tokenResponse?.Type == "multifactor")
-                        _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
+                    _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
+                    return null;
                 }
 
-                var cookies = cookieContainer.GetAllCookies();
-                var tdidCookie = cookies.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
-                var ssidCookie = cookies.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "ssid", null);
-
-                if (tdidCookie is not null)
-                    await _persistantCache.SetAsync(tdidCacheKey, tdidCookie);
-                if (tdidCookie is not null)
-                    await _persistantCache.SetAsync(sessionCacheKey, ssidCookie);
-
-                var response = new RiotAuthResponse
+                var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
+                if (mfCode == string.Empty)
                 {
-                    Content = tokenResponse,
-                    Cookies = new(cookies)
-                };
+                    await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", true);
+                    return null;
+                }
 
-                return response;
+                authResponse = await _curlRequestBuilder.CreateBuilder()
+                .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                .SetContent(new MultifactorRequest()
+                {
+                    Code = mfCode,
+                    Type = "multifactor",
+                    RememberDevice = true
+                })
+                .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+                .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .AddCookies(responseCookies?.GetCookies() ?? new())
+                .Put<TokenResponseWrapper>();
+
+                responseCookies = new RiotAuthCookies(authResponse?.Cookies ?? new());
+                if (responseCookies?.Ssid is not null)
+                    _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
+
+                tokenResponse = authResponse?.ResponseContent;
+
+                if (tokenResponse?.Type == "multifactor")
+                    _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
             }
+
+            var response = new RiotAuthResponse
+            {
+                Content = tokenResponse,
+                Cookies = responseCookies
+            };
+
+            return response;
         }
 
         public async Task<string?> GetValorantToken(Account account)
@@ -208,22 +185,20 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetEntitlementToken(string token)
         {
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
+            .SetContent(new { })
+            .SetBearerToken(token)
+            .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")
+            .Post<EntitlementTokenResponse>();
 
-            await AddHeadersToClient(client);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            var entitlementResponse = await client.PostAsJsonAsync($"{_riotApiUri.Entitlement}/api/token/v1", new { });
-            var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementTokenResponse>();
-
-            return entitlementResponseDeserialized?.EntitlementToken;
+            return response.ResponseContent?.EntitlementToken;
         }
 
         public async Task<string?> GetPuuId(string username, string password)
         {
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
-            await AddHeadersToClient(client);
-
             var bearerToken = await GetValorantToken(new Account
             {
                 Username = username,
@@ -233,57 +208,53 @@ namespace AccountManager.Infrastructure.Clients
                 return null;
 
             var entitlementToken = await GetEntitlementToken(bearerToken);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
+            var cookieCollection = new CookieCollection();
 
-            var response = await client.GetFromJsonAsync<UserInfoResponse>($"{_riotApiUri.Auth}/userinfo");
-            return response?.PuuId;
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Auth}/userinfo")
+            .SetBearerToken(bearerToken)
+            .AddCookies(cookieCollection)
+            .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .AddHeader("X-Riot-Entitlements-JWT", entitlementToken ?? "")
+            .Get<UserInfoResponse>();
+
+            var responseContent = response.ResponseContent;
+            var responseCookies = new RiotAuthCookies(response.Cookies ?? new());
+
+            return responseContent?.PuuId;
         }
 
-        public async Task<Rank> GetValorantRank(Account account)
+        public async Task<ValorantRankedResponse?> GetValorantCompetitiveHistory(Account account)
         {
-            int rankNumber;
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
-            await AddHeadersToClient(client);
+            var client = _httpClientFactory.CreateClient("ValorantNA");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
             var bearerToken = await GetValorantToken(account);
             if (bearerToken is null)
-                return new Rank();
+                return new();
 
             var entitlementToken = await GetEntitlementToken(bearerToken);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetFromJsonAsync<ValorantRankedResponse>($"{_riotApiUri.ValorantNA}/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive");
-            
-            if (response?.Matches?.Any() is false)
-                return new Rank()
-                {
-                    Tier = "UNRANKED",
-                    Ranking = $""
-                };
+            var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=15");
 
-            var mostRecentMatch = response?.Matches?.First();
+            return await response.Content.ReadFromJsonAsync<ValorantRankedResponse>();
+        }
+
+        public async Task<Rank> GetValorantRank(Account account)
+        {
+            int rankNumber;
+            var rankedHistory = await GetValorantCompetitiveHistory(account);
+
+            if (rankedHistory?.Matches?.Any() is false)
+                return _autoMapper.Map<ValorantRank>(0);
+
+            var mostRecentMatch = rankedHistory?.Matches?.First();
             rankNumber = mostRecentMatch?.TierAfterUpdate ?? 0;
 
-            var valorantRanking = new List<string>() {
-                "Unrated",
-                "IRON",
-                "BRONZE",
-                "SILVER" ,
-                "GOLD" ,
-                "PLATINUM" ,
-                "DIAMOND" ,
-                "IMMORTAL" ,
-                "RADIANT"
-            };
-
-            var rank = new Rank()
-            {
-                Tier = valorantRanking[rankNumber / 3],
-                Ranking = new string('I', rankNumber % 3 + 1)
-            };
+            var rank = _autoMapper.Map<ValorantRank>(rankNumber);
 
             return rank;
         }

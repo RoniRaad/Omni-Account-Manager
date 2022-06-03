@@ -7,7 +7,9 @@ using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using AccountManager.Core.Models.RiotGames.Requests;
+using AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 using AccountManager.Core.Services;
+using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -22,42 +24,27 @@ namespace AccountManager.Infrastructure.Clients
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ITokenService _leagueTokenService;
         private readonly LocalLeagueClient _localLeagueClient;
-        private readonly AlertService _alertService;
         private readonly IUserSettingsService<UserSettings> _settings;
-        private readonly IDistributedCache _persistantCache;
         private readonly IRiotClient _riotClient;
         private readonly RiotApiUri _riotApiUri;
+        private readonly IMapper _autoMapper;
+        private readonly ICurlRequestBuilder _curlRequestBuilder;
 
-        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory,
-            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService, IDistributedCache persistantCache,
-            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions)
+        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
+            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings,
+            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, 
+            ICurlRequestBuilder curlRequestBuilder)
         {
             _memoryCache = memoryCache;
-            _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
             _httpClientFactory = httpClientFactory;
             _localLeagueClient = localLeagueClient;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
-            _alertService = alertService;
-            _persistantCache = persistantCache;
             _riotClient = riotClient;
             _riotApiUri = riotApiOptions.Value;
-        }
-
-        public async Task<string> GetRankByUsernameAsync(string username)
-        {
-            if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
-                return "";
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var response = await client.GetAsync($"https://127.0.0.1:{port}/lol-summoner/v1/summoners?name={username}");
-            var summoner = await response.Content.ReadFromJsonAsync<LeagueAccount>();
-            var rankResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-ranked/v1/ranked-stats/{summoner?.Puuid}");
-            var summonerRanking = await rankResponse.Content.ReadFromJsonAsync<LeagueSummonerRank>();
-            return $"{summonerRanking?.QueueMap?.RankedSoloDuoStats?.Tier} {summonerRanking?.QueueMap?.RankedSoloDuoStats?.Division}";
+            _autoMapper = autoMapper;
+            _curlRequestBuilder = curlRequestBuilder;
         }
 
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
@@ -71,11 +58,11 @@ namespace AccountManager.Infrastructure.Clients
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_SOLO_5x5");
 
-            return new Rank()
+            return _autoMapper.Map<LeagueRank>(new Rank()
             {
                 Tier = rankedStats?.Tier,
                 Ranking = rankedStats?.Rank,
-            };
+            });
         }
 
         public async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
@@ -104,17 +91,17 @@ namespace AccountManager.Infrastructure.Clients
             var queue = await GetRankQueuesByPuuidAsync(account);
             var rankedStats = queue.Find((match) => match.QueueType == "RANKED_TFT");
             if (rankedStats?.Tier?.ToLower() == "none" || rankedStats?.Tier is null)
-                return new Rank()
+                return _autoMapper.Map<TeamFightTacticsRank>(new Rank()
                 {
                     Tier = "UNRANKED",
                     Ranking = ""
-                };
+                });
 
-            return new Rank()
+            return _autoMapper.Map<TeamFightTacticsRank>(new Rank()
             {
                 Tier = rankedStats?.Tier,
                 Ranking = rankedStats?.Rank,
-            };
+            });
         }
 
         private async Task<string> GetRiotAuthToken(Account account)
@@ -143,33 +130,26 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<string> GetUserInfo(string riotToken)
         {
-            string userInfo;
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
-            client.DefaultRequestVersion = HttpVersion.Version20;
-            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            var userInfoResponse = await client.GetAsync($"{_riotApiUri.Auth}/userinfo");
-            userInfoResponse.EnsureSuccessStatusCode();
-            userInfo = await userInfoResponse.Content.ReadAsStringAsync();
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Auth}/userinfo")
+            .SetBearerToken(riotToken)
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .Get();
 
-            return userInfo;
+            return response?.ResponseContent ?? "";
         }
 
         private async Task<string> GetEntitlementJWT(string riotToken)
         {
             string entitlement;
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
+            .SetContent(new { urn = "urn:entitlement" })
+            .SetBearerToken(riotToken)
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .Post<EntitlementResponse>();
 
-            client.DefaultRequestHeaders.Remove("Authorization");
-            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
-
-            var entitlementResponse = await client.PostAsJsonAsync($"{_riotApiUri.Entitlement}/api/token/v1", new { urn = "urn:entitlement" });
-            entitlementResponse.EnsureSuccessStatusCode();
-            var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementResponse>();
-            if (entitlementResponseDeserialized?.EntitlementToken is null)
-                return string.Empty;
-
-            entitlement = entitlementResponseDeserialized.EntitlementToken;
+            entitlement = response?.ResponseContent?.EntitlementToken ?? "";
 
             return entitlement;
         }
@@ -188,6 +168,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var loginResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/login-queue/v2/login/products/lol/regions/na1", new LoginRequest
             {
@@ -219,6 +200,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
+            client.DefaultRequestVersion = HttpVersion.Version20;
 
             var sessionResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/session-external/v1/session/create", new PostSessionsRequest
             {
@@ -238,7 +220,9 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string> GetLeagueSessionToken(Account account)
         {
-            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string sessionToken) && await TestLeagueToken(sessionToken))
+            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken) 
+                && sessionToken is not null 
+                && await TestLeagueToken(sessionToken))
                 return sessionToken;
 
             sessionToken = await _localLeagueClient.GetLocalSessionToken();
@@ -249,6 +233,94 @@ namespace AccountManager.Infrastructure.Clients
                 _memoryCache.Set("GetLeagueSessionToken", sessionToken);
 
             return sessionToken;
+        }
+
+        public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>($"{_riotApiUri.RiotCDN}/docs/lol/queues.json");
+            
+            return response;
+        }
+
+        public async Task<UserMatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (_localLeagueClient.IsClientOpen())
+                return await _localLeagueClient.GetUserMatchHistory(account, startIndex, endIndex);
+
+            if (!_settings.Settings.UseAccountCredentials)
+                return new();
+
+            var token = await GetLeagueSessionToken(account);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
+            var queueMapping = await GetLeagueQueueMappings();
+
+            if (rankResponse is null || queueMapping is null)
+                return null;
+
+            var userMatchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse?.Games?
+                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
+                    .Select((game) => new GameMatch()
+                    {
+                        Id = game?.Metadata?.MatchId ?? "NONE",
+                        GraphValueChange = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false ? 1 : -1,
+                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameEndTimestamp ?? 0).ToLocalTime(),
+                        Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
+                            ?.Replace("games", "")
+                            ?.Replace("5v5", "")
+                            ?.Replace("Ranked", "")
+                            ?.Trim() ?? "Other"
+                    })
+            };
+
+            return userMatchHistory;
+        }
+
+        public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            if (_localLeagueClient.IsClientOpen())
+                return await _localLeagueClient.GetUserTeamFightTacticsMatchHistory(account, startIndex, endIndex);
+
+            if (!_settings.Settings.UseAccountCredentials)
+                return new();
+
+            var token = await GetLeagueSessionToken(account);
+            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistoryResponse>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
+            var queueMapping = await GetLeagueQueueMappings();
+
+            if (rankResponse is null && queueMapping is null)
+                return null;
+
+            var matchHistory = new UserMatchHistory()
+            {
+                Matches = rankResponse?.Games
+                ?.Select((game) =>
+                {
+                    if (game is not null && game?.Metadata?.Timestamp is not null)
+                        return new GameMatch()
+                        {
+                            Id = game?.Json?.GameId?.ToString() ?? "None",
+                                        // 4th place grants no value while going up and down adds 1 positive and negative value for each movement
+                            GraphValueChange = (game?.Json?.Participants?.First((participant) => participant.Puuid == account.PlatformId)?.Placement - 4) * -1 ?? 0,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Metadata?.Timestamp ?? 0).ToLocalTime(),
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
+                                ?.Replace("games", "")
+                                ?.Replace("5v5", "")
+                                ?.Replace("Ranked", "")
+                                ?.Trim() ?? "Other"
+                        };
+
+                    return new();
+                })
+            };
+
+            return matchHistory;
         }
 
         public async Task<bool> TestLeagueToken(string token)

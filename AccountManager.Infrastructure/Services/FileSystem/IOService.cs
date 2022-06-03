@@ -92,16 +92,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             }
             catch
             {
-                try
-                {
-                    // Migrates old insecure encrypted files to new encryption scheme. Temporary addition will be removed in a newer release
-                    decryptedData = StringEncryption.DecryptStringFixedIV(password, encryptedData);
-                    File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, decryptedData));
-                }
-                catch
-                {
-                    throw new ArgumentException("Incorrect Password Given");
-                }
+                throw new ArgumentException("Incorrect Password Given");
             }
             return JsonSerializer.Deserialize<T>(decryptedData) ?? new T();
         }

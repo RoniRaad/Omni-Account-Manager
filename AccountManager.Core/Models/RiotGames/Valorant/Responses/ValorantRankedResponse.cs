@@ -14,7 +14,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string? SeasonID { get; set; }
 
         [JsonPropertyName("MatchStartTime")]
-        public object? MatchStartTime { get; set; }
+        public double MatchStartTime { get; set; }
 
         [JsonPropertyName("TierAfterUpdate")]
         public int TierAfterUpdate { get; set; }

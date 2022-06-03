@@ -12,43 +12,32 @@
 @inject AlertService _alertSerivce
 @namespace AccountManager.Blazor.Pages
 
-<div class="container-fluid">
-    @if (DragMode){
-        <h6 style="text-align:center">Drag the accounts to reorder them.</h6>
-    }
-    <table class="table table-fit">
-        <tbody>
-            @if (!DragMode){
-                @foreach (var account in _appState.Accounts)
-                {
-                    <AccountListItem AccountService="_accountService" Account="account" ReloadList="() => LoadList()" RenderButtons="true"></AccountListItem>
-                }
-            }
-            else{
-                <Dropzone Items="_appState.Accounts" TItem="Account">
-                    <div>
-                        <AccountListItem AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" ></AccountListItem>
-                    </div>
-                </Dropzone>
-            }
-        </tbody>
-    </table>
-    <div class="row">
-        <div class="col" style="margin-left: -3px" >
-            @if (!DragMode)
-            {
-                <span @onclick="()=>DragMode = true" class="oi oi-list" title="Reorder List"></span>
-                <span @onclick="() => addAccountPrompt = true" class="oi oi-plus" title="Add Account"> </span>
-            }
-            else
-            {
-                <span @onclick="()=>{DragMode = false; SaveList();}" class="oi oi-check" title="Save Order"></span>
-            }
+<div class="container-fluid" style="padding-left:0px;padding-right:0px;margin-top: -12px;justify-content: space-between;">
+    <div class="row" style="--bs-gutter-x: 0rem">
+        <Dropzone Class="display-content" ItemWrapperClass="@(item => "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2")" Items="_appState.Accounts" TItem="Account">
+                <AccountListItem AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}" ></AccountListItem>
+        </Dropzone>
 
+        <div class="col-md-4 col-sm-6 col-xxl-2">
+            <div class="card card-placeholder">
+	            <ul class="list-group list-group-flush">
+                    <li @onclick="()=>addAccountPrompt=true" class="clickable-card list-group-item list-group-item-placeholder">
+                        <div class="list-item-placeholder-div">
+                            <p>+</p>
+                        </div>
+                    </li>
+                </ul>
+	        </div>
         </div>
     </div>
-    @if (addAccountPrompt)
-    {
-        <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountPrompt>
-    }
 </div>
+
+@if (addAccountPrompt)
+{
+    <NewAccountPrompt AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountPrompt>
+}
+
+@if (editAccountTarget is not null)
+{
+    <AccountEditModal Account="editAccountTarget" AccountService="_accountService" Close="() => {editAccountTarget = null; InvokeAsync(() => StateHasChanged());}"></AccountEditModal>
+}

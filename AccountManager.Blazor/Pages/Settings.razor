@@ -18,7 +18,10 @@
                     </th>
                     <td>
                         <div class="form-check">
-                            <InputCheckbox @bind-Value="_settings.Settings.UseAccountCredentials" id="credentialsCheckBox"></InputCheckbox>
+                            <input type="checkbox"@onchange="(ChangeEventArgs e) => {
+                                _settings.Settings.UseAccountCredentials = (bool)(e?.Value ?? true); 
+                                _settings.Save();
+                            }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
                             <label class="form-check-label" for="credentialsCheckBox">
                                 Use Credentials
                             </label>
@@ -39,14 +42,6 @@
                     </th>
                     <td>
                         <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Save changes</p>
-                    </th>
-                    <td>
-                        <button class="btn btn-dark" @onclick=_settings.Save>Save</button>
                     </td>
                 </tr>
             </tbody>

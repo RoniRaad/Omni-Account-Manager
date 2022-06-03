@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AccountManager.Blazor;assembly=AccountManager.Blazor"
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         mc:Ignorable="d"
-        Title="Multi-Account-Manager" Height="700" Width="900" WindowStyle="None" Background="#202020">
+        Title="Multi-Account-Manager" Height="660" Width="1200" WindowStyle="None" Background="#1d1d1d">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="20" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}" />
     </WindowChrome.WindowChrome>
@@ -26,11 +26,11 @@
                 <Grid Grid.Column="0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" >
                         <TextBlock Margin="7,0,0,0" VerticalAlignment="Center" Foreground="White">Multi Account Manager</TextBlock>
-                        <TextBlock x:Name="versionNum" Margin="7,0,315,0" VerticalAlignment="Center" Foreground="White">v1.0.1.0</TextBlock>
+                        <TextBlock x:Name="versionNum" Margin="7,0,315,0" VerticalAlignment="Center" Foreground="White">v1.1.0.0</TextBlock>
                     </StackPanel>
                 </Grid>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">
-                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Click="Close" Width="40px" BorderThickness="0" Background="#202020" Foreground="White">
+                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Click="Close" Width="40px" BorderThickness="0" Background="#1d1d1d" Foreground="White">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Background" Value="LightBlue" />
@@ -52,7 +52,7 @@
                         </Button.Style>
                         &#128473;&#xFE0E;
                     </Button>
-                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Width="40px" BorderThickness="0" Background="#202020" Foreground="White" Click="Minimize">
+                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Width="40px" BorderThickness="0" Background="#1d1d1d" Foreground="White" Click="Minimize">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Background" Value="LightBlue" />
