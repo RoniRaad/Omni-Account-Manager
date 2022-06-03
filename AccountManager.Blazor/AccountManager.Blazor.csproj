@@ -17,10 +17,6 @@
     <PackageReference Include="Blazorise.Charts" Version="1.0.4" />
     <PackageReference Include="Blazorise.Charts.Trendline" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.4" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.37.0.45539">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

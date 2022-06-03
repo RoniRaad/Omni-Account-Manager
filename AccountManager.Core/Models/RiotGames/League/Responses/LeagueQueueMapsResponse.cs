@@ -8,12 +8,12 @@ namespace AccountManager.Core.Models.RiotGames.League.Responses
         public int QueueId { get; set; }
 
         [JsonPropertyName("map")]
-        public string Map { get; set; }
+        public string? Map { get; set; }
 
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [JsonPropertyName("notes")]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
     }
 }

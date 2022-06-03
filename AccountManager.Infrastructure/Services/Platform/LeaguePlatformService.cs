@@ -183,7 +183,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return (false, new());
 
-                matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 10);
+                matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 15);
                 rankedGraphDataSets = new();
                 var soloQueueRank = await TryFetchRank(account);
 

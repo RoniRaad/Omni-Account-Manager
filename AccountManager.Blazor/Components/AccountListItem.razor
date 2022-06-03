@@ -51,7 +51,9 @@
                 }
             </div>
             <h5 class="card-title">@Account?.Id</h5>
-            <div style="width: 40px;"><!--this is a spacer!--></div>
+            <div style="width: 40px;">
+                <span class="drag-icon game-logo oi oi-menu"/>
+            </div>
         </div>
 	    <ul class="list-group list-group-flush">
 		    <li class="list-group-item">
@@ -80,7 +82,7 @@
 		            <span @onclick="() => OpenEditModal()" class="oi oi-wrench" title="Edit"></span>
 		        </div>
 		        <div class="col">
-		            <span @onclick="Login" class="oi oi-account-login" title="Login" style="@loginBtnStyle"></span>
+		            <span @onclick="Login" class="oi oi-media-play" title="Login" style="@loginBtnStyle"></span>
 		        </div>
 	        </div>
 	    </div>
