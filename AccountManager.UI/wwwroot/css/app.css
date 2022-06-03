@@ -12,18 +12,18 @@
 }
 
 :root {
-	--primary-dark: #202020;
-	--primary-light: #3d3c3c;
-	--secondary-dark: #65737e;
-	--secondary-light: #e6e6e6;
+	--primary-dark: #1d1d1d;
+	--primary-light: #2f2f2f;
+	--secondary-dark: #222222;
+	--secondary-light: #3d3d3d;
 }
 
 .modal-content {
-	background-color: var(--primary-light)
+	background-color: var(--secondary-light)
 }
 
 .modal {
-	color: var(--secondary-light) !important;
+	color: white !important;
 	background-color: rgb(36 36 36 / 66%)
 }
 
@@ -177,7 +177,6 @@ a, .btn-link {
 .plk-dd-noselect {
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */
-	-khtml-user-select: none; /* Konqueror HTML */
 	-moz-user-select: none; /* Old versions of Firefox */
 	-ms-user-select: none; /* Internet Explorer/Edge */
 	user-select: none; /* Non-prefixed version, currently
@@ -195,4 +194,88 @@ p {
 	.sidebar {
 		width: 83px !important;
 	}
+}
+
+/* width */
+::-webkit-scrollbar {
+	width: 10px;
+	margin-right: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: #3d3c3c;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: #626262;
+	border-radius: 20px;
+	border: 3px solid #3d3c3c;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
+.plk-dd-spacing{
+	display:none;
+}
+
+@media (min-width: 576px) {
+	.col-sm-6 {
+		flex: 0 0 auto;
+		width: 49%;
+	}
+}
+
+@media (min-width: 1048px) {
+	.col-md-4 {
+		flex: 0 0 auto;
+		width: 32%;
+	}
+} 
+
+@media (min-width: 1400px) {
+	.col-xxl-2 {
+		flex: 0 0 auto;
+		width: 19%;
+	}
+}
+
+@media (min-width: 2400px) {
+	.col-xxxl-2 {
+		flex: 0 0 auto;
+		width: 15%;
+	}
+}
+
+.plk-dd-draggable {
+	margin-bottom: 5px;
+	margin-right: 5px;
+}
+
+.display-content {
+	display:contents
+}
+
+.form-control:focus {
+	border-color: #000000;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(230, 230, 230, 0.6);
+	outline: 0 none;
+}
+
+.form-select:focus {
+	border-color: #000000;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(230, 230, 230, 0.6);
+	outline: 0 none;
+}
+
+.btn-dark {
+	background-color: var(--primary-dark);
+}
+
+.btn-dark:hover {
+	background-color: var(--secondary-dark);
 }

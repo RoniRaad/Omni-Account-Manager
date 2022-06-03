@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,6 @@ namespace AccountManager.Core.Models
         public string Password { get; set; } = string.Empty;
         public Rank? Rank { get; set; }
         public AccountType AccountType { get; set; }
+        public List<RankedGraphData>? Graphs { get; set; }
     }
 }

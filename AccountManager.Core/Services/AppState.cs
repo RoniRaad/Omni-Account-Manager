@@ -1,22 +1,28 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Static;
+using System.Collections.ObjectModel;
 
 namespace AccountManager.Core.Services
 {
     public class AppState
     {
         private readonly IAccountService _accountService;
-        public List<Account> Accounts { get; set; }
+        public ObservableCollection<Account> Accounts { get; set; }
         public event Action Notify;
         public AppState(IAccountService accountService)
         {
             _accountService = accountService;
-            Accounts = _accountService.GetAllAccountsMin();
+            Accounts = new ObservableCollection<Account>(_accountService.GetAllAccountsMin());
             Notify = delegate
             {
 
             };
-
+            Accounts.CollectionChanged += async (s, e) => {
+                Accounts?.RemoveAll((account) => Accounts.Count((innerAccount) => account.Guid == innerAccount.Guid) > 1);
+                await Task.Delay(1); // Fixes UI bugs with elements dependent on the Accounts property
+                Notify.Invoke();
+            };
             _ = UpdateAccounts();
 
             StartUpdateTimer();
@@ -45,16 +51,19 @@ namespace AccountManager.Core.Services
 
             Accounts.AddRange(minAccounts);
 
-            Notify.Invoke();
-
-            var fullAccounts = await _accountService.GetAllAccounts();
-            Accounts = fullAccounts;
-            Notify.Invoke();
+            var fullAccounts = new ObservableCollection<Account>(await _accountService.GetAllAccounts());
+            Accounts.Clear();
+            Accounts.AddRange(fullAccounts);
         }
 
         public void SaveAccounts()
         {
-            _accountService.WriteAllAccounts(Accounts);
+            _accountService.WriteAllAccounts(Accounts.ToList());
+        }
+
+        public void NotifyChange()
+        {
+            Notify.Invoke();
         }
     }
 }

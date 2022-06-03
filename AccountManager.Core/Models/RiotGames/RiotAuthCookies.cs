@@ -15,12 +15,54 @@ namespace AccountManager.Core.Models.RiotGames
 
         public RiotAuthCookies(CookieCollection cookies)
         {
-            Asid = cookies.FirstOrDefault((cookie) => cookie?.Name == "asid", null);
-            Clid = cookies.FirstOrDefault((cookie) => cookie?.Name == "clid", null);
-            Csid = cookies.FirstOrDefault((cookie) => cookie?.Name == "csid", null);
-            Tdid = cookies.FirstOrDefault((cookie) => cookie?.Name == "tdid", null);
-            Sub = cookies.FirstOrDefault((cookie) => cookie?.Name == "sub", null);
-            Ssid = cookies.FirstOrDefault((cookie) => cookie?.Name == "ssid", null);
+            if (cookies is null)
+                return;
+
+            foreach (var cookie in cookies.ToList())
+            {
+                if (cookie.Name.ToLower() == "tdid")
+                    Tdid = cookie;
+                if (cookie.Name.ToLower() == "ssid")
+                    Ssid = cookie;
+                if (cookie.Name.ToLower() == "sub")
+                    Sub = cookie;
+                if (cookie.Name.ToLower() == "csid")
+                    Csid = cookie;
+                if (cookie.Name.ToLower() == "clid")
+                    Clid = cookie;
+                if (cookie.Name.ToLower() == "asid")
+                    Asid = cookie;
+                if (cookie.Name.ToLower() == "__cf")
+                    CloudFlare = cookie;
+            }
+        }
+
+        public CookieCollection GetCookies()
+        {
+            var cookieList = new CookieCollection();
+
+            if (Asid is not null)
+                cookieList.Add(Asid);
+
+            if (Tdid is not null)
+                cookieList.Add(Tdid);
+
+            if (CloudFlare is not null)
+                cookieList.Add(CloudFlare);
+
+            if (Clid is not null)
+                cookieList.Add(Clid);
+
+            if (Ssid is not null)
+                cookieList.Add(Ssid);
+
+            if (Sub is not null)
+                cookieList.Add(Sub);
+
+            if (Csid is not null)
+                cookieList.Add(Csid);
+
+            return cookieList;
         }
 
         public Cookie? Tdid { get; set; }
@@ -29,39 +71,6 @@ namespace AccountManager.Core.Models.RiotGames
         public Cookie? Csid { get; set; }
         public Cookie? Clid { get; set; }
         public Cookie? Asid { get; set; }
-
-        public CookieCollection GetCollection()
-        {
-            var cookies = new CookieCollection();
-            if (Tdid is not null)
-                cookies.Add(Tdid);
-            if (Ssid is not null)
-                cookies.Add(Ssid);
-            if (Sub is not null)
-                cookies.Add(Sub);
-            if (Csid is not null)
-                cookies.Add(Csid);
-            if (Clid is not null)
-                cookies.Add(Clid);
-            if (Asid is not null)
-                cookies.Add(Asid);
-
-            return cookies;
-        }
-
-        public void ClearExpiredCookies()
-        {
-            Tdid = Tdid?.Expired is true ? null : Tdid;
-            Ssid = Ssid?.Expired is true ? null : Ssid;
-            Sub = Sub?.Expired is true ? null : Sub;
-            Csid = Csid?.Expired is true ? null : Csid;
-            Clid = Clid?.Expired is true ? null : Clid;
-        }
-
-        public bool Validate()
-        {
-            return (Tdid is not null && Ssid is not null && Sub is not null 
-                && Csid is not null && Clid is not null);
-        }
+        public Cookie? CloudFlare { get; set; }
     }
 }
