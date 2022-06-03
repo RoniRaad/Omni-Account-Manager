@@ -14,10 +14,10 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         public long AccountId { get; set; }
 
         [JsonPropertyName("games")]
-        public GameWrapper Games { get; set; }
+        public GameWrapper? Games { get; set; }
 
         [JsonPropertyName("platformId")]
-        public string PlatformId { get; set; }
+        public string? PlatformId { get; set; }
 
         public class Ban
         {
@@ -35,7 +35,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         public class GameWrapper
         {
             [JsonPropertyName("games")]
-            public List<Game> Games { get; set; }
+            public List<Game>? Games { get; set; }
         }
 
         public class CsDiffPerMinDeltas
@@ -62,28 +62,28 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int GameDuration { get; set; }
 
             [JsonPropertyName("gameId")]
-            public object GameId { get; set; }
+            public object? GameId { get; set; }
 
             [JsonPropertyName("gameMode")]
-            public string GameMode { get; set; }
+            public string? GameMode { get; set; }
 
             [JsonPropertyName("gameType")]
-            public string GameType { get; set; }
+            public string? GameType { get; set; }
 
             [JsonPropertyName("gameVersion")]
-            public string GameVersion { get; set; }
+            public string? GameVersion { get; set; }
 
             [JsonPropertyName("mapId")]
             public int MapId { get; set; }
 
             [JsonPropertyName("participantIdentities")]
-            public List<ParticipantIdentity> ParticipantIdentities { get; set; }
+            public List<ParticipantIdentity>? ParticipantIdentities { get; set; }
 
             [JsonPropertyName("participants")]
-            public List<Participant> Participants { get; set; }
+            public List<Participant>? Participants { get; set; }
 
             [JsonPropertyName("platformId")]
-            public string PlatformId { get; set; }
+            public string? PlatformId { get; set; }
 
             [JsonPropertyName("queueId")]
             public int QueueId { get; set; }
@@ -92,16 +92,16 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int SeasonId { get; set; }
 
             [JsonPropertyName("teams")]
-            public List<Team> Teams { get; set; }
+            public List<Team>? Teams { get; set; }
 
             [JsonPropertyName("gameBeginDate")]
-            public string GameBeginDate { get; set; }
+            public string? GameBeginDate { get; set; }
 
             [JsonPropertyName("gameCount")]
             public int GameCount { get; set; }
 
             [JsonPropertyName("gameEndDate")]
-            public string GameEndDate { get; set; }
+            public string? GameEndDate { get; set; }
 
             [JsonPropertyName("gameIndexBegin")]
             public int GameIndexBegin { get; set; }
@@ -120,7 +120,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int ChampionId { get; set; }
 
             [JsonPropertyName("highestAchievedSeasonTier")]
-            public string HighestAchievedSeasonTier { get; set; }
+            public string? HighestAchievedSeasonTier { get; set; }
 
             [JsonPropertyName("participantId")]
             public int ParticipantId { get; set; }
@@ -132,13 +132,13 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Spell2Id { get; set; }
 
             [JsonPropertyName("stats")]
-            public Stats Stats { get; set; }
+            public Stats? Stats { get; set; }
 
             [JsonPropertyName("teamId")]
             public int TeamId { get; set; }
 
             [JsonPropertyName("timeline")]
-            public Timeline Timeline { get; set; }
+            public Timeline? Timeline { get; set; }
         }
 
         public class ParticipantIdentity
@@ -147,7 +147,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int ParticipantId { get; set; }
 
             [JsonPropertyName("player")]
-            public Player Player { get; set; }
+            public Player? Player { get; set; }
         }
 
         public class Player
@@ -159,22 +159,22 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int CurrentAccountId { get; set; }
 
             [JsonPropertyName("currentPlatformId")]
-            public string CurrentPlatformId { get; set; }
+            public string? CurrentPlatformId { get; set; }
 
             [JsonPropertyName("matchHistoryUri")]
-            public string MatchHistoryUri { get; set; }
+            public string? MatchHistoryUri { get; set; }
 
             [JsonPropertyName("platformId")]
-            public string PlatformId { get; set; }
+            public string? PlatformId { get; set; }
 
             [JsonPropertyName("profileIcon")]
             public int ProfileIcon { get; set; }
 
             [JsonPropertyName("summonerId")]
-            public object SummonerId { get; set; }
+            public object? SummonerId { get; set; }
 
             [JsonPropertyName("summonerName")]
-            public string SummonerName { get; set; }
+            public string? SummonerName { get; set; }
         }
 
         public class Stats
@@ -501,7 +501,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         public class Team
         {
             [JsonPropertyName("bans")]
-            public List<Ban> Bans { get; set; }
+            public List<Ban>? Bans { get; set; }
 
             [JsonPropertyName("baronKills")]
             public int BaronKills { get; set; }
@@ -543,40 +543,40 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int VilemawKills { get; set; }
 
             [JsonPropertyName("win")]
-            public string Win { get; set; }
+            public string? Win { get; set; }
         }
 
         public class Timeline
         {
             [JsonPropertyName("creepsPerMinDeltas")]
-            public CreepsPerMinDeltas CreepsPerMinDeltas { get; set; }
+            public CreepsPerMinDeltas? CreepsPerMinDeltas { get; set; }
 
             [JsonPropertyName("csDiffPerMinDeltas")]
-            public CsDiffPerMinDeltas CsDiffPerMinDeltas { get; set; }
+            public CsDiffPerMinDeltas? CsDiffPerMinDeltas { get; set; }
 
             [JsonPropertyName("damageTakenDiffPerMinDeltas")]
-            public DamageTakenDiffPerMinDeltas DamageTakenDiffPerMinDeltas { get; set; }
+            public DamageTakenDiffPerMinDeltas? DamageTakenDiffPerMinDeltas { get; set; }
 
             [JsonPropertyName("damageTakenPerMinDeltas")]
-            public DamageTakenPerMinDeltas DamageTakenPerMinDeltas { get; set; }
+            public DamageTakenPerMinDeltas? DamageTakenPerMinDeltas { get; set; }
 
             [JsonPropertyName("goldPerMinDeltas")]
-            public GoldPerMinDeltas GoldPerMinDeltas { get; set; }
+            public GoldPerMinDeltas? GoldPerMinDeltas { get; set; }
 
             [JsonPropertyName("lane")]
-            public string Lane { get; set; }
+            public string? Lane { get; set; }
 
             [JsonPropertyName("participantId")]
             public int ParticipantId { get; set; }
 
             [JsonPropertyName("role")]
-            public string Role { get; set; }
+            public string? Role { get; set; }
 
             [JsonPropertyName("xpDiffPerMinDeltas")]
-            public XpDiffPerMinDeltas XpDiffPerMinDeltas { get; set; }
+            public XpDiffPerMinDeltas? XpDiffPerMinDeltas { get; set; }
 
             [JsonPropertyName("xpPerMinDeltas")]
-            public XpPerMinDeltas XpPerMinDeltas { get; set; }
+            public XpPerMinDeltas? XpPerMinDeltas { get; set; }
         }
 
         public class XpDiffPerMinDeltas

@@ -262,11 +262,11 @@ namespace AccountManager.Infrastructure.Clients
 
             var userMatchHistory = new UserMatchHistory()
             {
-                Matches = rankResponse.Games
-                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.Json.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
+                Matches = rankResponse?.Games?
+                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
                     .Select((game) => new GameMatch()
                     {
-                        Id = game.Metadata.MatchId,
+                        Id = game?.Metadata?.MatchId ?? "NONE",
                         GraphValueChange = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false ? 1 : -1,
                         EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameEndTimestamp ?? 0).ToLocalTime(),
                         Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description

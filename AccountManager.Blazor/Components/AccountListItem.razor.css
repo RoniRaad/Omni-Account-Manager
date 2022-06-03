@@ -133,3 +133,8 @@ div .modal {
 span:active {
     color:darkgrey
 }
+
+.drag-icon {
+    cursor: grab;
+    width: 100%;
+}

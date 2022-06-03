@@ -118,11 +118,11 @@ namespace AccountManager.Infrastructure.Clients
 
             var matchHistory = new UserMatchHistory()
             {
-                Matches = rankResponse.Games.Games
-                .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
-                .Select((game) =>
+                Matches = rankResponse?.Games?.Games
+                ?.Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
+                ?.Select((game) =>
                 {
-                    var usersTeam = game.Participants[0].TeamId;
+                    var usersTeam = game?.Participants?.First()?.TeamId;
 
                     if (game is not null && game?.GameCreation is not null)
                         return new GameMatch()
