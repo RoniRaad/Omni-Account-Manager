@@ -24,30 +24,27 @@ namespace AccountManager.Infrastructure.Clients
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ITokenService _leagueTokenService;
         private readonly LocalLeagueClient _localLeagueClient;
-        private readonly AlertService _alertService;
         private readonly IUserSettingsService<UserSettings> _settings;
-        private readonly IDistributedCache _persistantCache;
         private readonly IRiotClient _riotClient;
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
+        private readonly ICurlRequestBuilder _curlRequestBuilder;
 
-        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, GenericFactory<AccountType, ITokenService> tokenFactory,
-            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings, AlertService alertService, IDistributedCache persistantCache,
-            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper)
+        public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
+            LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings,
+            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, 
+            ICurlRequestBuilder curlRequestBuilder)
         {
             _memoryCache = memoryCache;
-            _leagueTokenService = tokenFactory.CreateImplementation(AccountType.League);
             _httpClientFactory = httpClientFactory;
             _localLeagueClient = localLeagueClient;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
-            _alertService = alertService;
-            _persistantCache = persistantCache;
             _riotClient = riotClient;
             _riotApiUri = riotApiOptions.Value;
             _autoMapper = autoMapper;
+            _curlRequestBuilder = curlRequestBuilder;
         }
 
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
@@ -133,34 +130,26 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<string> GetUserInfo(string riotToken)
         {
-            string userInfo;
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Auth}/userinfo")
+            .SetBearerToken(riotToken)
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .Get();
 
-            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
-            var userInfoResponse = await client.GetAsync($"{_riotApiUri.Auth}/userinfo");
-            userInfoResponse.EnsureSuccessStatusCode();
-            userInfo = await userInfoResponse.Content.ReadAsStringAsync();
-
-            return userInfo;
+            return response?.ResponseContent ?? "";
         }
 
         private async Task<string> GetEntitlementJWT(string riotToken)
         {
             string entitlement;
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var response = await _curlRequestBuilder.CreateBuilder()
+            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
+            .SetContent(new { urn = "urn:entitlement" })
+            .SetBearerToken(riotToken)
+            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .Post<EntitlementResponse>();
 
-            client.DefaultRequestHeaders.Remove("Authorization");
-            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
-
-            var entitlementResponse = await client.PostAsJsonAsync($"{_riotApiUri.Entitlement}/api/token/v1", new { urn = "urn:entitlement" });
-            entitlementResponse.EnsureSuccessStatusCode();
-            var entitlementResponseDeserialized = await entitlementResponse.Content.ReadFromJsonAsync<EntitlementResponse>();
-            if (entitlementResponseDeserialized?.EntitlementToken is null)
-                return string.Empty;
-
-            entitlement = entitlementResponseDeserialized.EntitlementToken;
+            entitlement = response?.ResponseContent?.EntitlementToken ?? "";
 
             return entitlement;
         }
@@ -245,11 +234,11 @@ namespace AccountManager.Infrastructure.Clients
 
             return sessionToken;
         }
-        
+
         public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
         {
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>("https://static.developer.riotgames.com/docs/lol/queues.json");
+            var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>($"{_riotApiUri.RiotCDN}/docs/lol/queues.json");
             
             return response;
         }

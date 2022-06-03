@@ -87,9 +87,17 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             await File.WriteAllTextAsync(@$"{appDataPath}\Riot Games\Riot Client\Data\RiotGamesPrivateSettings.yaml", yaml);
         }
 
+        private DriveInfo FindRiotDrive()
+        {
+            var drives = DriveInfo.GetDrives();
+            return drives
+                .Where((drive) => Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
+                .FirstOrDefault(drives.First());
+        }
+
         public async Task<string> GetRiotExecutableAsync()
         {
-            return @"C:\Riot Games\Riot Client\RiotClientServices.exe";
+            return @$"{FindRiotDrive()}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

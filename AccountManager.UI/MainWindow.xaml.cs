@@ -177,6 +177,7 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<LeagueFileSystemService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
+			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
 			serviceCollection.AddBlazorise(options =>
 			{
