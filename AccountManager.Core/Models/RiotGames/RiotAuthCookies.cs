@@ -13,68 +13,64 @@ namespace AccountManager.Core.Models.RiotGames
     {
         public RiotAuthCookies() { }
 
-        public RiotAuthCookies(IList<KeyValuePair<string, IEnumerable<string>>> headers)
+        public RiotAuthCookies(CookieCollection cookies)
         {
-            var cookies = headers.FirstOrDefault(cookie => 
-                cookie.Key.ToUpper() == "Set-Cookie".ToUpper()).Value;
-
             if (cookies is null)
                 return;
 
-            foreach (var cookie in cookies)
+            foreach (var cookie in cookies.ToList())
             {
-                if (cookie.StartsWith("tdid"))
+                if (cookie.Name.ToLower() == "tdid")
                     Tdid = cookie;
-                if (cookie.StartsWith("ssid"))
+                if (cookie.Name.ToLower() == "ssid")
                     Ssid = cookie;
-                if (cookie.StartsWith("sub"))
+                if (cookie.Name.ToLower() == "sub")
                     Sub = cookie;
-                if (cookie.StartsWith("csid"))
+                if (cookie.Name.ToLower() == "csid")
                     Csid = cookie;
-                if (cookie.StartsWith("clid"))
+                if (cookie.Name.ToLower() == "clid")
                     Clid = cookie;
-                if (cookie.StartsWith("asid"))
+                if (cookie.Name.ToLower() == "asid")
                     Asid = cookie;
-                if (cookie.StartsWith("__cf"))
+                if (cookie.Name.ToLower() == "__cf")
                     CloudFlare = cookie;
             }
         }
 
-        public IEnumerable<string> GetCookies()
+        public CookieCollection GetCookies()
         {
-            var cookieList = new List<string>();
+            var cookieList = new CookieCollection();
 
-            // For some reason the order here matters.
-            if (!string.IsNullOrEmpty(Asid))
+            if (Asid is not null)
                 cookieList.Add(Asid);
 
-            if (!string.IsNullOrEmpty(Tdid))
+            if (Tdid is not null)
                 cookieList.Add(Tdid);
 
-            if (!string.IsNullOrEmpty(CloudFlare))
+            if (CloudFlare is not null)
                 cookieList.Add(CloudFlare);
 
-            if (!string.IsNullOrEmpty(Clid))
+            if (Clid is not null)
                 cookieList.Add(Clid);
 
-            if (!string.IsNullOrEmpty(Ssid))
+            if (Ssid is not null)
                 cookieList.Add(Ssid);
 
-            if (!string.IsNullOrEmpty(Sub))
+            if (Sub is not null)
                 cookieList.Add(Sub);
 
-            if (!string.IsNullOrEmpty(Csid))
+            if (Csid is not null)
                 cookieList.Add(Csid);
 
             return cookieList;
         }
 
-        public string? Tdid { get; set; }
-        public string? Ssid { get; set; }
-        public string? Sub { get; set; }
-        public string? Csid { get; set; }
-        public string? Clid { get; set; }
-        public string? Asid { get; set; }
-        public string? CloudFlare { get; set; }
+        public Cookie? Tdid { get; set; }
+        public Cookie? Ssid { get; set; }
+        public Cookie? Sub { get; set; }
+        public Cookie? Csid { get; set; }
+        public Cookie? Clid { get; set; }
+        public Cookie? Asid { get; set; }
+        public Cookie? CloudFlare { get; set; }
     }
 }

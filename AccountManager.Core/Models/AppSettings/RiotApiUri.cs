@@ -8,5 +8,6 @@
         public string? LeagueNA { get; set; }
         public string? LeagueSessionUS { get; set; }
         public string? ValorantNA { get; set; }
+        public string? RiotCDN { get; set; }
     }
 }

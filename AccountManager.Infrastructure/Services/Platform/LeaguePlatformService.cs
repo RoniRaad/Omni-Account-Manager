@@ -140,15 +140,15 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
 
                 var authResponse = await _riotClient.RiotAuthenticate(request, account);
-                if (authResponse is null || string.IsNullOrEmpty(authResponse?.Cookies?.Tdid)|| string.IsNullOrEmpty(authResponse?.Cookies?.Ssid) ||
-                    string.IsNullOrEmpty(authResponse?.Cookies?.Sub) || string.IsNullOrEmpty(authResponse?.Cookies?.Csid))
+                if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
+                    authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
                 {
                     _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
                     return true;
                 }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid, authResponse.Cookies.Ssid,
-                    authResponse.Cookies.Sub, authResponse.Cookies.Csid);
+                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
+                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
                 StartLeague();
                 return true;
