@@ -6,6 +6,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
+using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Net.Http.Json;
@@ -20,8 +21,10 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
+        private readonly IMapper _mapper;
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, IMemoryCache memoryCache)
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
+            IMemoryCache memoryCache, IMapper mapper)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
@@ -29,6 +32,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotFileSystemService = riotLockFileService;
             _alertService = alertService;
             _memoryCache = memoryCache;
+            _mapper = mapper;
         }
         private async Task<bool> TryLoginUsingRCU(Account account)
         {
@@ -243,6 +247,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             var matches = matchHistory.Matches.GroupBy((match) => match.TierAfterUpdate);
             var graphData = matches.Select((match) =>
             {
+                var rank = _mapper.Map<ValorantRank>(match.Key);
                 return new RankedGraphData()
                 {
                     Data = match.Select((match) =>
@@ -254,7 +259,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                         };
                     }).ToList(),
                     Tags = new(),
-                    Label = $"{ValorantRank.RankMap[match.Key / 3]} {new string('I', match.Key % 3 + 1)} RR",
+                    Label = $"{rank.Tier} {rank.Ranking} RR",
                     Hidden = match.Key != matchHistory.Matches.First().TierAfterUpdate,
                     ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()]
                 };
