@@ -10,13 +10,15 @@ namespace AccountManager.Core.Services
 {
     public class AccountService : IAccountService
     {
+        private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
+        private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";
+
         private readonly IIOService _iOService;
         private readonly AuthService _authService;
         private readonly GenericFactory<AccountType, IPlatformService> _platformServiceFactory;
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
-        private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
-        private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";
+        private readonly SemaphoreSlim accountWriteSemaphore = new SemaphoreSlim(1, 1);
 
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
             , IMemoryCache memoryCache, IDistributedCache persistantCache)
@@ -94,8 +96,8 @@ namespace AccountManager.Core.Services
                     account.PlatformId = editedAccount.PlatformId;
                 }
             });
-            WriteAllAccounts(accounts);
 
+            WriteAllAccounts(accounts);
         }
 
         public async Task Login(Account account)
@@ -107,9 +109,11 @@ namespace AccountManager.Core.Services
 
         public void WriteAllAccounts(List<Account> accounts)
         {
+            accountWriteSemaphore.Wait();
             _iOService.UpdateData(accounts, _authService.PasswordHash);
             _memoryCache.Remove(accountCacheKey);
             _memoryCache.Remove(minAccountCacheKey);
+            accountWriteSemaphore.Release();
         }
     }
 }

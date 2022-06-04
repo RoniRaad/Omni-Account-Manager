@@ -157,7 +157,7 @@ namespace AccountManager.UI
 			{
 				cfg.CreateMap<int, ValorantRank>()
 				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => ValorantRank.RankMap[src / 3]))
-				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => new string('I', src % 3 + 1)))
+				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src != 0 ? new string('I', src % 3 + 1) : ""))
 				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => ValorantRank.RankedColorMap[ValorantRank.RankMap[src / 3].ToLower()]));
 
 				cfg.CreateMap<Rank, LeagueRank>()
