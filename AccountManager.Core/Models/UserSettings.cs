@@ -10,5 +10,6 @@ namespace AccountManager.Core.Models
     {
         public UserSettings(){ }
         public bool UseAccountCredentials { get; set; } = true;
+        public string RiotClientPath { get; set; } = @"C:\Riot Games\Riot Client";
     }
 }

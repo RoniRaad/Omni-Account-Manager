@@ -44,6 +44,19 @@
                         <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Riot Client Directory</p>
+                    </th>
+                    <td>
+                        <div class="input-group">
+                            <InputText type="text" class="text-input form-control" @bind-Value="_settings.Settings.RiotClientPath"></InputText>
+                            <div class="input-group-append">
+                                <span class="btn btn-dark btn-text-save" type="button">Save</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </EditForm>
