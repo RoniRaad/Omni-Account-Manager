@@ -23,9 +23,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly RiotFileSystemService _riotFileSystemService;
+        private readonly IUserSettingsService<UserSettings> _settingsService;
 
-        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory, 
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache )
+        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, 
+            ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService,
+            AlertService alertService, IMemoryCache memoryCache, UserSettingsService<UserSettings> settingsService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -34,6 +36,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
             _memoryCache = memoryCache;
+            _settingsService = settingsService;
         }
 
         private async Task<bool> TryLoginUsingRCU(Account account)
@@ -79,7 +82,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                     }
                 });
 
-
                 var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
                 {
                     Username = account.Username,
@@ -124,7 +126,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             try
             {
                 foreach (var process in Process.GetProcesses())
-                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
+                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot") || process.ProcessName.Contains("Valorant"))
                         process.Kill();
 
                 await _riotFileSystemService.WaitForClientClose();
@@ -239,6 +241,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, new());
             }
         }
+
         private void StartLeague()
         {
             var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
@@ -296,17 +299,9 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private DriveInfo? FindRiotDrive()
-        {
-            DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
-                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Riot Games"), null);
-
-            return riotDrive;
-        }
-
         private string GetRiotExePath()
         {
-            return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+            return @$"{_settingsService.Settings.RiotClientPath}\RiotClientServices.exe";
         }
     }
 }

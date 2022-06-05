@@ -6,27 +6,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
     public class RiotFileSystemService
     {
         private readonly IIOService _iOService;
-        private event EventHandler clientOpened = delegate { };
         private readonly string appDataPath;
         public RiotFileSystemService(IIOService iOService)
         {
             _iOService = iOService;
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var riotLockFileWatcher = new FileSystemWatcher($@"{appDataPath}\Riot Games\Riot Client\Config\");
-
-            riotLockFileWatcher.NotifyFilter = NotifyFilters.Attributes
-                                 | NotifyFilters.CreationTime
-                                 | NotifyFilters.DirectoryName
-                                 | NotifyFilters.FileName
-                                 | NotifyFilters.LastAccess
-                                 | NotifyFilters.LastWrite
-                                 | NotifyFilters.Security
-                                 | NotifyFilters.Size;
-
-            riotLockFileWatcher.EnableRaisingEvents = true;
-            riotLockFileWatcher.Filter = "*lockfile";
-            riotLockFileWatcher.Changed += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
-            riotLockFileWatcher.Created += (object sender, FileSystemEventArgs e) => clientOpened(sender, EventArgs.Empty);
         }
 
         public async Task WaitForClientInit()
@@ -85,19 +69,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var yaml = await GenerateYaml(region, tdid.Substring(tdid.IndexOf("=") + 1).Split(";")[0], ssid.Substring(tdid.IndexOf("=") + 1).Split(";")[0]
                 , sub.Substring(tdid.IndexOf("=") + 1).Split(";")[0], csid.Substring(tdid.IndexOf("=") + 1).Split(";")[0]);
             await File.WriteAllTextAsync(@$"{appDataPath}\Riot Games\Riot Client\Data\RiotGamesPrivateSettings.yaml", yaml);
-        }
-
-        private DriveInfo FindRiotDrive()
-        {
-            var drives = DriveInfo.GetDrives();
-            return drives
-                .Where((drive) => Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
-                .FirstOrDefault(drives.First());
-        }
-
-        public async Task<string> GetRiotExecutableAsync()
-        {
-            return @$"{FindRiotDrive()}\Riot Games\Riot Client\RiotClientServices.exe";
         }
     }
 }

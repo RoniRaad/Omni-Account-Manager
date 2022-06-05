@@ -20,9 +20,10 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly RiotFileSystemService _riotFileSystemService;
+        private readonly IUserSettingsService<UserSettings> _settingsService;
 
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache)
+            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache, IUserSettingsService<UserSettings> settingsService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -31,6 +32,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
             _memoryCache = memoryCache;
+            _settingsService = settingsService;
         }
 
         private async Task<bool> TryLoginUsingRCU(Account account)
@@ -224,17 +226,9 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private DriveInfo? FindRiotDrive()
-        {
-            DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
-                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Riot Games"), null);
-
-            return riotDrive;
-        }
-
         private string GetRiotExePath()
         {
-            return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+            return @$"{_settingsService.Settings.RiotClientPath}\RiotClientServices.exe";
         }
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
