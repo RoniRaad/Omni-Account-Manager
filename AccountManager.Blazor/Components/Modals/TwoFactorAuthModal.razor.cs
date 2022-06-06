@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AccountManager.Core.Services;
 
-namespace AccountManager.Blazor.Components
+namespace AccountManager.Blazor.Components.Modals
 {
     public partial class TwoFactorAuthModal
     {

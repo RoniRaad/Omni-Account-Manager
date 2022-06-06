@@ -2,9 +2,9 @@
 using AccountManager.Core.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace AccountManager.Blazor.Components
+namespace AccountManager.Blazor.Components.Modals
 {
-    public partial class NewAccountPrompt
+    public partial class NewAccountModal
     {
         public Account NewAccount { get; set; } = new();
         [Parameter, EditorRequired]
