@@ -1,0 +1,38 @@
+﻿@using AccountManager.Core.Enums;
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Account</h5>
+                <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@NewAccount">
+                    <div class="form-group">
+                        <label for="newAccountName">Name</label>
+                        <InputText id="newAccountName" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="NewAccount.Id" placeholder="Name"></InputText>
+   
+                        <label for="newAccountUsername">Username</label>
+                        <InputText id="newAccountUsername" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="NewAccount.Username" placeholder="Username"></InputText>
+
+                        <label for="newAccountPass">Password</label>
+                        <InputText id="newAccountPass" style="margin-bottom: 12px" class="form-control input-text" @bind-Value="NewAccount.Password" placeholder="Password"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label for="accountTypeSelect">Account Type</label>
+                        <InputSelect id="accountTypeSelect" style="margin-bottom: 12px" class="form-select input-text" @bind-Value="NewAccount.AccountType">
+                            @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
+                            {
+                                <option value="@accountType">@accountType</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="Close">Close</button>
+                <button type="button" class="btn btn-dark" @onclick="AddAccount">Add Account</button>
+            </div>
+        </div>
+    </div>
+</div>
