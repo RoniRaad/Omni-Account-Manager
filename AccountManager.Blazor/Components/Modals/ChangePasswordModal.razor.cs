@@ -7,7 +7,7 @@ using AccountManager.Core.Models;
 using AccountManager.Infrastructure.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace AccountManager.Blazor.Components
+namespace AccountManager.Blazor.Components.Modals
 {
     public partial class ChangePasswordModal
     {

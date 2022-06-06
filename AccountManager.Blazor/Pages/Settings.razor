@@ -1,4 +1,5 @@
 ﻿@page "/settings"
+@using AccountManager.Blazor.Components.Modals
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.AppSettings
@@ -69,5 +70,5 @@
 }
 @if (ShowRiotFolderPicker)
 {
-    <FolderPicker CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPicker>
+    <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
 }
