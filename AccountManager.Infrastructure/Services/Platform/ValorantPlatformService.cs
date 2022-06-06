@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Exceptions;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
@@ -111,6 +112,11 @@ namespace AccountManager.Infrastructure.Services.Platform
                 });
 
                 StartValorant();
+                return true;
+            }
+            catch (RiotClientNotFoundException)
+            {
+                _alertService.AddErrorMessage("Could not find riot client. Please set your riot install location in the settings page.");
                 return true;
             }
             catch
@@ -230,7 +236,11 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         private string GetRiotExePath()
         {
-            return @$"{_settingsService.Settings.RiotClientPath}\RiotClientServices.exe";
+            var exePath = @$"{_settingsService.Settings.RiotInstallDirectory}\Riot Client\RiotClientServices.exe";
+            if (!File.Exists(exePath))
+                throw new RiotClientNotFoundException();
+
+            return exePath;
         }
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)

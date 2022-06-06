@@ -10,7 +10,7 @@ namespace AccountManager.Core.Enums
     {
         League,
         Steam,
-        TFT,
+        TeamFightTactics,
         Valorant
     }
     
