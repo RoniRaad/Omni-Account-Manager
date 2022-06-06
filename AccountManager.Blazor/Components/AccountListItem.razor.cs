@@ -108,7 +108,14 @@ namespace AccountManager.Blazor.Components
                 await HandleRedraw();
                 _state.Notify += async () =>
                 {
-                    await HandleRedraw();
+                    try
+                    {
+                        await HandleRedraw();
+                    }
+                    catch
+                    {
+                        // do nothing
+                    }
                 };
             }
         }

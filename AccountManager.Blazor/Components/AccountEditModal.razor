@@ -16,7 +16,7 @@
                         <label for="inputUsername">Username</label>
                         <InputText readonly class="form-control text-input" style="margin-bottom:12px" id="inputUsername" aria-describedby="emailHelp" @bind-Value="Account.Username" placeholder="Username"></InputText>
                             <label for="inputPassword">Password</label>
-                        <div class="input-group mb-3">
+                        <div class="input-group">
                             <InputText type="@PasswordType" style="margin-bottom:12px" class="text-input form-control" id="inputPassword" aria-describedby="emailHelp" @bind-Value="Account.Password" placeholder="Password"></InputText>
                             <div class="input-group-append">
                                 <span @onclick="()=> passwordVisible = !passwordVisible" class="btn btn-outline-secondary oi-eye btn-password-show" style="color: @PasswordToggleButtonColor;" type="button"></span>

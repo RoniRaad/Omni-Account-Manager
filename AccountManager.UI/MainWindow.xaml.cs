@@ -169,7 +169,6 @@ namespace AccountManager.UI
 				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
 				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
 				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => TeamFightTacticsRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
-
 			});
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();
@@ -190,12 +189,12 @@ namespace AccountManager.UI
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)
-				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TFT)
+				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TeamFightTactics)
 				.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
 				.Build();
 			serviceCollection.AddFactory<AccountType, ITokenService>()
 				.AddImplementation<LeagueTokenService>(AccountType.League)
-				.AddImplementation<LeagueTokenService>(AccountType.TFT)
+				.AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
 				.AddImplementation<RiotTokenService>(AccountType.Valorant)
 				.Build();
 			Resources.Add("services", serviceCollection.BuildServiceProvider());

@@ -30,10 +30,28 @@ tr {
     height: 60px;
 }
 td {
-    margin-bottom: 10px;
     text-align: right;
     height: 60px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
 }
 table {
     width: 100%;
+}
+.btn-text-save {
+    margin-left: 10px !important;
+}
+
+.oi-folder {
+    position: inherit;
+    background-color: white;
+    font-family: 'Icons';
+    border-radius: 0px;
+    border-color: #ced4da;
+}
+
+.text-input{
+    width:400px;
 }
