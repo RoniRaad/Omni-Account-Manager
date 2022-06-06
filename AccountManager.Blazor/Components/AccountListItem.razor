@@ -1,4 +1,5 @@
-﻿@using AccountManager.Core.Enums
+﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
@@ -87,3 +88,9 @@
 	    </div>
 	</div>
 </div>
+
+@if (deleteAccountConfirmationRequest is not null)
+{
+    <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
+}
+
