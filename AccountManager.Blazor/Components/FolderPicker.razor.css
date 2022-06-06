@@ -1,0 +1,38 @@
+﻿body {
+}
+
+.directory-list-item {
+    background-color: #4a4a4a;
+    padding: 14px 10px 10px 15px;
+    border-bottom: #252525 1px solid;
+    padding: 15px 10px 15px 15px;
+    cursor: pointer;
+}
+
+.directory-list-item:hover {
+    background-color: #414141;
+}
+
+.oi-folder {
+    margin-right: 5px
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+input {
+    margin: 2px 2px 2px 2px;
+    width: -webkit-fill-available;
+}
+
+.modal {
+    z-index: 100000;
+}
+
+.modal-body {
+    padding: 0px;
+}

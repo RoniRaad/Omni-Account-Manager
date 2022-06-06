@@ -11,6 +11,7 @@ using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
+using AccountManager.Core.Exceptions;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -27,7 +28,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, 
             ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService,
-            AlertService alertService, IMemoryCache memoryCache, UserSettingsService<UserSettings> settingsService)
+            AlertService alertService, IMemoryCache memoryCache, IUserSettingsService<UserSettings> settingsService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -153,6 +154,11 @@ namespace AccountManager.Infrastructure.Services.Platform
                     authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
                 StartLeague();
+                return true;
+            }
+            catch (RiotClientNotFoundException)
+            {
+                _alertService.AddErrorMessage("Could not find riot client. Please set your riot install location in the settings page.");
                 return true;
             }
             catch
@@ -301,7 +307,11 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         private string GetRiotExePath()
         {
-            return @$"{_settingsService.Settings.RiotClientPath}\RiotClientServices.exe";
+            var exePath = @$"{_settingsService.Settings.RiotInstallDirectory}\Riot Client\RiotClientServices.exe";
+            if (!File.Exists(exePath))
+                throw new RiotClientNotFoundException();
+
+            return exePath;
         }
     }
 }
