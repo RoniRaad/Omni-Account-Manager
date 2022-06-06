@@ -44,6 +44,20 @@
                         <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Riot Games Install Location</p>
+                    </th>
+                    <td>
+                        <div class="input-group">
+                            <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Riot Games\" @bind-Value="_settings.Settings.RiotInstallDirectory"></InputText>
+                            <div class="input-group-append">
+                                <span @onclick="() => ShowRiotFolderPicker = true" class="btn oi-folder" type="button"></span>
+                            </div>
+                        </div>
+                        <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </EditForm>
@@ -52,4 +66,8 @@
 @if (ShowChangePasswordPrompt)
 {
     <ChangePasswordModal SettingsService="_settings" Close="() => {ShowChangePasswordPrompt=false; InvokeAsync(()=>StateHasChanged());}"></ChangePasswordModal>
+}
+@if (ShowRiotFolderPicker)
+{
+    <FolderPicker CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPicker>
 }

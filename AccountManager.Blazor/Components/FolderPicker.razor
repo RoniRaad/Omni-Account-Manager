@@ -1,0 +1,55 @@
+﻿@namespace AccountManager.Blazor.Components
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Select a Folder</h5>
+				<button @onclick="() => DirectoryChosen(null)" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<input type="text" @bind-value="CurrentDirectory"></input>
+				<ul>
+					@if (GetParentDirectory(CurrentDirectory) is not null)
+					{
+						<li class="directory-list-item" style="padding-top: 5px;padding-bottom: 5px;" @onclick="() => CurrentDirectory = GetParentDirectory(CurrentDirectory) ?? CurrentDirectory"><span class="oi oi-folder" />..</li>
+					}
+					@foreach (var directory in GetDirectories(CurrentDirectory))
+					{
+						
+						<li class="directory-list-item" @onclick="() => CurrentDirectory = directory"><span class="oi oi-folder"></span>@directory.Split('\\').Last()</li>
+					}
+				</ul>
+			</div>
+			<div class="modal-footer">
+				<button @onclick="() => DirectoryChosen(null)" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button @onclick="() => DirectoryChosen(CurrentDirectory)" type="button" class="btn btn-dark">Select Current Folder</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public Action<string?> DirectoryChosen { get; set; }
+
+	[Parameter, EditorRequired]
+    public string CurrentDirectory  { get; set; }
+
+	public IEnumerable<string> GetDirectories(string path)
+	{
+		try
+		{
+			return Directory.EnumerateDirectories(CurrentDirectory);
+		}
+		catch
+		{
+			return new List<string>();
+		}
+	}
+
+	public string? GetParentDirectory(string path)
+	{
+		return Directory.GetParent(CurrentDirectory)?.FullName;
+	}
+}

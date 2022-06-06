@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Exceptions;
 using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
@@ -22,9 +23,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
+        private readonly IUserSettingsService<UserSettings> _settingsService;
+
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
-            IMemoryCache memoryCache, IMapper mapper)
+            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
@@ -33,6 +36,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
             _mapper = mapper;
+            _settingsService = settingsService;
         }
         private async Task<bool> TryLoginUsingRCU(Account account)
         {
@@ -108,6 +112,11 @@ namespace AccountManager.Infrastructure.Services.Platform
                 });
 
                 StartValorant();
+                return true;
+            }
+            catch (RiotClientNotFoundException)
+            {
+                _alertService.AddErrorMessage("Could not find riot client. Please set your riot install location in the settings page.");
                 return true;
             }
             catch
@@ -225,17 +234,13 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private DriveInfo? FindRiotDrive()
-        {
-            DriveInfo? riotDrive = DriveInfo.GetDrives().FirstOrDefault(
-                (drive) => Directory.Exists($"{drive?.RootDirectory}\\Riot Games"), null);
-
-            return riotDrive;
-        }
-
         private string GetRiotExePath()
         {
-            return @$"{FindRiotDrive()?.RootDirectory}\Riot Games\Riot Client\RiotClientServices.exe";
+            var exePath = @$"{_settingsService.Settings.RiotInstallDirectory}\Riot Client\RiotClientServices.exe";
+            if (!File.Exists(exePath))
+                throw new RiotClientNotFoundException();
+
+            return exePath;
         }
 
         public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
