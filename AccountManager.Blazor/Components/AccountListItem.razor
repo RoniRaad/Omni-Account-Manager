@@ -68,8 +68,7 @@
 						<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
                     <div>
-                        <LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair">   
-                        </LineChart>
+                        <Graph Account="Account"></Graph>
                     </div>  
             </div>
         </li>

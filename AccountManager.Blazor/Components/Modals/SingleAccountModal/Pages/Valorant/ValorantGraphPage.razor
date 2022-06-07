@@ -1,0 +1,13 @@
+﻿@using AccountManager.Core.Models
+<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;">
+    <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
+        <span class="oi oi-chevron-left"></span>
+        <h1>Graphs</h1>
+        <span class="oi oi-chevron-right"></span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Account Account { get; set; }
+}

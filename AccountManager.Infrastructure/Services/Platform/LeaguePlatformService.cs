@@ -177,11 +177,19 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService.AddErrorMessage("There was an error attempting to sign in.");
         }
 
-        public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
+        public async Task<(bool, List<RankedGraph>)> TryFetchRankedGraphs(Account account)
+        {
+            var rankedGraphs = new List<RankedGraph>();
+            rankedGraphs.Add(await GetRankedGraphData(account));
+
+            return (true, rankedGraphs);
+        }
+
+        public async Task<RankedGraph> GetRankedGraphData(Account account)
         {
             var rankCacheString = $"{account.Username}.leagueoflegends.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out List <RankedGraphData> ? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return (true, rankedGraphDataSets);
+            if (_memoryCache.TryGetValue(rankCacheString, out RankedGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return rankedGraphDataSets;
 
             var matchHistoryResponse = new UserMatchHistory();
             try
@@ -189,7 +197,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (string.IsNullOrEmpty(account.PlatformId))
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    return (false, new());
+                    return new();
 
                 matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 15);
                 rankedGraphDataSets = new();
@@ -197,7 +205,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
                 if (matchesGroups is null)
-                    return (false, new());
+                    return new();
                 
                 var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
 
@@ -229,22 +237,22 @@ namespace AccountManager.Infrastructure.Services.Platform
 
 
                     if (rankedGraphData.Data.Count > 1)
-                        rankedGraphDataSets.Add(rankedGraphData);
+                        rankedGraphDataSets.Data.Add(rankedGraphData);
                 }
 
                 if (matchHistoryResponse is not null)
                     _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 if (matchHistoryResponse is null)
-                    return (false, new());
+                    return new();
 
-                rankedGraphDataSets = rankedGraphDataSets.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
+                rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
 
-                return (true, rankedGraphDataSets);
+                return rankedGraphDataSets;
             }
             catch
             {
-                return (false, new());
+                return new();
             }
         }
 

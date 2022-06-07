@@ -61,7 +61,7 @@ namespace AccountManager.Core.Services
                 var rank = (await platformService.TryFetchRank(account)).Item2;
                 if (!string.IsNullOrEmpty(rank.Tier))
                     account.Rank = rank;
-                account.Graphs = (await platformService.TryFetchRankedGraphData(account)).Item2;
+                account.Graphs = (await platformService.TryFetchRankedGraphs(account)).Item2;
             }
 
             WriteAllAccounts(accounts);
