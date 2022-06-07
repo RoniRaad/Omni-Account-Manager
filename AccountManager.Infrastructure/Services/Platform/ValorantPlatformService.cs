@@ -243,11 +243,11 @@ namespace AccountManager.Infrastructure.Services.Platform
             return exePath;
         }
 
-        public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
+        private async Task<RankedGraph> GetRankedGraphData(Account account)
         {
             var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account);
             if (matchHistory?.Matches?.Any() is not true)
-                return new(false, new List<RankedGraphData>());
+                return new RankedGraph();
 
             var matches = matchHistory.Matches.GroupBy((match) => match.TierAfterUpdate);
             var graphData = matches.Select((match) =>
@@ -270,7 +270,18 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
             }).OrderBy((graph) => graph.Hidden).ToList();
 
-            return (true, graphData);
+            return new RankedGraph
+            {
+                Data = graphData,
+            };
+        }
+
+        public async Task<(bool, List<RankedGraph>)> TryFetchRankedGraphs(Account account)
+        {
+            var rankedGraphs = new List<RankedGraph>(); 
+            rankedGraphs.Add(await GetRankedGraphData(account));
+
+            return (true, rankedGraphs);
         }
     }
 }

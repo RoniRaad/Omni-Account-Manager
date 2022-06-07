@@ -1,0 +1,40 @@
+﻿@using AccountManager.Core.Models
+ <div class="" style="">
+    <h2 class="" style="margin-top: 30px;">Valorant</h2>
+</div>
+<div class="" style="display: flex;flex-direction: column;gap: 13px;">
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-4 col-form-label">Name</label>
+        <div class="col-8">
+            <input type="text" readonly="" class="form-control-plaintext" id="staticEmail" value="@Account.Id" style="color: white;">
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-4 col-form-label">Username</label>
+        <div class="col-8">
+            <input type="text" readonly="" class="form-control-plaintext" id="staticEmail" value="@Account.Username" style="color: white;">
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-4 col-form-label">Rank</label>
+        <div class="col-8">
+            <input type="text" readonly="" class="form-control-plaintext" id="staticEmail" value="@Account.Rank" style="color: white;">
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-4 col-form-label">Riot ID:</label>
+        <div class="col-8">
+            <input type="text" readonly="" class="form-control-plaintext" id="staticEmail" value="@Account.PlatformId" style="color: white;">
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-4 col-form-label">Password</label>
+        <div class="col-8">
+            <input type="password" readonly="" class="form-control-plaintext" id="staticEmail" value="@Account.Password" style="color: white;">
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public Account Account { get; set; }
+}
