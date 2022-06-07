@@ -44,8 +44,13 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetExpectedClientVersion()
         {
+            if (_memoryCache.TryGetValue("riot.val.version", out string? version) && version is not null)
+                return version;
+
             var client = _httpClientFactory.CreateClient("Valorant");
             var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>($"/v1/version");
+
+            _memoryCache.Set("riot.val.version", response?.Data?.RiotClientVersion);
             return response?.Data?.RiotClientVersion;
         }
 
