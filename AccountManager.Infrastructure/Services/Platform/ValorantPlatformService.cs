@@ -273,6 +273,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             return new RankedGraph
             {
                 Data = graphData,
+                Title = "RR Change"
             };
         }
 
