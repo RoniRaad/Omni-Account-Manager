@@ -311,6 +311,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return new();
 
                 rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderByDescending((dataset) => string.IsNullOrEmpty(dataset.ColorHex)).ToList();
+                rankedGraphDataSets.Title = "Ranked Placement Offset";
 
                 return rankedGraphDataSets;
             }

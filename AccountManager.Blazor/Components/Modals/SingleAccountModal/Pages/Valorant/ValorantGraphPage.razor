@@ -1,9 +1,27 @@
 ﻿@using AccountManager.Core.Models
-<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;">
+<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;">
     <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
         <span class="oi oi-chevron-left"></span>
         <h1>Graphs</h1>
         <span class="oi oi-chevron-right"></span>
+    </div>
+    <div style="height: 88%;gap: 58px;display: flex;flex-direction: column;">
+        <div style="gap: 50px;height: 30vh;display:flex">
+            <div >
+                <Graph Account="Account"></Graph>
+            </div>
+            <div>
+                <Graph Account="Account"></Graph>
+            </div>
+        </div>
+        <div style="gap: 50px;height: 30vh;display:flex">
+            <div>
+                <Graph Account="Account"></Graph>
+            </div>
+            <div>
+                <Graph Account="Account"></Graph>
+            </div>
+        </div>
     </div>
 </div>
 

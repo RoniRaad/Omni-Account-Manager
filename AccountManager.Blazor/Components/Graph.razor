@@ -9,6 +9,7 @@
     [Parameter, EditorRequired]
     public Account Account { get; set; }
 
+
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
     {
@@ -33,7 +34,7 @@
                     {
                         Family = "Roboto",
                         Size = 10
-                    }
+                    },
                 },
                 Time = new()
                 {
@@ -75,6 +76,17 @@
                     BoxHeight = 10,
                     BoxWidth = 16
                 },
+            },
+            Title = new()
+            {
+                Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                Display = true,
+                Padding = 1,
+                Position = "left"
             }
         }
     };
@@ -107,6 +119,7 @@
             PointBorderColor = borderColors,
         });
 
+
         await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
     }
     
@@ -114,6 +127,9 @@
     {
         if (firstRender)
         {
+            lineChartOptions.Plugins.Title.Text = Account?.Graphs?.FirstOrDefault(defaultValue: null)?.Title;
+            await lineChart?.SetOptions(lineChartOptions);
+
             await HandleRedraw();
             _state.Notify += async () =>
             {

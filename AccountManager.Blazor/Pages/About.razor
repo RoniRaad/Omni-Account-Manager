@@ -2,8 +2,12 @@
 @using System.Diagnostics
 @using AccountManager.Blazor.Components
 @using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Services
 @using Microsoft.Extensions.Options
 @inject IOptions<AboutEndpoints> _aboutEndpointsOptions
+@inject AppState _state
+
+<AccountManager.Blazor.Components.Modals.SingleAccountModal.SingleAccountModalFrame Account="_state.Accounts.First()"></AccountManager.Blazor.Components.Modals.SingleAccountModal.SingleAccountModalFrame>
 <div>
     <h3 style="text-align:center">Multi Account Manager</h3>
     <hr />

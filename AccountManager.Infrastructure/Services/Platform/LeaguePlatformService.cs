@@ -247,6 +247,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return new();
 
                 rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
+                rankedGraphDataSets.Title = "Ranked Wins";
 
                 return rankedGraphDataSets;
             }
