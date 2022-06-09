@@ -7,7 +7,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Account Account { get; set; }
+    public LineGraph LineGraph { get; set; }
 
 
     LineChart<CoordinatePair>? lineChart;
@@ -98,7 +98,7 @@
         if (lineChart is null)
             return;
 
-        var datasets = Account?.Graphs?.FirstOrDefault(defaultValue: null);
+        var datasets = LineGraph;
         if (datasets is null)
             return;
 
@@ -127,7 +127,7 @@
     {
         if (firstRender)
         {
-            lineChartOptions.Plugins.Title.Text = Account?.Graphs?.FirstOrDefault(defaultValue: null)?.Title;
+            lineChartOptions.Plugins.Title.Text = LineGraph?.Title;
             await lineChart?.SetOptions(lineChartOptions);
 
             await HandleRedraw();

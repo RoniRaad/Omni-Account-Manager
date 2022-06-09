@@ -1,6 +1,21 @@
 ﻿@using AccountManager.Core.Models
  <div class="" style="">
-    <h2 class="" style="margin-top: 30px;">Valorant</h2>
+    @if (Account.AccountType == Core.Enums.AccountType.League)
+    {
+        <h2 class="" style="margin-top: 30px;">League of Legends</h2>
+    }
+    else if (Account.AccountType == Core.Enums.AccountType.Valorant)
+    {
+        <h2 class="" style="margin-top: 30px;">Valorant</h2>
+    }
+    else if (Account.AccountType == Core.Enums.AccountType.TeamFightTactics)
+    {
+        <h2 class="" style="margin-top: 30px;">Team Fight Tactics</h2>
+    }
+    else if (Account.AccountType == Core.Enums.AccountType.Steam)
+    {
+        <h2 class="" style="margin-top: 30px;">Steam</h2>
+    }
 </div>
 <div class="" style="display: flex;flex-direction: column;gap: 13px;">
     <div class="mb-3 row">

@@ -33,7 +33,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
             LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings,
-            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, 
+            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper,
             ICurlRequestBuilder curlRequestBuilder)
         {
             _memoryCache = memoryCache;
@@ -49,8 +49,6 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
         {
-            if (_localLeagueClient.IsClientOpen())
-                return await _localLeagueClient.GetSummonerRankByPuuidAsync(account);
 
             if (!_settings.Settings.UseAccountCredentials)
                 return new Rank();
@@ -82,8 +80,6 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<Rank> GetTFTRankByPuuidAsync(Account account)
         {
-            if (_localLeagueClient.IsClientOpen())
-                return await _localLeagueClient.GetTFTRankByPuuidAsync(account);
 
             if (!_settings.Settings.UseAccountCredentials)
                 return new Rank();
@@ -160,7 +156,7 @@ namespace AccountManager.Infrastructure.Clients
             var riotToken = await GetRiotAuthToken(account);
             var userInfo = await GetUserInfo(riotToken);
             var entitlement = await GetEntitlementJWT(riotToken);
-            if (string.IsNullOrEmpty(riotToken) 
+            if (string.IsNullOrEmpty(riotToken)
                 || string.IsNullOrEmpty(userInfo)
                 || string.IsNullOrEmpty(entitlement))
                 return string.Empty;
@@ -220,8 +216,8 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string> GetLeagueSessionToken(Account account)
         {
-            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken) 
-                && sessionToken is not null 
+            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken)
+                && sessionToken is not null
                 && await TestLeagueToken(sessionToken))
                 return sessionToken;
 
@@ -239,51 +235,51 @@ namespace AccountManager.Infrastructure.Clients
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>($"{_riotApiUri.RiotCDN}/docs/lol/queues.json");
-            
+
             return response;
         }
 
-        public async Task<UserMatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
+        private async Task<MatchHistoryResponse?> GetLeagueMatchHistory(Account account, int startIndex, int endIndex)
         {
-            if (_localLeagueClient.IsClientOpen())
-                return await _localLeagueClient.GetUserMatchHistory(account, startIndex, endIndex);
-
             if (!_settings.Settings.UseAccountCredentials)
                 return new();
 
             var token = await GetLeagueSessionToken(account);
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var rankResponse = await client.GetFromJsonAsync<MatchHistoryRequest>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
-            var queueMapping = await GetLeagueQueueMappings();
-
-            if (rankResponse is null || queueMapping is null)
-                return null;
-
-            var userMatchHistory = new UserMatchHistory()
-            {
-                Matches = rankResponse?.Games?
-                    .Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
-                    .Select((game) => new GameMatch()
-                    {
-                        Id = game?.Metadata?.MatchId ?? "NONE",
-                        GraphValueChange = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.Win ?? false ? 1 : -1,
-                        EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameEndTimestamp ?? 0).ToLocalTime(),
-                        Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
-                            ?.Replace("games", "")
-                            ?.Replace("5v5", "")
-                            ?.Replace("Ranked", "")
-                            ?.Trim() ?? "Other"
-                    })
-            };
-
-            return userMatchHistory;
+            var rankResponse = await client.GetFromJsonAsync<MatchHistoryResponse>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
+            return rankResponse;
         }
 
-        public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        public async Task<UserChampSelectHistory> GetUserChampSelectHistory(Account account, int startIndex, int endIndex)
         {
-            if (_localLeagueClient.IsClientOpen())
-                return await _localLeagueClient.GetUserTeamFightTacticsMatchHistory(account, startIndex, endIndex);
+            var rankResponse = await GetUserLeagueMatchHistory(account, startIndex, endIndex);
+            var userInGames = rankResponse?.Games?.Select((game) => game?.Json?.Participants?.FirstOrDefault((participants) => participants?.Puuid == account.PlatformId, null));
+            var selectedChampGroup = userInGames?.GroupBy((userInGame) => userInGame?.ChampionName);
+            return new UserChampSelectHistory()
+            {
+                Champs = selectedChampGroup.Select((grouping) => new ChampSelectedCount()
+                {
+                    ChampName = grouping?.Key,
+                    SelectedCount = grouping.Count()
+                })
+            };
+        }
+
+        public async Task<MatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
+        {
+            
+            var rankResponse = await GetLeagueMatchHistory(account, startIndex, endIndex);
+
+            if (rankResponse is null)
+                return null;
+
+            var matchHistory = _autoMapper.Map<MatchHistory>(rankResponse);
+            return matchHistory;
+        }
+
+        public async Task<TeamFightTacticsMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        {
 
             if (!_settings.Settings.UseAccountCredentials)
                 return new();
@@ -291,36 +287,9 @@ namespace AccountManager.Infrastructure.Clients
             var token = await GetLeagueSessionToken(account);
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistoryResponse>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
-            var queueMapping = await GetLeagueQueueMappings();
+            var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistory>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
 
-            if (rankResponse is null && queueMapping is null)
-                return null;
-
-            var matchHistory = new UserMatchHistory()
-            {
-                Matches = rankResponse?.Games
-                ?.Select((game) =>
-                {
-                    if (game is not null && game?.Metadata?.Timestamp is not null)
-                        return new GameMatch()
-                        {
-                            Id = game?.Json?.GameId?.ToString() ?? "None",
-                                        // 4th place grants no value while going up and down adds 1 positive and negative value for each movement
-                            GraphValueChange = (game?.Json?.Participants?.First((participant) => participant.Puuid == account.PlatformId)?.Placement - 4) * -1 ?? 0,
-                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Metadata?.Timestamp ?? 0).ToLocalTime(),
-                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
-                                ?.Replace("games", "")
-                                ?.Replace("5v5", "")
-                                ?.Replace("Ranked", "")
-                                ?.Trim() ?? "Other"
-                        };
-
-                    return new();
-                })
-            };
-
-            return matchHistory;
+            return rankResponse;
         }
 
         public async Task<bool> TestLeagueToken(string token)

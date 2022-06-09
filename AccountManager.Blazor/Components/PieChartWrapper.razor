@@ -1,0 +1,90 @@
+﻿@using AccountManager.Core.Models
+@using Blazorise.Charts
+@using AccountManager.Core.Services
+@inject AppState _state
+
+<PieChart Options="pieChartOptions" @ref="pieChart" TItem="PieChartData"/>   
+
+@code {
+    [Parameter, EditorRequired]
+    public PieChart PieChart { get; set; }
+
+
+    PieChart<PieChartData>? pieChart;
+    PieChartOptions pieChartOptions = new()
+    {
+        MaintainAspectRatio = false,
+        Plugins = new()
+        {
+            Legend = new()
+            {
+                Labels = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                    BoxHeight = 10,
+                    BoxWidth = 16
+                },
+            },
+            Title = new()
+            {
+                Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                Display = true,
+                Padding = 1,
+                Position = "top"
+            }
+        }
+    };
+
+    async Task HandleRedraw()
+    {
+        pieChart?.Clear();
+
+        if (pieChart is null)
+            return;
+
+        var datasets = PieChart;
+        if (datasets is null)
+            return;
+
+        var chartDatasets = new PieChartDataset<PieChartData>
+        {
+            Data = datasets.Data.ToList(),
+            BackgroundColor = backgroundColors,
+            BorderColor = borderColors,
+        };
+
+        pieChart.AddLabelsDatasetsAndUpdate(datasets.Labels, chartDatasets);
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            pieChartOptions.Plugins.Title.Text = PieChart?.Title;
+
+            await HandleRedraw();
+            _state.Notify += async () =>
+            {
+                try
+                {
+                    await HandleRedraw();
+                }
+                catch
+                {
+                    // do nothing
+                }
+            };
+        }
+    }
+
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+}

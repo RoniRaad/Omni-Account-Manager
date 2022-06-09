@@ -241,21 +241,20 @@ namespace AccountManager.Infrastructure.Services.Platform
             return exePath;
         }
 
-        public async Task<(bool, List<RankedGraph>)> TryFetchRankedGraphs(Account account)
+        public async Task<(bool, Graphs)> TryFetchRankedGraphs(Account account)
         {
-            var rankedGraphs = new List<RankedGraph>();
-            rankedGraphs.Add(await GetRankedGraphData(account));
+            var rankedGraphs = new List<LineGraph>();
+            rankedGraphs.Add(await GetRankedPlacementOffset(account));
 
-            return (true, rankedGraphs);
+            return (true, new Graphs { LineGraphs = rankedGraphs });
         }
 
-        public async Task<RankedGraph> GetRankedGraphData(Account account)
+        public async Task<LineGraph> GetRankedPlacementOffset(Account account)
         {
             var rankCacheString = $"{account.Username}.tft.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out RankedGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
+            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
                 return rankedGraphDataSets;
 
-            var matchHistoryResponse = new UserMatchHistory();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
@@ -263,11 +262,40 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                matchHistoryResponse = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account, 0, 10);
+                var matchHistoryResponse = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account, 0, 10);
+
+                var queueMapping = await _leagueClient.GetLeagueQueueMappings();
+
+                if (matchHistoryResponse is null && queueMapping is null)
+                    return null;
+
+                var matchHistory = new UserMatchHistory()
+                {
+                    Matches = matchHistoryResponse?.Games
+                    ?.Select((game) =>
+                    {
+                        if (game is not null && game?.Metadata?.Timestamp is not null)
+                            return new GameMatch()
+                            {
+                                Id = game?.Json?.GameId?.ToString() ?? "None",
+                            // 4th place grants no value while going up and down adds 1 positive and negative value for each movement
+                                GraphValueChange = (game?.Json?.Participants?.First((participant) => participant.Puuid == account.PlatformId)?.Placement - 4) * -1 ?? 0,
+                                EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Metadata?.Timestamp ?? 0).ToLocalTime(),
+                                Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
+                                    ?.Replace("games", "")
+                                    ?.Replace("5v5", "")
+                                    ?.Replace("Ranked", "")
+                                    ?.Trim() ?? "Other"
+                            };
+
+                        return new();
+                    })
+                };
+
                 rankedGraphDataSets = new();
                 var soloQueueRank = await TryFetchRank(account);
 
-                var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
+                var matchesGroups = matchHistory?.Matches?.Reverse()?.GroupBy((match) => match.Type);
                 if (matchesGroups is null)
                     return new();
 

@@ -1,4 +1,5 @@
 ﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal
 @using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
@@ -10,7 +11,7 @@
 @inject AppState _state
 
 @inherits LayoutComponentBase
-<div class="card">
+<div class="card" @onclick="() => showFullTile = true">
     <div class="card-body" >
         <div class="card-logo-slot">
             @if (Account.AccountType == Core.Enums.AccountType.League)
@@ -68,7 +69,7 @@
 						<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
                     <div>
-                        <Graph Account="Account"></Graph>
+                        <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs?.FirstOrDefault(defaultValue: null)"></LineChartWrapper>
                     </div>  
             </div>
         </li>
@@ -93,3 +94,11 @@
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
 }
 
+@if (showFullTile)
+{
+    <SingleAccountModalFrame Account="Account" Close="() => showFullTile = false"></SingleAccountModalFrame>
+}
+
+@code {
+    private bool showFullTile = false;
+}

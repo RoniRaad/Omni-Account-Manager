@@ -230,7 +230,7 @@ namespace AccountManager.Infrastructure.Clients
             return responseContent?.PuuId;
         }
 
-        public async Task<ValorantRankedResponse?> GetValorantCompetitiveHistory(Account account)
+        public async Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account, int startIndex, int endIndex)
         {
             var client = _httpClientFactory.CreateClient("ValorantNA");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
@@ -243,15 +243,44 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex=15");
+            var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex={startIndex}&endIndex={endIndex}");
 
-            return await response.Content.ReadFromJsonAsync<ValorantRankedResponse>();
+            return await response.Content.ReadFromJsonAsync<ValorantRankedHistoryResponse>();
+        }
+
+        public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account, int startIndex, int endIndex)
+        {
+            var client = _httpClientFactory.CreateClient("ValorantNA");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
+            var bearerToken = await GetValorantToken(account);
+            if (bearerToken is null)
+                return new List<ValorantMatch>();
+
+            var entitlementToken = await GetEntitlementToken(bearerToken);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
+
+            var gameHistoryDataResponse = await client.GetAsync($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex={startIndex}&endIndex={endIndex}");
+            var gameHistoryData = await gameHistoryDataResponse.Content.ReadFromJsonAsync<ValorantGameHistoryDataResponse>();
+
+            var valorantMatches = new List<ValorantMatch>();
+
+            foreach (var game in gameHistoryData?.History ?? new())
+            {
+                var gameData = await client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
+                
+                if (gameData is not null)
+                    valorantMatches.Add(gameData);
+            }
+
+            return valorantMatches;
         }
 
         public async Task<Rank> GetValorantRank(Account account)
         {
             int rankNumber;
-            var rankedHistory = await GetValorantCompetitiveHistory(account);
+            var rankedHistory = await GetValorantCompetitiveHistory(account, 0, 15);
 
             if (rankedHistory?.Matches?.Any() is false)
                 return _autoMapper.Map<ValorantRank>(0);
