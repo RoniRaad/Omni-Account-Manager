@@ -1,4 +1,6 @@
-﻿@using AccountManager.Core.Interfaces
+﻿@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels
+@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
 @using Blazorise.Charts
@@ -8,11 +10,26 @@
 <div style="z-index:100000" class="modal fade show d-block" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document" style="max-width: 91vw;">
         <div class="modal-content" style="/* width: 80vw; */height: 90vh;flex-direction: row;">
+            <button type="button" class="btn-close btn-close-white" style="margin:15px" @onclick="Close" aria-label="Close"></button>
             <div class="" style="width: 70%;height: 100%;">
-                <AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant.ValorantGraphPage Account="Account"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant.ValorantGraphPage>
+                @if (Account.AccountType == Core.Enums.AccountType.League)
+                {
+                    <LeagueGraphPage Account="Account"></LeagueGraphPage>
+                }
+                else if (Account.AccountType == Core.Enums.AccountType.Valorant)
+                {
+                    <ValorantGraphPage Account="Account"></ValorantGraphPage>
+                }
             </div>
             <div class="" style="width: 30%;background-color: #303030;height: 100%;display: flex;flex-direction: column;align-content: center;gap: 35px;align-items: center;justify-content: flex-start;">
-                <AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.ValorantPanel Account="Account"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.ValorantPanel>
+                @if (Account.AccountType == Core.Enums.AccountType.League)
+                {
+                    <LeaguePanel Account="Account"></LeaguePanel>
+                }
+                else if (Account.AccountType == Core.Enums.AccountType.Valorant)
+                {
+                    <ValorantPanel Account="Account"></ValorantPanel>
+                }
             </div>
 	    </div>
 	</div>
@@ -24,12 +41,13 @@
             public Account Account { get; set; }
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     
+    [Parameter, EditorRequired]
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public EventCallback Close { get; set; }
+    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    
     bool loginDisabled = false;
     string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
-
-	public void Close(){
-
-	}
 
     async Task Login()
     {

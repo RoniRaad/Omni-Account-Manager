@@ -243,11 +243,31 @@ namespace AccountManager.Infrastructure.Services.Platform
             return exePath;
         }
 
-        private async Task<RankedGraph> GetRankedGraphData(Account account)
+        private async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
-            var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account);
+            var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
+            if (matchHistory?.Any() is not true)
+                return new PieChart();
+
+            var matches = matchHistory.GroupBy((match) => _mapper.Map<ValorantCharacter>(match.Players.First((player) => player.Subject == account.PlatformId).CharacterId).Name);
+            var pieChart = new PieChart();
+            pieChart.Data = matches.Select((match) =>
+                    {
+                        return new PieChartData()
+                        {
+                            Value = match.Count()
+                        };
+                    }).ToList();
+
+            pieChart.Labels = matches.Select((match) => match.Key).ToList();
+            return pieChart;
+        }
+
+        private async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
+        {
+            var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15);
             if (matchHistory?.Matches?.Any() is not true)
-                return new RankedGraph();
+                return new LineGraph();
 
             var matches = matchHistory.Matches.GroupBy((match) => match.TierAfterUpdate);
             var graphData = matches.Select((match) =>
@@ -270,19 +290,19 @@ namespace AccountManager.Infrastructure.Services.Platform
                 };
             }).OrderBy((graph) => graph.Hidden).ToList();
 
-            return new RankedGraph
+            return new LineGraph
             {
                 Data = graphData,
                 Title = "RR Change"
             };
         }
 
-        public async Task<(bool, List<RankedGraph>)> TryFetchRankedGraphs(Account account)
+        public async Task<(bool, Graphs)> TryFetchRankedGraphs(Account account)
         {
-            var rankedGraphs = new List<RankedGraph>(); 
-            rankedGraphs.Add(await GetRankedGraphData(account));
+            var rankedGraphs = new List<LineGraph>(); 
+            rankedGraphs.Add(await GetRankedRRChangeLineGraph(account));
 
-            return (true, rankedGraphs);
+            return (true, new Graphs { LineGraphs = rankedGraphs });
         }
     }
 }

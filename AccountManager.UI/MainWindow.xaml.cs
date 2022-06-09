@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
@@ -9,6 +10,7 @@ using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Models.RiotGames.League;
+using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
@@ -19,6 +21,7 @@ using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using Blazorise;
 using Blazorise.Bootstrap;
+using Blazorise.Charts;
 using Blazorise.Icons.FontAwesome;
 using CloudFlareUtilities;
 using Microsoft.Extensions.Configuration;
@@ -169,6 +172,59 @@ namespace AccountManager.UI
 				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
 				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
 				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => TeamFightTacticsRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
+
+				cfg.CreateMap<string, ValorantCharacter>()
+				.ForMember(d => d.Name, opt => opt.MapFrom((src) => ValorantCharacter.CharacterMapping.ContainsKey(src) ? ValorantCharacter.CharacterMapping[src] : "UNKNOWN CHARACTER"))
+				.ReverseMap();
+
+				cfg.CreateMap<MatchHistory, MatchHistoryResponse>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Json, MatchHistoryResponse.Json>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Metadata, MatchHistoryResponse.Metadata>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Ban, MatchHistoryResponse.Ban>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Team, MatchHistoryResponse.Team>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Objectives, MatchHistoryResponse.Objectives>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Baron, MatchHistoryResponse.Baron>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Challenges, MatchHistoryResponse.Challenges>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Champion, MatchHistoryResponse.Champion>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Dragon, MatchHistoryResponse.Dragon>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Game, MatchHistoryResponse.Game>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Inhibitor, MatchHistoryResponse.Inhibitor>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Json, MatchHistoryResponse.Json>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Metadata, MatchHistoryResponse.Metadata>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Perks, MatchHistoryResponse.Perks>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.RiftHerald, MatchHistoryResponse.RiftHerald>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Selection, MatchHistoryResponse.Selection>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.StatPerks, MatchHistoryResponse.StatPerks>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Style, MatchHistoryResponse.Style>()
+				.ReverseMap();
+				cfg.CreateMap<MatchHistory.Tower, MatchHistoryResponse.Tower>()
+				.ReverseMap();
+
+				cfg.AllowNullDestinationValues = true;
 			});
 			serviceCollection.AddTransient<RemoteLeagueClient>();
 			serviceCollection.AddSingleton<LocalLeagueClient>();

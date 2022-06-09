@@ -34,11 +34,11 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("SSLBypass");
 
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var rankResponse = await client.GetFromJsonAsync<LeagueSessionResponse>($"https://127.0.0.1:{port}/lol-login/v2/league-session-init-token");
-            if (rankResponse?.Token is null)
+            var rankResponse = await client.GetFromJsonAsync<string>($"https://127.0.0.1:{port}/lol-league-session/v1/league-session-token");
+            if (rankResponse is null)
                 return string.Empty;
 
-            return rankResponse.Token;
+            return rankResponse;
         }
 
         public async Task<QueueMap?> GetRankQueuesByPuuidAsync(Account account)
@@ -101,7 +101,7 @@ namespace AccountManager.Infrastructure.Clients
             return response;
         }
 
-        public async Task<UserMatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
+        public async Task<MatchHistory?> GetUserMatchHistory(Account account, int startIndex, int endIndex)
         {
             if (!_leagueTokenService.TryGetPortAndToken(out string token, out string port))
                 return null;
@@ -110,38 +110,10 @@ namespace AccountManager.Infrastructure.Clients
 
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
             var rankResponse = await client.GetFromJsonAsync<LocalLeagueMatchHistoryResponse>($"https://127.0.0.1:{port}/lol-match-history/v1/products/lol/{account.PlatformId}/matches?begIndex={startIndex}&endIndex={endIndex}");
-
-            if (rankResponse is null)
-                return new();
-
-            var queueMapping = await GetLeagueQueueMappings();
-
-            var matchHistory = new UserMatchHistory()
-            {
-                Matches = rankResponse?.Games?.Games
-                ?.Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
-                ?.Select((game) =>
-                {
-                    var usersTeam = game?.Participants?.First()?.TeamId;
-
-                    if (game is not null && game?.GameCreation is not null)
-                        return new GameMatch()
-                        {
-                            Id = game?.GameId?.ToString() ?? "None",
-                            GraphValueChange = game?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win?.ToLower()?.Equals("win") ?? false ? 1 : -1,
-                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.GameCreation ?? 0).ToLocalTime(),
-                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.QueueId, null)?.Description
-                                ?.Replace("games", "")
-                                ?.Replace("5v5", "")
-                                ?.Replace("Ranked", "")
-                                ?.Trim() ?? "Other"
-                        };
-
-                    return new();
-                })
-            };
+            var matchHistory = _autoMapper.Map<MatchHistory>(rankResponse);
 
             return matchHistory;
+
         }
 
         public async Task<UserMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
@@ -153,7 +125,7 @@ namespace AccountManager.Infrastructure.Clients
 
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
             var rankHttpResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-match-history/v1/products/tft/{account.PlatformId}/matches?begin={startIndex}&count={endIndex}");
-            var rankResponse = await rankHttpResponse.Content.ReadFromJsonAsync<TeamFightTacticsMatchHistoryResponse>();
+            var rankResponse = await rankHttpResponse.Content.ReadFromJsonAsync<TeamFightTacticsMatchHistory>();
             if (rankResponse is null)
                 return new();
 

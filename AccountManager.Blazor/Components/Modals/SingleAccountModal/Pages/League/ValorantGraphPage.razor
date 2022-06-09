@@ -1,0 +1,31 @@
+﻿@using AccountManager.Core.Models
+<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;">
+    <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
+        <span class="oi oi-chevron-left"></span>
+        <h1>Data</h1>
+        <span class="oi oi-chevron-right"></span>
+    </div>
+    <div style="height: 88%;gap: 58px;display: flex;flex-direction: column;">
+        <div style="gap: 50px;height: 30vh;display:flex">
+            <div >
+                <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs[0]"></LineChartWrapper>
+            </div>
+            <div>
+                <PieChartWrapper PieChart="Account?.DataGraphs?.PieCharts[0]"></PieChartWrapper>
+            </div>
+        </div>
+        <div style="gap: 50px;height: 30vh;display:flex">
+            <div>
+                <BarChartWrapper BarChart="Account?.DataGraphs?.BarCharts[0]"></BarChartWrapper>
+            </div>
+            <div>
+                <BarChartWrapper BarChart="Account?.DataGraphs?.BarCharts[1]"></BarChartWrapper>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Account Account { get; set; }
+}
