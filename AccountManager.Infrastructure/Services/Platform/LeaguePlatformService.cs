@@ -362,7 +362,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 });
 
                 rankedGraphDataSets.Data = barChartData;
-                rankedGraphDataSets.Title = "Recent Winrate by Champ";
+                rankedGraphDataSets.Title = "Recent Winrate";
                 rankedGraphDataSets.Type = "percent";
 
                 return rankedGraphDataSets;
@@ -416,7 +416,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 });
 
                 rankedGraphDataSets.Data = barChartData;
-                rankedGraphDataSets.Title = "Recent CS Rate Per Minute by Champ";
+                rankedGraphDataSets.Title = "Recent CS Per Minute";
 
                 return rankedGraphDataSets;
             }

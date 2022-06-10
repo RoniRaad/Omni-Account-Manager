@@ -268,8 +268,8 @@ namespace AccountManager.Infrastructure.Clients
 
             foreach (var game in gameHistoryData?.History ?? new())
             {
-                var gameData = await client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
-                
+                var gameDataResponse = await client.GetAsync($"/match-details/v1/matches/{game.MatchID}");
+                var gameData = await gameDataResponse.Content.ReadFromJsonAsync<ValorantMatch>();
                 if (gameData is not null)
                     valorantMatches.Add(gameData);
             }

@@ -10,10 +10,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Ability
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
 
         [JsonPropertyName("grenadeEffects")]
         public object GrenadeEffects { get; set; }
@@ -31,31 +31,31 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class AbilityCasts
     {
         [JsonPropertyName("grenadeCasts")]
-        public int GrenadeCasts { get; set; }
+        public double GrenadeCasts { get; set; }
 
         [JsonPropertyName("ability1Casts")]
-        public int Ability1Casts { get; set; }
+        public double Ability1Casts { get; set; }
 
         [JsonPropertyName("ability2Casts")]
-        public int Ability2Casts { get; set; }
+        public double Ability2Casts { get; set; }
 
         [JsonPropertyName("ultimateCasts")]
-        public int UltimateCasts { get; set; }
+        public double UltimateCasts { get; set; }
     }
 
     public class AdaptiveBots
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
 
         [JsonPropertyName("adaptiveBotAverageDurationMillisAllAttempts")]
-        public int AdaptiveBotAverageDurationMillisAllAttempts { get; set; }
+        public double AdaptiveBotAverageDurationMillisAllAttempts { get; set; }
 
         [JsonPropertyName("adaptiveBotAverageDurationMillisFirstAttempt")]
-        public int AdaptiveBotAverageDurationMillisFirstAttempt { get; set; }
+        public double AdaptiveBotAverageDurationMillisFirstAttempt { get; set; }
 
         [JsonPropertyName("killDetailsFirstAttempt")]
         public object KillDetailsFirstAttempt { get; set; }
@@ -64,49 +64,49 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class BasicGunSkill
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
     public class BasicMovement
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
     public class BehaviorFactors
     {
         [JsonPropertyName("afkRounds")]
-        public int AfkRounds { get; set; }
+        public double AfkRounds { get; set; }
 
         [JsonPropertyName("collisions")]
         public double Collisions { get; set; }
 
         [JsonPropertyName("damageParticipationOutgoing")]
-        public int DamageParticipationOutgoing { get; set; }
+        public double DamageParticipationOutgoing { get; set; }
 
         [JsonPropertyName("friendlyFireIncoming")]
-        public int FriendlyFireIncoming { get; set; }
+        public double FriendlyFireIncoming { get; set; }
 
         [JsonPropertyName("friendlyFireOutgoing")]
-        public int FriendlyFireOutgoing { get; set; }
+        public double FriendlyFireOutgoing { get; set; }
 
         [JsonPropertyName("stayedInSpawnRounds")]
-        public int StayedInSpawnRounds { get; set; }
+        public double StayedInSpawnRounds { get; set; }
     }
 
     public class BombPlant
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
     public class Damage
@@ -115,25 +115,25 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string Receiver { get; set; }
 
         [JsonPropertyName("damage")]
-        public int DamageAmount { get; set; }
+        public double DamageAmount { get; set; }
 
         [JsonPropertyName("legshots")]
-        public int Legshots { get; set; }
+        public double Legshots { get; set; }
 
         [JsonPropertyName("bodyshots")]
-        public int Bodyshots { get; set; }
+        public double Bodyshots { get; set; }
 
         [JsonPropertyName("headshots")]
-        public int Headshots { get; set; }
+        public double Headshots { get; set; }
     }
 
     public class DefendBombSite
     {
         [JsonPropertyName("idleTimeMillis")]
-        public int IdleTimeMillis { get; set; }
+        public double IdleTimeMillis { get; set; }
 
         [JsonPropertyName("objectiveCompleteTimeMillis")]
-        public int ObjectiveCompleteTimeMillis { get; set; }
+        public double ObjectiveCompleteTimeMillis { get; set; }
 
         [JsonPropertyName("success")]
         public bool Success { get; set; }
@@ -142,10 +142,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class DefuseLocation
     {
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public double X { get; set; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public double Y { get; set; }
     }
 
     public class DefusePlayerLocation
@@ -163,7 +163,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Economy
     {
         [JsonPropertyName("loadoutValue")]
-        public int LoadoutValue { get; set; }
+        public double LoadoutValue { get; set; }
 
         [JsonPropertyName("weapon")]
         public string Weapon { get; set; }
@@ -172,10 +172,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string Armor { get; set; }
 
         [JsonPropertyName("remaining")]
-        public int Remaining { get; set; }
+        public double Remaining { get; set; }
 
         [JsonPropertyName("spent")]
-        public int Spent { get; set; }
+        public double Spent { get; set; }
     }
 
     public class FinishingDamage
@@ -193,10 +193,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Kill
     {
         [JsonPropertyName("gameTime")]
-        public int GameTime { get; set; }
+        public double GameTime { get; set; }
 
         [JsonPropertyName("roundTime")]
-        public int RoundTime { get; set; }
+        public double RoundTime { get; set; }
 
         [JsonPropertyName("killer")]
         public string Killer { get; set; }
@@ -217,16 +217,16 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public FinishingDamage FinishingDamage { get; set; }
 
         [JsonPropertyName("round")]
-        public int Round { get; set; }
+        public double Round { get; set; }
     }
 
     public class Location
     {
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public double X { get; set; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public double Y { get; set; }
     }
 
     public class MatchInfo
@@ -250,7 +250,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string GameVersion { get; set; }
 
         [JsonPropertyName("gameLengthMillis")]
-        public int GameLengthMillis { get; set; }
+        public double GameLengthMillis { get; set; }
 
         [JsonPropertyName("gameStartMillis")]
         public long GameStartMillis { get; set; }
@@ -322,31 +322,31 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class PartyRRPenalties
     {
         [JsonPropertyName("12a93e78-9158-4500-8e5e-2fcfc6da9e59")]
-        public int _12a93e78915845008e5e2fcfc6da9e59 { get; set; }
+        public double _12a93e78915845008e5e2fcfc6da9e59 { get; set; }
 
         [JsonPropertyName("3d7b88c3-1eb8-4ee4-908c-187b315a76e7")]
-        public int _3d7b88c31eb84ee4908c187b315a76e7 { get; set; }
+        public double _3d7b88c31eb84ee4908c187b315a76e7 { get; set; }
 
         [JsonPropertyName("4e1d27b7-6c7d-400d-ba61-e435689094dc")]
-        public int _4e1d27b76c7d400dBa61E435689094dc { get; set; }
+        public double _4e1d27b76c7d400dBa61E435689094dc { get; set; }
 
         [JsonPropertyName("82e0ff93-a69f-4464-ab54-28f87f4d0d09")]
-        public int _82e0ff93A69f4464Ab5428f87f4d0d09 { get; set; }
+        public double _82e0ff93A69f4464Ab5428f87f4d0d09 { get; set; }
 
         [JsonPropertyName("87d22a2d-d50b-4a86-94d7-8fc59eff3dff")]
-        public int _87d22a2dD50b4a8694d78fc59eff3dff { get; set; }
+        public double _87d22a2dD50b4a8694d78fc59eff3dff { get; set; }
 
         [JsonPropertyName("e4bb60a8-7283-44c6-a17f-0bc21b0a0230")]
-        public int E4bb60a8728344c6A17f0bc21b0a0230 { get; set; }
+        public double E4bb60a8728344c6A17f0bc21b0a0230 { get; set; }
     }
 
     public class PlantLocation
     {
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public double X { get; set; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public double Y { get; set; }
     }
 
     public class PlantPlayerLocation
@@ -406,7 +406,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<RoundDamage> RoundDamage { get; set; }
 
         [JsonPropertyName("competitiveTier")]
-        public int CompetitiveTier { get; set; }
+        public double CompetitiveTier { get; set; }
 
         [JsonPropertyName("playerCard")]
         public string PlayerCard { get; set; }
@@ -418,10 +418,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string PreferredLevelBorder { get; set; }
 
         [JsonPropertyName("accountLevel")]
-        public int AccountLevel { get; set; }
+        public double AccountLevel { get; set; }
 
         [JsonPropertyName("sessionPlaytimeMinutes")]
-        public int SessionPlaytimeMinutes { get; set; }
+        public double SessionPlaytimeMinutes { get; set; }
 
         [JsonPropertyName("behaviorFactors")]
         public BehaviorFactors BehaviorFactors { get; set; }
@@ -439,7 +439,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string Subject { get; set; }
 
         [JsonPropertyName("loadoutValue")]
-        public int LoadoutValue { get; set; }
+        public double LoadoutValue { get; set; }
 
         [JsonPropertyName("weapon")]
         public string Weapon { get; set; }
@@ -448,10 +448,10 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string Armor { get; set; }
 
         [JsonPropertyName("remaining")]
-        public int Remaining { get; set; }
+        public double Remaining { get; set; }
 
         [JsonPropertyName("spent")]
-        public int Spent { get; set; }
+        public double Spent { get; set; }
     }
 
     public class PlayerLocation
@@ -472,7 +472,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string Subject { get; set; }
 
         [JsonPropertyName("score")]
-        public int Score { get; set; }
+        public double Score { get; set; }
     }
 
     public class PlayerStat
@@ -487,7 +487,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<Damage> Damage { get; set; }
 
         [JsonPropertyName("score")]
-        public int Score { get; set; }
+        public double Score { get; set; }
 
         [JsonPropertyName("economy")]
         public Economy Economy { get; set; }
@@ -532,19 +532,19 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class RoundDamage
     {
         [JsonPropertyName("round")]
-        public int Round { get; set; }
+        public double Round { get; set; }
 
         [JsonPropertyName("receiver")]
         public string Receiver { get; set; }
 
         [JsonPropertyName("damage")]
-        public int Damage { get; set; }
+        public double Damage { get; set; }
     }
 
     public class RoundResult
     {
         [JsonPropertyName("roundNum")]
-        public int RoundNum { get; set; }
+        public double RoundNum { get; set; }
 
         [JsonPropertyName("roundResult")]
         public string RoundResults { get; set; }
@@ -559,7 +559,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string BombPlanter { get; set; }
 
         [JsonPropertyName("plantRoundTime")]
-        public int PlantRoundTime { get; set; }
+        public double PlantRoundTime { get; set; }
 
         [JsonPropertyName("plantPlayerLocations")]
         public List<PlantPlayerLocation> PlantPlayerLocations { get; set; }
@@ -571,7 +571,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string PlantSite { get; set; }
 
         [JsonPropertyName("defuseRoundTime")]
-        public int DefuseRoundTime { get; set; }
+        public double DefuseRoundTime { get; set; }
 
         [JsonPropertyName("defusePlayerLocations")]
         public List<DefusePlayerLocation> DefusePlayerLocations { get; set; }
@@ -607,22 +607,22 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Stats
     {
         [JsonPropertyName("score")]
-        public int Score { get; set; }
+        public double Score { get; set; }
 
         [JsonPropertyName("roundsPlayed")]
-        public int RoundsPlayed { get; set; }
+        public double RoundsPlayed { get; set; }
 
         [JsonPropertyName("kills")]
-        public int Kills { get; set; }
+        public double Kills { get; set; }
 
         [JsonPropertyName("deaths")]
-        public int Deaths { get; set; }
+        public double Deaths { get; set; }
 
         [JsonPropertyName("assists")]
-        public int Assists { get; set; }
+        public double Assists { get; set; }
 
         [JsonPropertyName("playtimeMillis")]
-        public int PlaytimeMillis { get; set; }
+        public double PlaytimeMillis { get; set; }
 
         [JsonPropertyName("abilityCasts")]
         public AbilityCasts AbilityCasts { get; set; }
@@ -637,22 +637,22 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool Won { get; set; }
 
         [JsonPropertyName("roundsPlayed")]
-        public int RoundsPlayed { get; set; }
+        public double RoundsPlayed { get; set; }
 
         [JsonPropertyName("roundsWon")]
-        public int RoundsWon { get; set; }
+        public double RoundsWon { get; set; }
 
-        [JsonPropertyName("numPoints")]
-        public int NumPoints { get; set; }
+        [JsonPropertyName("numPodoubles")]
+        public double NumPodoubles { get; set; }
     }
 
     public class VictimLocation
     {
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public double X { get; set; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public double Y { get; set; }
     }
 
     public class XpModification
