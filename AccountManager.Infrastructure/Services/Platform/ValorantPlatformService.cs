@@ -5,6 +5,7 @@ using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AutoMapper;
@@ -263,6 +264,68 @@ namespace AccountManager.Infrastructure.Services.Platform
             return pieChart;
         }
 
+
+        private async Task<LineGraph> GetRankedWinsLineGraph(Account account)
+        {
+            var matchHistory = (await _riotClient.GetValorantGameHistory(account, 0, 15)).ToList();
+            if (matchHistory?.Any() is not true)
+                return new LineGraph();
+
+            var matchesWithTierChanges = new List<ValorantMatch>();
+            var currentValue = matchHistory.First().Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
+            var currentIndex = 0;
+
+            while (matchHistory.FindIndex(currentIndex, (match) => match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier != currentValue) != -1)
+            {
+                currentIndex = matchHistory.FindIndex(currentIndex, (match) => match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier != currentValue);
+                currentValue = matchHistory.ElementAt(currentIndex).Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
+                
+                if (currentIndex > 1)
+                    matchesWithTierChanges.Add(matchHistory.ElementAt(currentIndex - 1));
+
+                currentIndex++;
+            }
+
+            var groupedMatches = matchHistory.GroupBy((match) =>
+            {
+                var rank = (int)match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
+                return rank;
+            });
+
+            var graphData = groupedMatches.Select((match) =>
+            {
+                var rank = _mapper.Map<ValorantRank>(match.Key);
+                var graph = new RankedGraphData();
+                graph.Label = $"{rank.Tier} {rank.Ranking}";
+                graph.ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()];
+                var yOffset = 0;
+                graph.Data = match.Select((match) =>
+                {
+                    var teamId = match.Players.FirstOrDefault((player) => player.Subject == account.PlatformId).TeamId;
+                    if (matchesWithTierChanges.Any((tierChangeMatch) => tierChangeMatch.MatchInfo.MatchId == match.MatchInfo.MatchId))
+                        return new CoordinatePair()
+                        {
+                            Y = null,
+                            X = match.MatchInfo.GameStartMillis
+                        };
+
+                    return new CoordinatePair()
+                    {
+                        Y = match.Teams.FirstOrDefault((team) => team.TeamId == teamId).Won ? yOffset++ : yOffset--,
+                        X = match.MatchInfo.GameStartMillis
+                    };
+                }).ToList();
+
+                return graph;
+            });
+
+            return new LineGraph
+            {
+                Data = graphData.ToList(),
+                Title = "Ranked Wins"
+            };
+        }
+
         private async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
         {
             var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15);
@@ -301,8 +364,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         {
             var rankedGraphs = new List<LineGraph>(); 
             rankedGraphs.Add(await GetRankedRRChangeLineGraph(account));
+            rankedGraphs.Add(await GetRankedWinsLineGraph(account));
 
-            return (true, new Graphs { LineGraphs = rankedGraphs });
+            var pieCharts = new List<PieChart>()
+            {
+                await GetRecentlyUsedOperatorsPieChartAsync(account) 
+            };
+            return (true, new Graphs { LineGraphs = rankedGraphs, PieCharts = pieCharts });
         }
     }
 }
