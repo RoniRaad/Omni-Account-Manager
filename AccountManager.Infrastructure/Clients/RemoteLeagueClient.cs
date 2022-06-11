@@ -30,6 +30,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
+        private static SemaphoreSlim semaphore = new(1, 1);
 
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
             LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings,
@@ -216,6 +217,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string> GetLeagueSessionToken(Account account)
         {
+            await semaphore.WaitAsync();
             if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken)
                 && sessionToken is not null
                 && await TestLeagueToken(sessionToken))
@@ -228,6 +230,7 @@ namespace AccountManager.Infrastructure.Clients
             if (!string.IsNullOrEmpty(sessionToken))
                 _memoryCache.Set("GetLeagueSessionToken", sessionToken);
 
+            semaphore.Release(1);
             return sessionToken;
         }
 

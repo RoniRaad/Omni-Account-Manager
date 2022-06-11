@@ -83,8 +83,6 @@
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
             barChartOptions.Plugins.Title.Text = BarChart?.Title;
             if (!string.IsNullOrEmpty(BarChart?.Type))
                 barChartOptions.Scales.Y.Ticks.Format = new
@@ -93,18 +91,6 @@
                     };
 
             await HandleRedraw();
-            _state.Notify += async () =>
-            {
-                try
-                {
-                    await HandleRedraw();
-                }
-                catch
-                {
-                    // do nothing
-                }
-            };
-        }
     }
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };

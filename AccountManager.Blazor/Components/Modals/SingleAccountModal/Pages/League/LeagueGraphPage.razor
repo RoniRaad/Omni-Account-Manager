@@ -1,4 +1,6 @@
-﻿@using AccountManager.Core.Models
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@inject ILeagueGraphService _graphService
 <div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;">
     <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
         <span class="oi oi-chevron-left"></span>
@@ -8,18 +10,18 @@
     <div style="height: 88%;gap: 58px;display: flex;flex-direction: column;">
         <div style="gap: 50px;height: 30vh;display:flex">
             <div >
-                <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs[0]"></LineChartWrapper>
+                <LineChartWrapper LineGraph="rankedWinsGraph"></LineChartWrapper>
             </div>
             <div>
-                <PieChartWrapper PieChart="Account?.DataGraphs?.PieCharts[0]"></PieChartWrapper>
+                <PieChartWrapper PieChart="rankedChampSelectPieChart"></PieChartWrapper>
             </div>
         </div>
         <div style="gap: 50px;height: 30vh;display:flex">
             <div>
-                <BarChartWrapper BarChart="Account?.DataGraphs?.BarCharts[0]"></BarChartWrapper>
+                <BarChartWrapper BarChart="rankedWInrateByChamp"></BarChartWrapper>
             </div>
             <div>
-                <BarChartWrapper BarChart="Account?.DataGraphs?.BarCharts[1]"></BarChartWrapper>
+                <BarChartWrapper BarChart="rankedCsRateByChamp"></BarChartWrapper>
             </div>
         </div>
     </div>
@@ -28,4 +30,18 @@
 @code {
     [Parameter, EditorRequired]
     public Account Account { get; set; }
+
+    LineGraph rankedWinsGraph;
+    PieChart rankedChampSelectPieChart;
+    BarChart rankedWInrateByChamp;
+    BarChart rankedCsRateByChamp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account);
+        rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account);
+        rankedWInrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account);
+        rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account);
+        rankedWInrateByChamp.Type = "percent";
+    }
 }
