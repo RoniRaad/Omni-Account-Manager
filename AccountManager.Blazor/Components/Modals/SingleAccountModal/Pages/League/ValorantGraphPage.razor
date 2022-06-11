@@ -1,4 +1,7 @@
-﻿@using AccountManager.Core.Models
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@inject IValorantGraphService _graphService
+
 <div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;">
     <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
         <span class="oi oi-chevron-left"></span>
@@ -8,18 +11,18 @@
     <div style="height: 88%;gap: 58px;display: flex;flex-direction: column;">
         <div style="gap: 50px;height: 30vh;display:flex">
             <div >
-                <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs[0]"></LineChartWrapper>
+                <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
             </div>
             <div>
-                <PieChartWrapper PieChart="Account?.DataGraphs?.PieCharts[0]"></PieChartWrapper>
+                <PieChartWrapper PieChart="recentlyUsedOperatorsPieChart"></PieChartWrapper>
             </div>
         </div>
         <div style="gap: 50px;height: 30vh;display:flex">
             <div>
-                <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs[1]"></LineChartWrapper>
+                <LineChartWrapper LineGraph="rankedWinGraph"></LineChartWrapper>
             </div>
             <div>
-                <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs[0]"></LineChartWrapper>
+                <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
             </div>
         </div>
     </div>
@@ -28,4 +31,15 @@
 @code {
     [Parameter, EditorRequired]
     public Account Account { get; set; }
+
+    LineGraph rankedRRChangeGraph;
+    PieChart recentlyUsedOperatorsPieChart;
+    LineGraph rankedWinGraph;
+
+    protected override async Task OnInitializedAsync()
+    {
+        rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account);
+        recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
+        rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account);
+    }
 }

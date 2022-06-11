@@ -126,24 +126,9 @@
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            lineChartOptions.Plugins.Title.Text = LineGraph?.Title;
-            await lineChart?.SetOptions(lineChartOptions);
 
-            await HandleRedraw();
-            _state.Notify += async () =>
-            {
-                try
-                {
-                    await HandleRedraw();
-                }
-                catch
-                {
-                    // do nothing
-                }
-            };
-        }
+        await HandleRedraw();
+
     }
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };

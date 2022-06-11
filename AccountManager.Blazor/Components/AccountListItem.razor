@@ -9,7 +9,9 @@
 @using Blazorise.Charts.Trendline
 @using System.Drawing
 @inject AppState _state
-
+@inject ILeagueGraphService _leagueGraphService
+@inject IValorantGraphService _valorantGraphService
+@inject ITeamFightTacticsGraphService _tftGraphService
 @inherits LayoutComponentBase
 <div class="card" @onclick="() => showFullTile = true">
     <div class="card-body" >
@@ -69,7 +71,7 @@
 						<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
                     <div>
-                        <LineChartWrapper LineGraph="Account?.DataGraphs?.LineGraphs?.FirstOrDefault(defaultValue: null)"></LineChartWrapper>
+                        <LineChartWrapper LineGraph="displayGraph"></LineChartWrapper>
                     </div>  
             </div>
         </li>
@@ -100,5 +102,28 @@
 }
 
 @code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (Account.AccountType == AccountType.League)
+            {
+                displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
+            }
+            else if (Account.AccountType == AccountType.Valorant)
+            {
+                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+            }
+            else if (Account.AccountType == AccountType.TeamFightTactics)
+            {
+                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+            }
+            else
+            {
+                displayGraph = new();
+            }
+        }
+    }
     private bool showFullTile = false;
+    LineGraph displayGraph;
 }

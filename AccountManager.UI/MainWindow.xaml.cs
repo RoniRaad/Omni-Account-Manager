@@ -13,6 +13,7 @@ using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
+using AccountManager.Core.Services.GraphServices;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
@@ -232,6 +233,11 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<LeagueFileSystemService>();
 			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
 			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
+			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
+			serviceCollection.AddSingleton<ILeagueGraphService, LeagueGraphService>();
+			serviceCollection.AddSingleton<IValorantGraphService, ValorantGraphService>();
+			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
+			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
 			serviceCollection.AddBlazorise(options =>
