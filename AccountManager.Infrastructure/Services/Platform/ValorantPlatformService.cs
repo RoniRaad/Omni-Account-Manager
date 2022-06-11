@@ -261,6 +261,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     }).ToList();
 
             pieChart.Labels = matches.Select((match) => match.Key).ToList();
+            pieChart.Title = "Recently Used Agents";
             return pieChart;
         }
 
@@ -271,53 +272,37 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (matchHistory?.Any() is not true)
                 return new LineGraph();
 
-            var matchesWithTierChanges = new List<ValorantMatch>();
-            var currentValue = matchHistory.First().Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
-            var currentIndex = 0;
-
-            while (matchHistory.FindIndex(currentIndex, (match) => match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier != currentValue) != -1)
+            Dictionary<int, RankedGraphData> rankedWins = new Dictionary<int, RankedGraphData>();
+            int previousTier = (int)matchHistory.First().Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
+            var offset = 0;
+            for (var i = 0; i < matchHistory.Count; i++)
             {
-                currentIndex = matchHistory.FindIndex(currentIndex, (match) => match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier != currentValue);
-                currentValue = matchHistory.ElementAt(currentIndex).Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
-                
-                if (currentIndex > 1)
-                    matchesWithTierChanges.Add(matchHistory.ElementAt(currentIndex - 1));
+                var currentMatch = matchHistory[i];
+                var accountInMatch = currentMatch.Players.First(player => player.Subject == account.PlatformId);
+                var accountTeam = currentMatch.Teams.First(team => team.TeamId == accountInMatch.TeamId);
+                var currentTier = (int)accountInMatch.CompetitiveTier;
 
-                currentIndex++;
+                rankedWins.TryGetValue((int)accountInMatch.CompetitiveTier, out var valorantMatches);
+
+                if (valorantMatches == null)
+                {
+                    valorantMatches = new RankedGraphData();
+                    rankedWins.Add(currentTier, valorantMatches);
+                }
+                if (previousTier != currentTier)
+                    rankedWins[previousTier].Data.Add(new CoordinatePair() { X = null, Y = null });
+
+                var graph = rankedWins[currentTier];
+                offset += accountTeam.Won ? -1 : 1;
+
+                var rank = _mapper.Map<ValorantRank>(currentTier);
+                graph.Label = $"{rank.Tier} {rank.Ranking}";
+                graph.ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[currentTier / 3].ToLower()];
+                graph?.Data?.Add(new CoordinatePair() { X = currentMatch.MatchInfo.GameStartMillis, Y = offset });
+                previousTier = currentTier;
             }
 
-            var groupedMatches = matchHistory.GroupBy((match) =>
-            {
-                var rank = (int)match.Players.First(player => player.Subject == account.PlatformId).CompetitiveTier;
-                return rank;
-            });
-
-            var graphData = groupedMatches.Select((match) =>
-            {
-                var rank = _mapper.Map<ValorantRank>(match.Key);
-                var graph = new RankedGraphData();
-                graph.Label = $"{rank.Tier} {rank.Ranking}";
-                graph.ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()];
-                var yOffset = 0;
-                graph.Data = match.Select((match) =>
-                {
-                    var teamId = match.Players.FirstOrDefault((player) => player.Subject == account.PlatformId).TeamId;
-                    if (matchesWithTierChanges.Any((tierChangeMatch) => tierChangeMatch.MatchInfo.MatchId == match.MatchInfo.MatchId))
-                        return new CoordinatePair()
-                        {
-                            Y = null,
-                            X = match.MatchInfo.GameStartMillis
-                        };
-
-                    return new CoordinatePair()
-                    {
-                        Y = match.Teams.FirstOrDefault((team) => team.TeamId == teamId).Won ? yOffset++ : yOffset--,
-                        X = match.MatchInfo.GameStartMillis
-                    };
-                }).ToList();
-
-                return graph;
-            });
+            var graphData = rankedWins.Values.ToList();
 
             return new LineGraph
             {

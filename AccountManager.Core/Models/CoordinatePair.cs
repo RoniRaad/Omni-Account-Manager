@@ -12,6 +12,6 @@ namespace AccountManager.Core.Models
         [JsonPropertyName("y")]
         public int? Y { get; set; }
         [JsonPropertyName("x")]
-        public double X { get; set; }
+        public double? X { get; set; }
     }
 }

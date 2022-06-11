@@ -3,13 +3,13 @@
 @using AccountManager.Core.Services
 @inject AppState _state
 
-<BarChart Options="barChartOptions" @ref="barChart" TItem="double"/>   
+<BarChart Options="barChartOptions" @ref="barChart" TItem="double?"/>   
 
 @code {
     [Parameter, EditorRequired]
     public BarChart BarChart { get; set; }
 
-    BarChart<double>? barChart;
+    BarChart<double?>? barChart;
     BarChartOptions barChartOptions = new()
     {
         MaintainAspectRatio = false,
@@ -68,7 +68,7 @@
         if (datasets is null)
             return;
 
-        var chartDatasets = new BarChartDataset<double>
+        var chartDatasets = new BarChartDataset<double?>
         {
             Data = datasets.Data.Select((data) => data.Value).ToList(),
             BackgroundColor = backgroundColors,
