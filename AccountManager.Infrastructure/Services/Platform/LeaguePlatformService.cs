@@ -398,9 +398,10 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
-                    var sum = matchGrouping.Sum((match) =>
+                    var average = matchGrouping.Average((match) =>
                     {
-                        var minionsKilled = match?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account?.PlatformId, null)?.TotalMinionsKilled;
+                        var player = match?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account?.PlatformId, null);
+                        var minionsKilled = player?.TotalMinionsKilled + player?.NeutralMinionsKilled;
                         var matchMinutes = match?.Json?.GameDuration / 60;
                         var minionsKilledPerMinute = minionsKilled / matchMinutes;
                         if (minionsKilled is null || matchMinutes is null)
@@ -411,7 +412,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                     return new BarChartData
                     {
-                        Value = (double)sum / matchGrouping.Count()
+                        Value = average
                     };
                 });
 
