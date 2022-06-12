@@ -29,6 +29,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
@@ -86,83 +87,94 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
             RiotAuthCookies responseCookies;
-            
-            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
-
-            if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
-                return null;
-
-            var initialAuth = await GetRiotSessionCookies(request, account);
-            if (initialAuth?.Content?.Type == "response")
-                return initialAuth;
-
-            var initialCookies = initialAuth?.Cookies ?? new();
-
-            var authResponse = await _curlRequestBuilder.CreateBuilder()
-            .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
-            .SetContent(new AuthRequest
+            await _semaphore.WaitAsync();
+            try
             {
-                Type = "auth",
-                Username = account.Username,
-                Password = account.Password,
-                Remember = true
-            })
-            .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
-            .AddCookies(initialCookies.GetCookies())
-            .Put<TokenResponseWrapper>();
+                var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
 
-            responseCookies = new(authResponse.Cookies ?? new());
-
-            if (responseCookies?.Ssid is not null)
-                _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
-
-            var tokenResponse = authResponse.ResponseContent;
-            if (tokenResponse?.Type == "multifactor")
-            {
-                if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
-                {
-                    _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
+                if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
                     return null;
-                }
 
-                var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
-                if (mfCode == string.Empty)
-                {
-                    await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", true);
-                    return null;
-                }
+                var initialAuth = await GetRiotSessionCookies(request, account);
+                if (initialAuth?.Content?.Type == "response")
+                    return initialAuth;
 
-                authResponse = await _curlRequestBuilder.CreateBuilder()
+                var initialCookies = initialAuth?.Cookies ?? new();
+
+                var authResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
-                .SetContent(new MultifactorRequest()
+                .SetContent(new AuthRequest
                 {
-                    Code = mfCode,
-                    Type = "multifactor",
-                    RememberDevice = true
+                    Type = "auth",
+                    Username = account.Username,
+                    Password = account.Password,
+                    Remember = true
                 })
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
                 .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
-                .AddCookies(responseCookies?.GetCookies() ?? new())
+                .AddCookies(initialCookies.GetCookies())
                 .Put<TokenResponseWrapper>();
 
-                responseCookies = new RiotAuthCookies(authResponse?.Cookies ?? new());
+                responseCookies = new(authResponse.Cookies ?? new());
+
                 if (responseCookies?.Ssid is not null)
                     _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
-                tokenResponse = authResponse?.ResponseContent;
-
+                var tokenResponse = authResponse.ResponseContent;
                 if (tokenResponse?.Type == "multifactor")
-                    _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
+                {
+                    if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
+                    {
+                        _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
+                        return null;
+                    }
+
+                    var mfCode = await _alertService.PromptUserFor2FA(account, tokenResponse?.Multifactor?.Email ?? "");
+                    if (mfCode == string.Empty)
+                    {
+                        await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", true);
+                        return null;
+                    }
+
+                    authResponse = await _curlRequestBuilder.CreateBuilder()
+                    .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                    .SetContent(new MultifactorRequest()
+                    {
+                        Code = mfCode,
+                        Type = "multifactor",
+                        RememberDevice = true
+                    })
+                    .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+                    .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                    .AddCookies(responseCookies?.GetCookies() ?? new())
+                    .Put<TokenResponseWrapper>();
+
+                    responseCookies = new RiotAuthCookies(authResponse?.Cookies ?? new());
+                    if (responseCookies?.Ssid is not null)
+                        _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
+
+                    tokenResponse = authResponse?.ResponseContent;
+
+                    if (tokenResponse?.Type == "multifactor")
+                        _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
+                }
+
+                var response = new RiotAuthResponse
+                {
+                    Content = tokenResponse,
+                    Cookies = responseCookies
+                };
+                return response;
+
             }
-
-            var response = new RiotAuthResponse
+            catch
             {
-                Content = tokenResponse,
-                Cookies = responseCookies
-            };
-
-            return response;
+                return null;
+            }
+            finally
+            {
+                _semaphore.Release(1);
+            }
         }
 
         public async Task<string?> GetValorantToken(Account account)
@@ -182,7 +194,7 @@ namespace AccountManager.Infrastructure.Clients
 
             var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
                     @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
-
+            
             var token = matches[0].Groups[1].Value;
 
             return token;
