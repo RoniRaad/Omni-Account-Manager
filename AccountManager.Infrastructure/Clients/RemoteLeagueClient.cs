@@ -218,20 +218,30 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<string> GetLeagueSessionToken(Account account)
         {
             await semaphore.WaitAsync();
-            if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken)
-                && sessionToken is not null
-                && await TestLeagueToken(sessionToken))
+            try
+            {
+                if (_memoryCache.TryGetValue<string>("GetLeagueSessionToken", out string? sessionToken)
+                    && sessionToken is not null
+                    && await TestLeagueToken(sessionToken))
+                    return sessionToken;
+
+                sessionToken = await _localLeagueClient.GetLocalSessionToken();
+                if (string.IsNullOrEmpty(sessionToken) || !await TestLeagueToken(sessionToken))
+                    sessionToken = await CreateLeagueSession(account);
+
+                if (!string.IsNullOrEmpty(sessionToken))
+                    _memoryCache.Set("GetLeagueSessionToken", sessionToken);
+
                 return sessionToken;
-
-            sessionToken = await _localLeagueClient.GetLocalSessionToken();
-            if (string.IsNullOrEmpty(sessionToken) || !await TestLeagueToken(sessionToken))
-                sessionToken = await CreateLeagueSession(account);
-
-            if (!string.IsNullOrEmpty(sessionToken))
-                _memoryCache.Set("GetLeagueSessionToken", sessionToken);
-
-            semaphore.Release(1);
-            return sessionToken;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+            finally
+            {
+                semaphore.Release(1);
+            }
         }
 
         public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()

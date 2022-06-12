@@ -11,6 +11,7 @@ namespace AccountManager.Infrastructure.Clients
     public class CurlRequestBuilder : ICurlRequestBuilder, ICurlRequestBuilderInitialize, ICurlRequestBuilderReadyToExecute
     {
         private string uri = "";
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private Command cliWrapper = Cli.Wrap("curl");
         CookieContainer requestCookies = new();
         ArgumentsBuilder argumentsBuilder = new();
@@ -97,6 +98,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<CurlResponse<string>> ExecuteAsync()
         {
+            await semaphoreSlim.WaitAsync();
             var tdidCacheKey = $"riot.auth.tdid";
             var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
             var cookieContainer = new CookieContainer();
@@ -133,7 +135,8 @@ namespace AccountManager.Infrastructure.Clients
 
             if (tdidResponseCookie is not null)
                 await _persistantCache.SetAsync(tdidCacheKey, tdidResponseCookie);
-            
+
+            semaphoreSlim.Release(1);
             return new CurlResponse<string>
             {
                 ResponseContent = responseJson,
