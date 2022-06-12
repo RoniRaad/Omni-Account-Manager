@@ -101,14 +101,14 @@ namespace AccountManager.Core.Services.GraphServices
                         rankedGraphDataSets.Data.Add(rankedGraphData);
                 }
 
-                if (matchHistoryResponse is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
-
                 if (matchHistoryResponse is null)
                     return new();
 
                 rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderByDescending((dataset) => string.IsNullOrEmpty(dataset.ColorHex)).ToList();
                 rankedGraphDataSets.Title = "Ranked Placement Offset";
+
+                if (rankedGraphDataSets is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 return rankedGraphDataSets;
             }

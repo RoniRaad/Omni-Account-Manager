@@ -134,8 +134,6 @@ namespace AccountManager.Core.Services.GraphServices
 
                 matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account, 0, 40);
                 rankedGraphDataSets = new();
-                if (matchHistoryResponse is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 if (matchHistoryResponse is null)
                     return new();
@@ -151,6 +149,9 @@ namespace AccountManager.Core.Services.GraphServices
                 });
                 rankedGraphDataSets.Title = "Recently Used Champs";
                 rankedGraphDataSets.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
+                
+                if (rankedGraphDataSets is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 return rankedGraphDataSets;
             }
@@ -194,6 +195,9 @@ namespace AccountManager.Core.Services.GraphServices
                 rankedGraphDataSets.Data = barChartData;
                 rankedGraphDataSets.Title = "Recent Winrate";
                 rankedGraphDataSets.Type = "percent";
+
+                if (rankedGraphDataSets is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 return rankedGraphDataSets;
             }
@@ -249,6 +253,8 @@ namespace AccountManager.Core.Services.GraphServices
 
                 rankedGraphDataSets.Data = barChartData;
                 rankedGraphDataSets.Title = "Recent CS Per Minute";
+                if (rankedGraphDataSets is not null)
+                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
 
                 return rankedGraphDataSets;
             }

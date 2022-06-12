@@ -23,9 +23,14 @@ namespace AccountManager.Core.Services.GraphServices
         }
         public async Task<LineGraph> GetRankedWinsLineGraph(Account account)
         {
+            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRankedWinsLineGraph)}";
+            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return rankedGraphDataSets;
+
             var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
             if (matchHistory?.Any() is not true)
                 return new LineGraph();
+
             matchHistory = matchHistory.OrderBy(match => match.MatchInfo.GameStartMillis);
             Dictionary<int, RankedGraphData> rankedWins = new Dictionary<int, RankedGraphData>();
             Dictionary<int, int> rankedOffsets = new Dictionary<int, int>();
@@ -60,15 +65,23 @@ namespace AccountManager.Core.Services.GraphServices
 
             var graphData = rankedWins.Values.ToList();
 
-            return new LineGraph
+            var lineGraph = new LineGraph
             {
                 Data = graphData.ToList(),
                 Title = "Ranked Wins"
             };
+
+            _memoryCache.Set(rankCacheString, lineGraph);
+
+            return lineGraph;
         }
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
+            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRecentlyUsedOperatorsPieChartAsync)}";
+            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return rankedGraphDataSets;
+
             var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
             if (matchHistory?.Any() is not true)
                 return new PieChart();
@@ -85,11 +98,18 @@ namespace AccountManager.Core.Services.GraphServices
 
             pieChart.Labels = matches.Select((match) => match.Key).ToList();
             pieChart.Title = "Recently Used Agents";
+
+            _memoryCache.Set(rankCacheString, pieChart);
+
             return pieChart;
         }
 
         public async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
         {
+            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRankedRRChangeLineGraph)}";
+            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
+                return rankedGraphDataSets;
+
             var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15);
             if (matchHistory?.Matches?.Any() is not true)
                 return new LineGraph();
@@ -115,11 +135,15 @@ namespace AccountManager.Core.Services.GraphServices
                 };
             }).OrderBy((graph) => graph.Hidden).ToList();
 
-            return new LineGraph
+            var lineGraph = new LineGraph
             {
                 Data = graphData,
                 Title = "RR Change"
             };
+
+            _memoryCache.Set(rankCacheString, lineGraph);
+
+            return lineGraph;
         }
     }
 }
