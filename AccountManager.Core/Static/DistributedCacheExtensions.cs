@@ -11,6 +11,15 @@ namespace AccountManager.Core.Static
             await cache.SetStringAsync(key + typeof(T).Name, json);
         }
 
+        public static async Task SetAsync<T>(this IDistributedCache cache, string key, T value, TimeSpan expireTimeSpan)
+        {
+            var json = JsonSerializer.Serialize(value);
+            await cache.SetStringAsync(key + typeof(T).Name, json, new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.Add(expireTimeSpan),
+            });
+        }
+
         public static async Task<T?> GetAsync<T>(this IDistributedCache cache, string key)
         {
             var value = await cache.GetStringAsync(key + typeof(T).Name);

@@ -12,13 +12,19 @@ namespace AccountManager.Infrastructure.Clients
     {
         private string uri = "";
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        private Command cliWrapper = Cli.Wrap("curl");
+        private Command cliWrapper = Cli.Wrap(Path.Combine(".","curl","curl.exe"))
+            .WithWorkingDirectory(Directory.GetCurrentDirectory());
         CookieContainer requestCookies = new();
-        ArgumentsBuilder argumentsBuilder = new();
+        ArgumentsBuilder argumentsBuilder = new ArgumentsBuilder();
         IDistributedCache _persistantCache; 
         public CurlRequestBuilder(IDistributedCache persistantCache) 
         {
             _persistantCache = persistantCache;
+            argumentsBuilder.Add("--tlsv1.3")
+                .Add("--tls13-ciphers")
+                .Add("TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .Add("-H")
+                .Add("Accept-Language: *");
         }
 
         public ICurlRequestBuilderInitialize CreateBuilder()
@@ -99,51 +105,60 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<CurlResponse<string>> ExecuteAsync()
         {
             await semaphoreSlim.WaitAsync();
-            var tdidCacheKey = $"riot.auth.tdid";
-            var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
-            var cookieContainer = new CookieContainer();
-
-            if (tdidCookie is not null)
-                requestCookies.Add(tdidCookie);
-
-            var cookieHeader = requestCookies.GetCookieHeader(new Uri(uri));
-            argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
-
-            argumentsBuilder.Add($"{uri}");
-            var argumentsString = argumentsBuilder.Build();
-            var response = await cliWrapper.WithArguments(argumentsString)
-            .WithValidation(CliWrap.CommandResultValidation.None)
-            .ExecuteBufferedAsync();
-            var responseLines = response.StandardOutput.Split("\n");
-            var cookieHeaders = responseLines.Where((header) => header.ToLower().StartsWith("set-cookie"))
-                .Select((cookieHeader) => cookieHeader
-                .Substring(cookieHeader.ToLower().IndexOf("set-cookie:")));
-
-            int.TryParse(responseLines[0].Split(" ")[1], out var statusCode);
-            var responseJson = responseLines[^1];
-
-            foreach (var responseCookieHeader in cookieHeaders)
+            try
             {
-                var trimmedCookieHeader = responseCookieHeader[12..];
-                var tempContainer = new CookieContainer();
-                tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
-                cookieContainer.Add(tempContainer.GetAllCookies());
+                var tdidCacheKey = $"riot.auth.tdid";
+                var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
+                var cookieContainer = new CookieContainer();
+
+                if (tdidCookie is not null)
+                    requestCookies.Add(tdidCookie);
+
+                var cookieHeader = requestCookies.GetCookieHeader(new Uri(uri));
+                argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
+                argumentsBuilder.Add($"{uri}");
+                var argumentsString = argumentsBuilder.Build();
+                var response = await cliWrapper.WithArguments(argumentsString)
+                .WithValidation(CliWrap.CommandResultValidation.None)
+                .ExecuteBufferedAsync();
+                var responseLines = response.StandardOutput.Split("\n");
+                var cookieHeaders = responseLines.Where((header) => header.ToLower().StartsWith("set-cookie"))
+                    .Select((cookieHeader) => cookieHeader
+                    .Substring(cookieHeader.ToLower().IndexOf("set-cookie:")));
+
+                int.TryParse(responseLines[0].Split(" ")[1], out var statusCode);
+                var responseJson = responseLines[^1];
+
+                foreach (var responseCookieHeader in cookieHeaders)
+                {
+                    var trimmedCookieHeader = responseCookieHeader[12..];
+                    var tempContainer = new CookieContainer();
+                    tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
+                    cookieContainer.Add(tempContainer.GetAllCookies());
+                }
+
+                var responseCookieCollection = cookieContainer.GetAllCookies();
+                var tdidResponseCookie = responseCookieCollection.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
+
+                if (tdidResponseCookie is not null)
+                    await _persistantCache.SetAsync(tdidCacheKey, tdidResponseCookie);
+
+                return new CurlResponse<string>
+                {
+                    ResponseContent = responseJson,
+                    Headers = new(),
+                    StatusCode = (HttpStatusCode)statusCode,
+                    Cookies = cookieContainer.GetAllCookies()
+                };
             }
-
-            var responseCookieCollection = cookieContainer.GetAllCookies();
-            var tdidResponseCookie = responseCookieCollection.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
-
-            if (tdidResponseCookie is not null)
-                await _persistantCache.SetAsync(tdidCacheKey, tdidResponseCookie);
-
-            semaphoreSlim.Release(1);
-            return new CurlResponse<string>
+            catch
             {
-                ResponseContent = responseJson,
-                Headers = new(),
-                StatusCode = (HttpStatusCode)statusCode,
-                Cookies = cookieContainer.GetAllCookies()
-            };
+                return null;
+            }
+            finally
+            {
+                semaphoreSlim.Release(1);
+            }
         }
 
         public async Task<CurlResponse<T>> ExecuteAsync<T>() where T : new()

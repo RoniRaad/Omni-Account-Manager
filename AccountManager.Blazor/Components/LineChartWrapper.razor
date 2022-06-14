@@ -3,12 +3,11 @@
 @using AccountManager.Core.Services
 @inject AppState _state
 
-<LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair"/>   
+<LineChart @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
 
 @code {
     [Parameter, EditorRequired]
     public LineGraph LineGraph { get; set; }
-
 
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
@@ -25,8 +24,6 @@
                         Family = "Roboto",
                         Size = 10
                     },
-
-
                 },
                 Title = new()
                 {
@@ -123,12 +120,10 @@
 
         await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
         await HandleRedraw();
-
     }
 
     List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };

@@ -2,42 +2,43 @@
 @using AccountManager.Core.Models
 @inject IValorantGraphService _graphService
 
-<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;">
-    <div style="display: flex;gap: 42px;font-size: 29px;align-items: center;">
-        <span class="oi oi-chevron-left"></span>
-        <h1>Data</h1>
-        <span class="oi oi-chevron-right"></span>
-    </div>
-    <div style="height: 88%;gap: 58px;display: flex;flex-direction: column;">
-        <div style="gap: 50px;height: 30vh;display:flex">
-            <div >
-                <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
-            </div>
-            <div>
-                <PieChartWrapper PieChart="recentlyUsedOperatorsPieChart"></PieChartWrapper>
-            </div>
+<div style="height: 88%;display: flex;flex-direction: column;">
+    <div style="gap: 50px;height: 30vh;display:flex">
+        <div >
+            <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
         </div>
-        <div style="gap: 50px;height: 30vh;display:flex">
-            <div>
-                <LineChartWrapper LineGraph="rankedWinGraph"></LineChartWrapper>
-            </div>
-            <div>
-                <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
-            </div>
+        <div>
+            <PieChartWrapper PieChart="recentlyUsedOperatorsPieChart"></PieChartWrapper>
+        </div>
+    </div>
+    <div style="gap: 50px;height: 30vh;display:flex">
+        <div>
+            <LineChartWrapper LineGraph="rankedWinGraph"></LineChartWrapper>
+        </div>
+        <div>
+            <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
         </div>
     </div>
 </div>
 
 @code {
+    public static string Title = "Data";
     [Parameter, EditorRequired]
     public Account Account { get; set; }
+    [Parameter, EditorRequired]
+    public Action IncrementPage { get; set; }
+    [Parameter, EditorRequired]
+    public Action DecrementPage { get; set; }
 
     LineGraph rankedRRChangeGraph;
     PieChart recentlyUsedOperatorsPieChart;
     LineGraph rankedWinGraph;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (Account is null)
+            return;
+
         rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account);
         recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
         rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account);

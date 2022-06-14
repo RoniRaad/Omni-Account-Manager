@@ -1,6 +1,9 @@
-﻿using AccountManager.Core.Interfaces;
+﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League;
+using AccountManager.Core.Static;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
@@ -9,25 +12,33 @@ namespace AccountManager.Core.Services.GraphServices
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-        private readonly HttpClient _httpClient;
-        private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
+        const AccountType accountType = AccountType.League;
+        const string cacheKeyFormat = "{0}.{1}.{2}";
 
-        public LeagueGraphService(ILeagueClient leagueClient, IRiotClient riotClient, IMemoryCache memoryCache)
+        public LeagueGraphService(ILeagueClient leagueClient, IRiotClient riotClient, 
+            IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
             _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
         }
 
         public async Task<LineGraph> GetRankedWinsGraph(Account account)
         {
-            var rankCacheString = $"{account.Username}.leagueoflegends.{nameof(GetRankedWinsGraph)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsGraph), accountType);
+            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
+            if (lineGraph is not null)
+                return lineGraph;
+
+            lineGraph = new();
 
             try
             {
+                var soloQueueRank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
+
                 if (string.IsNullOrEmpty(account.PlatformId))
                     account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
                 if (string.IsNullOrEmpty(account.PlatformId))
@@ -36,81 +47,59 @@ namespace AccountManager.Core.Services.GraphServices
                 var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 15);
                 var queueMapping = await _leagueClient.GetLeagueQueueMappings();
 
-                var userMatchHistory = new UserMatchHistory()
+                var gameMatchesByType = new Dictionary<string, RankedGraphData>();
+                var gameMatchesOffsetByType = new Dictionary<string, int>();
+
+                for (int i = matchHistoryResponse?.Games?.Count - 1 ?? 0; i >= 0; i--)
                 {
-                    Matches = matchHistoryResponse?.Games
-                    ?.Where((game) => queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description?.Contains("Teamfights Tactics") is false)
-                    ?.Select((game) =>
+                    var game = matchHistoryResponse?.Games[i];
+                    var queueName = queueMapping?.FirstOrDefault(queue => queue.QueueId == game?.Json?.QueueId);
+
+                    if (game is not null && 
+                        game?.Json?.GameCreation is not null && 
+                        queueName?.Description?.Contains("Teamfights Tactics") is false)
                     {
                         var usersTeam = game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account?.PlatformId, null)?.TeamId;
-
-                        if (game is not null && game?.Json?.GameCreation is not null)
-                            return new GameMatch()
-                            {
-                                Id = game?.Json?.GameId?.ToString() ?? "None",
-                                GraphValueChange = game?.Json?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win ?? false ? 1 : -1,
-                                EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameCreation ?? 0).ToLocalTime(),
-                                Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
+                        
+                        var gameMatch = new GameMatch()
+                        {
+                            Id = game?.Json?.GameId?.ToString() ?? "None",
+                            GraphValueChange = game?.Json?.Teams?.FirstOrDefault((team) => team?.TeamId == usersTeam, null)?.Win ?? false ? 1 : -1,
+                            EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameCreation ?? 0).ToLocalTime(),
+                            Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
                                     ?.Replace("games", "")
                                     ?.Replace("5v5", "")
                                     ?.Replace("Ranked", "")
                                     ?.Trim() ?? "Other"
-                            };
+                        };
 
-                        return new();
-                    })
-                };
-
-                rankedGraphDataSets = new();
-                var soloQueueRank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
-
-                var matchesGroups = userMatchHistory?.Matches?.Reverse()?.GroupBy((match) => match.Type);
-                if (matchesGroups is null)
-                    return new();
-
-                var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
-
-                foreach (var matchGroup in orderedGroups)
-                {
-                    var matchWinDelta = 0;
-                    var isFirst = true;
-                    var rankedGraphData = new RankedGraphData()
-                    {
-                        Label = matchGroup.FirstOrDefault(new GameMatch())?.Type ?? "Other",
-                        Data = new(),
-                        Tags = new()
-                    };
-                    if (rankedGraphData.Label == "Solo")
-                        rankedGraphData.ColorHex = soloQueueRank.HexColor;
-
-                    foreach (var match in matchGroup)
-                    {
-                        if (!isFirst)
+                        if (!gameMatchesOffsetByType.TryGetValue(gameMatch.Type, out var offset))
                         {
-                            matchWinDelta += match.GraphValueChange;
+                            gameMatchesOffsetByType[gameMatch.Type] = 0;
+                            gameMatch.GraphValueChange = 0;
                         }
 
-                        var dateTime = match.EndTime;
+                        if (!gameMatchesByType.TryGetValue(gameMatch.Type, out var gameList))
+                        {
+                            gameList = new();
+                            gameList.Label = gameMatch.Type;
+                            gameMatchesByType.Add(gameMatch.Type, gameList);
+                            if (gameMatch.Type == "Solo")
+                                gameList.ColorHex = soloQueueRank.HexColor;
+                        }
 
-                        rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
-                        isFirst = false;
+                        gameMatchesOffsetByType[gameMatch.Type] += gameMatch.GraphValueChange;
+                        gameMatchesByType[gameMatch.Type].Data.Add(new CoordinatePair() { Y = gameMatchesOffsetByType[gameMatch.Type], X = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameCreation ?? 0).ToLocalTime().ToUnixTimeMilliseconds() });
                     }
-
-
-                    if (rankedGraphData.Data.Count > 1)
-                        rankedGraphDataSets.Data.Add(rankedGraphData);
                 }
 
-                if (userMatchHistory is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+                lineGraph.Title = "Ranked Wins";
+                lineGraph.Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
 
-                if (userMatchHistory is null)
-                    return new();
+                if (lineGraph is not null)
+                    await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-                rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
-                rankedGraphDataSets.Title = "Ranked Wins";
-
-                return rankedGraphDataSets;
+                return lineGraph;
             }
             catch
             {
@@ -120,9 +109,11 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<PieChart> GetRankedChampSelectPieChart(Account account)
         {
-            var rankCacheString = $"{account.Username}.leagueoflegends.{nameof(GetRankedChampSelectPieChart)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out PieChart? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedChampSelectPieChart), accountType);
+            PieChart? pieChart = await _persistantCache.GetAsync<PieChart>(cacheKey);
+
+            if (pieChart is not null)
+                return pieChart;
 
             var matchHistoryResponse = new UserChampSelectHistory();
             try
@@ -133,27 +124,27 @@ namespace AccountManager.Core.Services.GraphServices
                     return new();
 
                 matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account, 0, 40);
-                rankedGraphDataSets = new();
+                pieChart = new();
 
                 if (matchHistoryResponse is null)
                     return new();
 
                 matchHistoryResponse.Champs = matchHistoryResponse.Champs.OrderByDescending((champ) => champ.SelectedCount);
 
-                rankedGraphDataSets.Data = matchHistoryResponse.Champs.Select((champs) =>
+                pieChart.Data = matchHistoryResponse.Champs.Select((champs) =>
                 {
                     return new PieChartData()
                     {
                         Value = champs.SelectedCount
                     };
                 });
-                rankedGraphDataSets.Title = "Recently Used Champs";
-                rankedGraphDataSets.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
+                pieChart.Title = "Recently Used Champs";
+                pieChart.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
                 
-                if (rankedGraphDataSets is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+                if (pieChart is not null)
+                    await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
 
-                return rankedGraphDataSets;
+                return pieChart;
             }
             catch
             {
@@ -164,9 +155,11 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<BarChart> GetRankedWinrateByChampBarChartAsync(Account account)
         {
-            var rankCacheString = $"{account.Username}.leagueoflegends.{nameof(GetRankedWinrateByChampBarChartAsync)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out BarChart? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinrateByChampBarChartAsync), accountType);
+            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
+
+            if (barChart is not null)
+                return barChart;
 
             try
             {
@@ -176,13 +169,13 @@ namespace AccountManager.Core.Services.GraphServices
                     return new();
 
                 var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 40);
-                rankedGraphDataSets = new();
+                barChart = new();
                 if (matchHistoryResponse is null)
                     return new();
 
                 var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.ChampionName);
 
-                rankedGraphDataSets.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -192,14 +185,14 @@ namespace AccountManager.Core.Services.GraphServices
                     };
                 });
 
-                rankedGraphDataSets.Data = barChartData;
-                rankedGraphDataSets.Title = "Recent Winrate";
-                rankedGraphDataSets.Type = "percent";
+                barChart.Data = barChartData;
+                barChart.Title = "Recent Winrate";
+                barChart.Type = "percent";
 
-                if (rankedGraphDataSets is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+                if (barChart is not null)
+                    await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
-                return rankedGraphDataSets;
+                return barChart;
             }
             catch
             {
@@ -210,9 +203,11 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<BarChart> GetRankedCsRateByChampBarChartAsync(Account account)
         {
-            var rankCacheString = $"{account.Username}.leagueoflegends.{nameof(GetRankedCsRateByChampBarChartAsync)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out BarChart? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedCsRateByChampBarChartAsync), accountType);
+            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
+
+            if (barChart is not null)
+                return barChart;
 
             try
             {
@@ -227,9 +222,9 @@ namespace AccountManager.Core.Services.GraphServices
 
                 matchHistoryResponse.Games = matchHistoryResponse?.Games?.Where((game) => game?.Json?.GameDuration > 15 * 60).ToList();
 
-                rankedGraphDataSets = new();
+                barChart = new();
                 var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.ChampionName);
-                rankedGraphDataSets.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -251,12 +246,13 @@ namespace AccountManager.Core.Services.GraphServices
                     };
                 });
 
-                rankedGraphDataSets.Data = barChartData;
-                rankedGraphDataSets.Title = "Recent CS Per Minute";
-                if (rankedGraphDataSets is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+                barChart.Data = barChartData;
+                barChart.Title = "Recent CS Per Minute";
 
-                return rankedGraphDataSets;
+                if (barChart is not null)
+                    await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
+
+                return barChart;
             }
             catch
             {

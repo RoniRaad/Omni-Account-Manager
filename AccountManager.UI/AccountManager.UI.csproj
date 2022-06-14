@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="curl\curl-ca-bundle.crt" />
+    <None Remove="curl\curl.exe" />
+    <None Remove="curl\libcurl.def" />
+    <None Remove="curl\libcurl.dll" />
     <None Remove="FileTemplates\riotClientAuthTemplate.yaml" />
   </ItemGroup>
 
@@ -60,6 +64,22 @@
 
   <ItemGroup>
     <Folder Include="published\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Content Include="curl\curl-ca-bundle.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="curl\curl.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="curl\libcurl.def">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="curl\libcurl.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 

@@ -1,7 +1,11 @@
-﻿using AccountManager.Core.Interfaces;
+﻿using AccountManager.Core.Enums;
+using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Static;
 using AutoMapper;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
@@ -11,21 +15,25 @@ namespace AccountManager.Core.Services.GraphServices
         private readonly IRiotClient _riotClient;
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
         private readonly IMapper _mapper;
-
+        const AccountType accountType = AccountType.Valorant;
+        const string cacheKeyFormat = "{0}.{1}.{2}";
         public ValorantGraphService(IRiotClient riotClient, AlertService alertService,
-            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService)
+            IMemoryCache memoryCache, IMapper mapper, IDistributedCache persistantCache)
         {
             _riotClient = riotClient;
             _alertService = alertService;
             _memoryCache = memoryCache;
             _mapper = mapper;
+            _persistantCache = persistantCache;
         }
         public async Task<LineGraph> GetRankedWinsLineGraph(Account account)
         {
-            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRankedWinsLineGraph)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsLineGraph), accountType);
+            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
+            if (lineGraph is not null)
+                return lineGraph;
 
             var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
             if (matchHistory?.Any() is not true)
@@ -65,50 +73,59 @@ namespace AccountManager.Core.Services.GraphServices
 
             var graphData = rankedWins.Values.ToList();
 
-            var lineGraph = new LineGraph
+            lineGraph = new LineGraph
             {
-                Data = graphData.ToList(),
+                Data = graphData,
                 Title = "Ranked Wins"
             };
 
-            _memoryCache.Set(rankCacheString, lineGraph);
+            if (lineGraph is not null)
+                await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
             return lineGraph;
         }
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
-            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRecentlyUsedOperatorsPieChartAsync)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRecentlyUsedOperatorsPieChartAsync), accountType);
+            PieChart? pieChart = await _persistantCache.GetAsync<PieChart>(cacheKey);
+            if (pieChart is not null)
+                return pieChart;
 
             var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
             if (matchHistory?.Any() is not true)
                 return new PieChart();
 
             var matches = matchHistory.GroupBy((match) => _mapper.Map<ValorantCharacter>(match.Players.First((player) => player.Subject == account.PlatformId).CharacterId).Name);
-            var pieChart = new PieChart();
-            pieChart.Data = matches.Select((match) =>
+            pieChart = new PieChart();
+            var dataList = new List<PieChartData>();
+            pieChart.Labels = new();
+
+            foreach (var match in matches)
             {
-                return new PieChartData()
+                dataList.Add(new PieChartData()
                 {
                     Value = match.Count()
-                };
-            }).ToList();
+                });
 
-            pieChart.Labels = matches.Select((match) => match.Key).ToList();
+                pieChart.Labels.Add(match.Key);
+            }
+
+            pieChart.Data = dataList;
             pieChart.Title = "Recently Used Agents";
 
-            _memoryCache.Set(rankCacheString, pieChart);
+            if (pieChart is not null)
+                await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
 
             return pieChart;
         }
 
         public async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
         {
-            var rankCacheString = $"{account.Username}.{nameof(ValorantGraphService)}.{nameof(GetRankedRRChangeLineGraph)}";
-            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedRRChangeLineGraph), accountType);
+            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
+            if (lineGraph is not null)
+                return lineGraph;
 
             var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15);
             if (matchHistory?.Matches?.Any() is not true)
@@ -135,13 +152,14 @@ namespace AccountManager.Core.Services.GraphServices
                 };
             }).OrderBy((graph) => graph.Hidden).ToList();
 
-            var lineGraph = new LineGraph
+            lineGraph = new LineGraph
             {
                 Data = graphData,
                 Title = "RR Change"
             };
 
-            _memoryCache.Set(rankCacheString, lineGraph);
+            if (lineGraph is not null)
+                await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
             return lineGraph;
         }

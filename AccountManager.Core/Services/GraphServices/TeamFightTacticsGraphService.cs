@@ -1,6 +1,9 @@
 ﻿
+using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Static;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
@@ -10,19 +13,23 @@ namespace AccountManager.Core.Services.GraphServices
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
         private readonly IMemoryCache _memoryCache;
-
+        private readonly IDistributedCache _persistantCache;
+        const AccountType accountType = AccountType.TeamFightTactics;
+        const string cacheKeyFormat = "{0}.{1}.{2}";
         public TeamFightTacticsGraphService(ILeagueClient leagueClient, IRiotClient riotClient,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
             _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
         }
         public async Task<LineGraph> GetRankedPlacementOffset(Account account)
         {
-            var rankCacheString = $"{account.Username}.tft.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out LineGraph? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return rankedGraphDataSets;
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedPlacementOffset), accountType);
+            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
+            if (lineGraph is not null)
+                return lineGraph;
 
             try
             {
@@ -61,7 +68,7 @@ namespace AccountManager.Core.Services.GraphServices
                     })
                 };
 
-                rankedGraphDataSets = new();
+                lineGraph = new();
                 var soloQueueRank = await _leagueClient.GetTFTRankByPuuidAsync(account);
 
                 var matchesGroups = matchHistory?.Matches?.Reverse()?.GroupBy((match) => match.Type);
@@ -98,19 +105,19 @@ namespace AccountManager.Core.Services.GraphServices
 
 
                     if (rankedGraphData.Data.Count > 1)
-                        rankedGraphDataSets.Data.Add(rankedGraphData);
+                        lineGraph.Data.Add(rankedGraphData);
                 }
 
                 if (matchHistoryResponse is null)
                     return new();
 
-                rankedGraphDataSets.Data = rankedGraphDataSets.Data.OrderByDescending((dataset) => string.IsNullOrEmpty(dataset.ColorHex)).ToList();
-                rankedGraphDataSets.Title = "Ranked Placement Offset";
+                lineGraph.Data = lineGraph.Data.OrderByDescending((dataset) => string.IsNullOrEmpty(dataset.ColorHex)).ToList();
+                lineGraph.Title = "Ranked Placement Offset";
 
-                if (rankedGraphDataSets is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
+                if (lineGraph is not null)
+                    await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-                return rankedGraphDataSets;
+                return lineGraph;
             }
             catch
             {
