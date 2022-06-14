@@ -1,5 +1,6 @@
 ﻿@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.AccountDetailsPanels
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
@@ -8,27 +9,28 @@
 @inject IAccountService _accountService
 
 <div style="z-index:100000" class="modal fade show d-block" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document" style="max-width: 91vw;">
+    <div class="modal-dialog" role="document" style="max-width: 1600px;width: 91vw;">
         <div class="modal-content" style="/* width: 80vw; */height: 90vh;flex-direction: row;">
-            <button type="button" class="btn-close btn-close-white" style="margin:15px" @onclick="Close" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white" style="margin:15px;position:absolute" @onclick="Close" aria-label="Close"></button>
             <div class="" style="width: 70%;height: 100%;">
                 @if (Account.AccountType == Core.Enums.AccountType.League)
                 {
-                    <LeagueGraphPage Account="Account"></LeagueGraphPage>
+                    <AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel Account="Account" Pages="new List<Type>() {typeof(LeagueGraphPage)}"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel>
                 }
                 else if (Account.AccountType == Core.Enums.AccountType.Valorant)
                 {
-                    <ValorantGraphPage Account="Account"></ValorantGraphPage>
+                    <AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel Account="Account" Pages="new List<Type>() {typeof(ValorantGraphPage), typeof(ValorantStorePage)}"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel>
                 }
+
             </div>
             <div class="" style="width: 30%;background-color: #303030;height: 100%;display: flex;flex-direction: column;align-content: center;gap: 35px;align-items: center;justify-content: flex-start;">
                 @if (Account.AccountType == Core.Enums.AccountType.League)
                 {
-                    <LeaguePanel Account="Account"></LeaguePanel>
+                    <LeagueAccountDetailsPanel Account="Account"></LeagueAccountDetailsPanel>
                 }
                 else if (Account.AccountType == Core.Enums.AccountType.Valorant)
                 {
-                    <ValorantPanel Account="Account"></ValorantPanel>
+                    <ValorantAccountDetailsPanel Account="Account"></ValorantAccountDetailsPanel>
                 }
             </div>
 	    </div>

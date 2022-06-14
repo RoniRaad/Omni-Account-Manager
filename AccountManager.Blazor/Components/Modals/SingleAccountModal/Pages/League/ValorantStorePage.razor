@@ -1,0 +1,48 @@
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Models.RiotGames.Valorant.Responses
+@inject IRiotClient _riotClient
+
+<div class="container" style="">
+    <div class="row" style="justify-content: center;align-items: center;"> 
+        @foreach (var skin in storeFrontSkins)
+        {
+            <div class="col-5" style="background: var(--primary-light);border-radius: 15px;padding: 4px;padding-top: 11px;text-align-last: center;overflow: hidden;margin-bottom: 12px;/* border: 1px solid rgba(0,0,0,.125); */box-shadow: 0 0 3px #000;">
+                <h5>@skin.Data.DisplayName</h5>
+                <img style="max-height: 10vh; max-width: 30vw" src="@skin.Data.DisplayIcon"/>
+                <p style="font-size: 11px;">@skin.Data.Price</p>
+            </div>
+        }
+    </div>
+
+
+</div>
+
+@code
+{
+    [Parameter, EditorRequired]
+    public Account Account { get; set; }
+    [Parameter, EditorRequired]
+    public Action IncrementPage { get; set; }
+    [Parameter, EditorRequired]
+    public Action DecrementPage { get; set; }
+    public static string Title = "Store Front";
+
+    List<ValorantSkinLevelResponse> storeFrontSkins = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Account is null)
+            return;
+
+        storeFrontSkins.Clear();
+        var items = await _riotClient.GetValorantShopDeals(Account);
+        
+        foreach (var item in items)
+        {
+            storeFrontSkins.Add(item);
+        }
+        
+    }
+
+}

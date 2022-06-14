@@ -14,5 +14,6 @@ namespace AccountManager.Core.Interfaces
         Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account);
         Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account, int startIndex, int endIndex);
         Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account, int startIndex, int endIndex);
+        Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account);
     }
 }

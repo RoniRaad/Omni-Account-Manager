@@ -8,10 +8,7 @@ namespace AccountManager.Blazor.Pages
         private bool addAccountPrompt { get; set; } = false;
         protected override void OnInitialized()
         {
-            _appState.Notify += () =>
-            {
-                InvokeAsync(() => StateHasChanged());
-            };
+            _appState.AccountsChanged += () => InvokeAsync(() => StateHasChanged());
         }
         public void SaveList()
         {

@@ -471,7 +471,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         [JsonPropertyName("subject")]
         public string Subject { get; set; }
 
-        [JsonPropertyName("score")]
+        [JsonPropertyName("score")] // Maybe combat score?
         public double Score { get; set; }
     }
 

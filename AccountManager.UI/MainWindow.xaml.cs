@@ -260,7 +260,6 @@ namespace AccountManager.UI
 				.AddImplementation<RiotTokenService>(AccountType.Valorant)
 				.Build();
 			Resources.Add("services", serviceCollection.BuildServiceProvider());
-
 			InitializeComponent();
         }
 

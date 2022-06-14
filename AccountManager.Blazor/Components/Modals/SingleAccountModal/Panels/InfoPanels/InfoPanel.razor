@@ -1,0 +1,52 @@
+﻿@using AccountManager.Core.Models
+@using System.Reflection
+<div style="display: flex;margin: 20px;flex-direction: column;align-items: center;gap: 28px;height:80%">
+
+    <Navigation ShowPageNavigation="Pages.Count > 1" Title="@navigationTitle" IncrementPage="IncrementPage" DecrementPage="DecrementPage"></Navigation>
+    <DynamicComponent Type="Pages[pageIndex]" Parameters="parameters"></DynamicComponent>
+
+</div>
+
+@code {
+    private string navigationTitle = "";
+    [Parameter]
+    public List<Type> Pages { get; set; }
+
+    [Parameter]
+    public Account Account { get; set; }
+
+    int pageIndex = 0;
+    private Dictionary<string, object> parameters = new Dictionary<string, object>
+        {
+            ["Account"] = new Account(),
+            ["IncrementPage"] = null,
+            ["DecrementPage"] = null,
+    };
+
+    protected override Task OnInitializedAsync()
+    {
+        parameters["Account"] = Account;
+        parameters["IncrementPage"] = IncrementPage;
+        parameters["DecrementPage"] = DecrementPage;
+        navigationTitle = Pages[pageIndex]?.GetField("Title")?.GetValue(null)?.ToString() ?? "Data";
+        return base.OnInitializedAsync();
+    }
+
+    private void IncrementPage()
+    {
+        pageIndex++;
+        if (pageIndex > Pages.Count - 1)
+            pageIndex = 0;
+
+        navigationTitle = Pages[pageIndex]?.GetField("Title")?.GetValue(null)?.ToString() ?? "Data";
+    }
+
+    private void DecrementPage()
+    {
+        pageIndex--;
+        if (pageIndex < 0)
+            pageIndex = Pages.Count - 1;
+
+        navigationTitle = Pages[pageIndex]?.GetField("Title")?.GetValue(null)?.ToString() ?? "Data";
+    }
+}
