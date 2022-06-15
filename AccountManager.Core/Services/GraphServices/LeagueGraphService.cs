@@ -96,7 +96,7 @@ namespace AccountManager.Core.Services.GraphServices
                 lineGraph.Title = "Ranked Wins";
                 lineGraph.Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
 
-                if (lineGraph is not null)
+                if (lineGraph is not null && lineGraph?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
                 return lineGraph;
@@ -141,7 +141,7 @@ namespace AccountManager.Core.Services.GraphServices
                 pieChart.Title = "Recently Used Champs";
                 pieChart.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
                 
-                if (pieChart is not null)
+                if (pieChart is not null && pieChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
 
                 return pieChart;
@@ -189,7 +189,7 @@ namespace AccountManager.Core.Services.GraphServices
                 barChart.Title = "Recent Winrate";
                 barChart.Type = "percent";
 
-                if (barChart is not null)
+                if (barChart is not null && barChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
                 return barChart;
@@ -249,7 +249,7 @@ namespace AccountManager.Core.Services.GraphServices
                 barChart.Data = barChartData;
                 barChart.Title = "Recent CS Per Minute";
 
-                if (barChart is not null)
+                if (barChart is not null && barChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
                 return barChart;

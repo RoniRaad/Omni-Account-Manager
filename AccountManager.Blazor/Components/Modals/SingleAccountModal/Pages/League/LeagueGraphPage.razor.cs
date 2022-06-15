@@ -35,7 +35,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
         PieChart rankedChampSelectPieChart;
         BarChart rankedWInrateByChamp;
         BarChart rankedCsRateByChamp;
-        protected override async Task OnParametersSetAsync()
+        protected override async Task OnInitializedAsync()
         {
             navigationTitle = Title;
             if (Account is null)

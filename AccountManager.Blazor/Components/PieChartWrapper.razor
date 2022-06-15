@@ -3,7 +3,19 @@
 @using AccountManager.Core.Services
 @inject AppState _state
 
-<PieChart Options="pieChartOptions" @ref="pieChart" TItem="PieChartData"/>   
+@if (PieChart is null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (PieChart?.Data?.Any() is not true)
+{
+    <h3>No Data</h3>
+}
+else{
+    <PieChart Options="pieChartOptions" @ref="pieChart" TItem="PieChartData"/>   
+}
 
 @code {
     [Parameter, EditorRequired]

@@ -138,3 +138,13 @@ span:active {
     cursor: grab;
     width: 100%;
 }
+
+.card:hover {
+
+}
+
+::deep .account-btn-container:hover ~ .card 
+{
+    box-shadow: 0px 0px 6px white;
+    cursor: grab;
+}

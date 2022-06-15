@@ -3,7 +3,19 @@
 @using AccountManager.Core.Services
 @inject AppState _state
 
-<BarChart Options="barChartOptions" @ref="barChart" TItem="double?"/>   
+@if (BarChart is null)
+{
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+}
+else if (BarChart?.Data?.Any() is not true)
+{
+    <h3>No Data</h3>
+}
+else{
+    <BarChart Options="barChartOptions" @ref="barChart" TItem="double?"/>   
+}
 
 @code {
     [Parameter, EditorRequired]
