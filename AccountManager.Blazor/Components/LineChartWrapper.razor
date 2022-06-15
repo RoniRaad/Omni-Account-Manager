@@ -3,7 +3,19 @@
 @using AccountManager.Core.Services
 @inject AppState _state
 
-<LineChart @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
+@if (LineGraph is null)
+{
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+}
+else if (LineGraph?.Data?.Any() is not true)
+{
+    <h3>No Data</h3>
+}
+else{
+    <LineChart @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
+}
 
 @code {
     [Parameter, EditorRequired]
