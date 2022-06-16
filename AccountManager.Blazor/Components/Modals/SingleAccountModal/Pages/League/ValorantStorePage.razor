@@ -16,6 +16,15 @@
                 </div>
             }
         }
+        else if (noDataReturned)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                <div class="col-5" style="padding: 4px;padding-top: 11px;text-align-last: center;overflow: hidden;margin-bottom: 12px;margin-top:25px">
+                    <h3>No Data</h3>
+                </div>
+            }
+        }
         else
         {
             @foreach (var skin in storeFrontSkins)
@@ -44,6 +53,7 @@
     public static string Title = "Store Front";
 
     List<ValorantSkinLevelResponse> storeFrontSkins = new();
+    private bool noDataReturned = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,12 +62,13 @@
 
         storeFrontSkins.Clear();
         var items = await _riotClient.GetValorantShopDeals(Account);
-        
+
         foreach (var item in items)
         {
             storeFrontSkins.Add(item);
         }
-        
-    }
 
+        if (!items.Any())
+            noDataReturned = true;
+    }
 }

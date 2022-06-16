@@ -15,7 +15,7 @@
 @inherits LayoutComponentBase
 
 <div class="card" style="@cardStyle">
-    <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="() => { if (!graphIsHovered) showFullTile = true;}" >
+    <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
         <div class="card-logo-slot">
             @if (Account.AccountType == Core.Enums.AccountType.League)
             {
@@ -56,11 +56,11 @@
             }
         </div>
         <h5 class="card-title">@Account?.Id</h5>
-        <div style="width: 40px;">
+        <div style="width: 40px;" @onmouseout="() => dragSymbolIsHovered = false" @onmouseover="() => dragSymbolIsHovered = true">
             <span class="drag-icon game-logo oi oi-menu"/>
         </div>
     </div>
-	<ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="() => { if (!graphIsHovered) showFullTile = true;}">
+	<ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
 		<li class="list-group-item">
             <div>
                 <p class="account-title">@Account?.Username</p>
@@ -105,7 +105,26 @@
 @code {
     private bool graphIsHovered = false;
     private bool cardIsHovered = false;
-    private string cardStyle =>graphIsHovered ? "" : cardIsHovered ? "box-shadow: 0px 0px 6px #424040; cursor: pointer;" : "";
+    private bool dragSymbolIsHovered = false;
+    private string cardStyle
+    {
+        get
+        {
+            if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered)
+                return "";
+
+            return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
+        }
+    }
+
+    private void OpenSingleAccountModal()
+    {
+        if (graphIsHovered || dragSymbolIsHovered)
+            return;
+            
+        showFullTile = true;
+    }
+
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
     {
