@@ -2,21 +2,21 @@
 @using AccountManager.Core.Models
 @inject IValorantGraphService _graphService
 
-<div style="height: 88%;width: 90%;display: flex;flex-direction: column;row-gap: 50px;margin-top: 10px;">
-    <div style="gap: 50px;height: 30vh;display:flex">
-        <div style="width: 45%; height: 100%;display: flex;justify-content: center;align-items: center;">
+<div class="graph-container">
+    <div class="graph-row" >
+        <div class="graph">
             <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
         </div>
-        <div style="width: 45%; height: 100%;display: flex;justify-content: center;align-items: center;">
+        <div class="graph">
             <PieChartWrapper PieChart="recentlyUsedOperatorsPieChart"></PieChartWrapper>
         </div>
     </div>
-    <div style="gap: 50px;height: 30vh;display:flex">
-        <div style="width: 45%; height: 100%;display: flex;justify-content: center;align-items: center;">
+    <div class="graph-row" >
+        <div class="graph">
             <LineChartWrapper LineGraph="rankedWinGraph"></LineChartWrapper>
         </div>
-        <div style="width: 45%; height: 100%;display: flex;justify-content: center;align-items: center;">
-            <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
+        <div class="graph">
+            <BarChartWrapper BarChart="averageACS"></BarChartWrapper>
         </div>
     </div>
 </div>
@@ -33,6 +33,7 @@
     LineGraph rankedRRChangeGraph;
     PieChart recentlyUsedOperatorsPieChart;
     LineGraph rankedWinGraph;
+    BarChart averageACS;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,5 +43,6 @@
         rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account);
         recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
         rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account);
+        averageACS = await _graphService.GetRankedACS(Account);
     }
 }

@@ -110,7 +110,9 @@
     {
         get
         {
-            if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered)
+            if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered
+                || Account.AccountType == AccountType.TeamFightTactics 
+                || Account.AccountType == AccountType.Steam)
                 return "";
 
             return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
@@ -119,7 +121,7 @@
 
     private void OpenSingleAccountModal()
     {
-        if (graphIsHovered || dragSymbolIsHovered)
+        if (cardStyle == "")
             return;
             
         showFullTile = true;

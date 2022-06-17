@@ -85,6 +85,50 @@ namespace AccountManager.Core.Services.GraphServices
             return lineGraph;
         }
 
+        public async Task<BarChart> GetRankedACS(Account account)
+        {
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsLineGraph), accountType);
+            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
+            if (barChart is not null)
+                return barChart;
+
+            var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
+            if (matchHistory?.Any() is not true)
+                return new BarChart();
+
+            matchHistory = matchHistory.OrderBy(match => match.MatchInfo.GameStartMillis);
+            var groupedMatches = matchHistory.GroupBy(match => _mapper.Map<ValorantCharacter>(match.Players.First((player) => player.Subject == account.PlatformId).CharacterId).Name);
+
+            var barChartData = groupedMatches.Select(group =>
+            {
+                return new BarChartData()
+                {
+                    Value = group.Average(match =>
+                    {
+
+                        var accountInMatch = match?.Players?.First(player => player?.Subject == account?.PlatformId);
+
+                        if (accountInMatch is null)
+                            return 0;
+
+                        return (accountInMatch?.Stats?.Score / accountInMatch?.Stats?.RoundsPlayed) ?? 0;
+                    })
+                };
+            }).ToList();
+
+            barChart = new BarChart
+            {
+                Labels = groupedMatches.Select(group => group.Key).ToList(),
+                Data = barChartData,
+                Title = "Average ACS"
+            };
+
+            if (barChart is not null)
+                await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
+
+            return barChart;
+        }
+
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
             var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRecentlyUsedOperatorsPieChartAsync), accountType);
