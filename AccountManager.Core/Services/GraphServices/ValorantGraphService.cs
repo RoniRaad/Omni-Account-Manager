@@ -35,7 +35,17 @@ namespace AccountManager.Core.Services.GraphServices
             if (lineGraph is not null)
                 return lineGraph;
 
-            var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
+            IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
+
+            try
+            {
+                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+            }
+            catch
+            {
+                _alertService.AddErrorMessage("There was an issue getting your ranked wins graph. Try again later.");
+            }
+
             if (matchHistory?.Any() is not true)
                 return new LineGraph();
 
@@ -92,7 +102,17 @@ namespace AccountManager.Core.Services.GraphServices
             if (barChart is not null)
                 return barChart;
 
-            var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
+            IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
+
+            try
+            {
+                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+            }
+            catch
+            {
+                _alertService.AddErrorMessage("There was an issue getting your average acs chart. Try again later.");
+            }
+
             if (matchHistory?.Any() is not true)
                 return new BarChart();
 
@@ -136,7 +156,17 @@ namespace AccountManager.Core.Services.GraphServices
             if (pieChart is not null)
                 return pieChart;
 
-            var matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15);
+            IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
+
+            try
+            {
+                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+            }
+            catch
+            {
+                _alertService.AddErrorMessage("There was an issue getting your recently used operators chart. Try again later.");
+            }
+
             if (matchHistory?.Any() is not true)
                 return new PieChart();
 
@@ -171,7 +201,17 @@ namespace AccountManager.Core.Services.GraphServices
             if (lineGraph is not null)
                 return lineGraph;
 
-            var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15);
+            ValorantRankedHistoryResponse matchHistory = new ValorantRankedHistoryResponse();
+
+            try
+            {
+                matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15) ?? new ValorantRankedHistoryResponse();
+            }
+            catch
+            {
+                _alertService.AddErrorMessage("There was an issue getting your rr change graph. Try again later.");
+            }
+
             if (matchHistory?.Matches?.Any() is not true)
                 return new LineGraph();
 

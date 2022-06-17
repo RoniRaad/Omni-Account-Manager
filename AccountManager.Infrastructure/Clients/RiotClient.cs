@@ -16,7 +16,6 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using AutoMapper;
-using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -336,7 +335,10 @@ namespace AccountManager.Infrastructure.Clients
                 skin.Data.Price = allOffers.Offers.FirstOrDefault(allOffer => allOffer.OfferID == offer).Cost._85ad13f73d1b51289eb27cd8ee0b5741;
             }
 
-            await _persistantCache.SetAsync(cacheKey, offers, new TimeSpan(0, 30, 0));
+            var referenceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US Eastern Standard Time");
+            var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, referenceTimeZone);
+            var wantedDateTime = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day);
+            await _persistantCache.SetAsync(cacheKey, offers, wantedDateTime.AddHours(20));
 
             return offers;
         }
