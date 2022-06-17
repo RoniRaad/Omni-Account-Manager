@@ -22,7 +22,8 @@
     text-align-last: center;
     overflow: hidden;
     margin-bottom: 25px;
-    margin-top: 25px
+    margin-top: 25px;
+    padding: 60px;
 }
 
 .skin-tile {
