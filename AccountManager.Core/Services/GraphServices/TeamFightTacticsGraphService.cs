@@ -43,7 +43,7 @@ namespace AccountManager.Core.Services.GraphServices
                 var queueMapping = await _leagueClient.GetLeagueQueueMappings();
 
                 if (matchHistoryResponse is null && queueMapping is null)
-                    return null;
+                    return new();
 
                 var matchHistory = new UserMatchHistory()
                 {
@@ -117,7 +117,7 @@ namespace AccountManager.Core.Services.GraphServices
                 if (lineGraph is not null)
                     await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-                return lineGraph;
+                return lineGraph ?? new();
             }
             catch
             {

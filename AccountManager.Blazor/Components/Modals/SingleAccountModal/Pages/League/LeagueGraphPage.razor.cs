@@ -1,18 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
@@ -21,20 +7,20 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
     {
         public static string Title = "Data";
         [Parameter]
-        public string navigationTitle { get; set; }
+        public string navigationTitle { get; set; } = string.Empty;
         [Parameter, EditorRequired]
-        public Account Account { get; set; }
+        public Account? Account { get; set; }
 
         [Parameter, EditorRequired]
-        public Action IncrementPage { get; set; }
+        public Action? IncrementPage { get; set; }
 
         [Parameter, EditorRequired]
-        public Action DecrementPage { get; set; }
+        public Action? DecrementPage { get; set; }
 
-        LineGraph rankedWinsGraph;
-        PieChart rankedChampSelectPieChart;
-        BarChart rankedWInrateByChamp;
-        BarChart rankedCsRateByChamp;
+        LineGraph? rankedWinsGraph;
+        PieChart? rankedChampSelectPieChart;
+        BarChart? rankedWinrateByChamp;
+        BarChart? rankedCsRateByChamp;
         protected override async Task OnInitializedAsync()
         {
             navigationTitle = Title;
@@ -42,9 +28,9 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
                 return;
             rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account);
             rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account);
-            rankedWInrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account);
+            rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account);
             rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account);
-            rankedWInrateByChamp.Type = "percent";
+            rankedWinrateByChamp.Type = "percent";
         }
     }
 }

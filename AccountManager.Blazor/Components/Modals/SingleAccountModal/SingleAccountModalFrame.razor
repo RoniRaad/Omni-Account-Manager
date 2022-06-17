@@ -1,6 +1,8 @@
 ﻿@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.AccountDetailsPanels
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
@@ -15,11 +17,11 @@
             <div class="info-panel-container">
                 @if (Account.AccountType == Core.Enums.AccountType.League)
                 {
-                    <AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel Account="Account" Pages="new List<Type>() {typeof(LeagueGraphPage)}"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel>
+                    <InfoPanel Account="Account" Pages="new List<Type>() {typeof(LeagueGraphPage)}"></InfoPanel>
                 }
                 else if (Account.AccountType == Core.Enums.AccountType.Valorant)
                 {
-                    <AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel Account="Account" Pages="new List<Type>() {typeof(ValorantGraphPage), typeof(ValorantStorePage)}"></AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels.InfoPanel>
+                    <InfoPanel Account="Account" Pages="new List<Type>() {typeof(ValorantGraphPage), typeof(ValorantStorePage)}"></InfoPanel>
                 }
 
             </div>

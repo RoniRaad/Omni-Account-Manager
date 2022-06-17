@@ -24,8 +24,8 @@ namespace AccountManager.Core.Services
             Accounts.CollectionChanged += async (s, e) => {
                 Accounts?.RemoveAll((account) => Accounts.Count((innerAccount) => account.Guid == innerAccount.Guid) > 1);
 
-                if (Accounts is not null)
-                    _accountService.WriteAllAccounts(Accounts?.ToList());
+                if (Accounts?.ToList() is not null)
+                    _accountService.WriteAllAccounts(Accounts?.ToList() ?? new());
 
                 await Task.Delay(1); // Fixes UI bugs with elements dependent on the Accounts property
                 AccountsChanged.Invoke();

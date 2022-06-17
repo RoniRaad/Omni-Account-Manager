@@ -155,6 +155,16 @@ span:active[b-189k66t3c0] {
     cursor: grab;
     width: 100%;
 }
+
+.card:hover[b-189k66t3c0] {
+
+}
+
+[b-189k66t3c0] .account-btn-container:hover ~ .card 
+{
+    box-shadow: 0px 0px 6px white;
+    cursor: grab;
+}
 /* _content/AccountManager.Blazor/Components/Modals/FolderPickerModal.razor.rz.scp.css */
 body[b-nsh72uww87] {
 }
@@ -198,6 +208,286 @@ input[b-nsh72uww87] {
 label[b-jlo9cmfu24] {
     font-size:15px;
     margin-bottom: 3px;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Navigation.razor.rz.scp.css */
+body[b-q0b1zt8tsx] {
+}
+
+.navigation-container[b-q0b1zt8tsx] {
+    background-color: #303030;
+    display: flex;
+    gap: 42px;
+    width: 100%;
+    height: 54px;
+    align-items: center;
+    box-shadow: 0px 1px 3px #181818;
+    justify-content: center;
+    border-top-left-radius: 6px;
+    min-height: 54px;
+    z-index: 1
+}
+
+.navigation-container span[b-q0b1zt8tsx] {
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.navigation-container h2[b-q0b1zt8tsx] {
+    margin: 0px;
+    font-family: system-ui;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Pages/League/LeagueGraphPage.razor.rz.scp.css */
+body[b-5x2gmtslva] {
+}
+
+.container[b-5x2gmtslva] {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: scroll
+}
+
+.graph-container[b-5x2gmtslva] {
+    height: 88%;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 50px;
+    margin-top: 10px;
+}
+
+.graph-row[b-5x2gmtslva] {
+    gap: 50px;
+    height: 30vh;
+    display: flex
+}
+
+.graph[b-5x2gmtslva] {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Pages/Valorant/ValorantGraphPage.razor.rz.scp.css */
+body[b-43db7faqjb] {
+}
+
+.container[b-43db7faqjb] {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.graph-container[b-43db7faqjb] {
+    height: 88%;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 50px;
+    margin-top: 10px;
+}
+
+.graph-row[b-43db7faqjb] {
+    gap: 50px;
+    height: 30vh;
+    display: flex
+}
+
+.graph[b-43db7faqjb] {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Pages/Valorant/ValorantStorePage.razor.rz.scp.css */
+body[b-crj3dd63pc] {
+}
+
+.container[b-crj3dd63pc] {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.skin-container[b-crj3dd63pc] {
+    justify-content: center;
+    row-gap: 63px;
+    column-gap: 22px;
+    align-items: center;
+    margin-bottom: 7vh;
+}
+
+.placeholder-container[b-crj3dd63pc] {
+    padding: 4px;
+    padding-top: 11px;
+    text-align-last: center;
+    overflow: hidden;
+    margin-bottom: 25px;
+    margin-top: 25px;
+    padding: 60px;
+}
+
+.skin-tile[b-crj3dd63pc] {
+    background: var(--primary-light);
+    border-radius: 15px;
+    padding: 4px;
+    padding-top: 11px;
+    text-align-last: center;
+    overflow: hidden;
+    margin-bottom: 12px; 
+    box-shadow: 0 0 3px #000;
+}
+
+.skin-tile h5[b-crj3dd63pc] {
+    margin-bottom: 15px
+}
+
+.skin-icon[b-crj3dd63pc] {
+    max-height: 10vh;
+    max-width: 30vw
+}
+
+.skin-price-container[b-crj3dd63pc] {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+.skin-price-container p[b-crj3dd63pc] {
+    font-size: 11px;
+}
+
+.skin-price-container svg[b-crj3dd63pc] {
+    fill: #c8c8c8;
+    width: 11px;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Panels/AccountDetailsPanels/LeagueAccountDetailsPanel.razor.rz.scp.css */
+body[b-98ob4enw0b] {
+}
+
+.title-container h2[b-98ob4enw0b] {
+    margin-top: 30px;
+}
+
+.account-details-container[b-98ob4enw0b] {
+    display: flex;
+    width: 90%;
+}
+
+.account-details-sub-container[b-98ob4enw0b] {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 13px;
+}
+
+input[b-98ob4enw0b] {
+    color: white;
+    text-align-last: center;
+}
+
+.btn-password-show[b-98ob4enw0b] {
+    position: inherit;
+    font-family: 'Icons';
+    border: none;
+    color: #ababab;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Panels/AccountDetailsPanels/ValorantAccountDetailsPanel.razor.rz.scp.css */
+body[b-hzji2jlkg7] {
+}
+
+.title-container h2[b-hzji2jlkg7] {
+    margin-top: 30px;
+}
+
+.account-details-container[b-hzji2jlkg7] {
+    display: flex;
+    width: 90%;
+}
+
+.account-details-sub-container[b-hzji2jlkg7] {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 13px;
+}
+
+input[b-hzji2jlkg7] {
+    color: white;
+    text-align-last: center;
+}
+
+.btn-password-show[b-hzji2jlkg7] {
+    position: inherit;
+    font-family: 'Icons';
+    border: none;
+    color: #ababab;
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/Panels/InfoPanels/InfoPanel.razor.rz.scp.css */
+body[b-xfjsbfkj3z] {
+}
+
+.info-panel-container[b-xfjsbfkj3z] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    height: 100%;
+    overflow: hidden
+}
+/* _content/AccountManager.Blazor/Components/Modals/SingleAccountModal/SingleAccountModalFrame.razor.rz.scp.css */
+body[b-uwqje5y7f4] {
+}
+
+.modal-dialog[b-uwqje5y7f4] {
+    max-width: 1600px;
+    width: 91%;
+    height: 100%
+}
+
+.modal-content[b-uwqje5y7f4] {
+    font-family: 'Roboto';
+    height: 90%;
+    flex-direction: row;
+}
+
+.btn-close[b-uwqje5y7f4] {
+    margin: 15px;
+    position: absolute;
+    z-index: 10000;
+}
+
+.info-panel-container[b-uwqje5y7f4] {
+    width: 70%;
+    height: 100%;
+}
+
+.modal[b-uwqje5y7f4] {
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.account-details-panel[b-uwqje5y7f4] {
+    z-index: 2;
+    width: 30%;
+    background-color: var(--secondary-dark);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    gap: 35px;
+    align-items: center;
+    box-shadow: -1px 0 2px 0px #080808;
+    border-left: 2px solid #202020;
+    justify-content: flex-start;
+    overflow: hidden;
 }
 /* _content/AccountManager.Blazor/Components/Modals/TwoFactorAuthModal.razor.rz.scp.css */
 div .modal[b-d7he0e97s4] {

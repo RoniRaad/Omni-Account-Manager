@@ -1,0 +1,24 @@
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using Components
+@inject IValorantGraphService _graphService
+
+<div class="graph-container">
+    <div class="graph-row" >
+        <div class="graph">
+            <LineChartWrapper LineGraph="rankedRRChangeGraph"></LineChartWrapper>
+        </div>
+        <div class="graph">
+            <PieChartWrapper PieChart="recentlyUsedOperatorsPieChart"></PieChartWrapper>
+        </div>
+    </div>
+    <div class="graph-row" >
+        <div class="graph">
+            <LineChartWrapper LineGraph="rankedWinGraph"></LineChartWrapper>
+        </div>
+        <div class="graph">
+            <BarChartWrapper BarChart="averageACS"></BarChartWrapper>
+        </div>
+    </div>
+</div>
+

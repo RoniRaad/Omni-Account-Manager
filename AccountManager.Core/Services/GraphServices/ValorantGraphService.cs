@@ -92,7 +92,7 @@ namespace AccountManager.Core.Services.GraphServices
             if (lineGraph is not null)
                 await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-            return lineGraph;
+            return lineGraph ?? new();
         }
 
         public async Task<BarChart> GetRankedACS(Account account)
@@ -146,7 +146,7 @@ namespace AccountManager.Core.Services.GraphServices
             if (barChart is not null)
                 await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
-            return barChart;
+            return barChart ?? new();
         }
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
@@ -191,7 +191,7 @@ namespace AccountManager.Core.Services.GraphServices
             if (pieChart is not null)
                 await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
 
-            return pieChart;
+            return pieChart ?? new();
         }
 
         public async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
@@ -245,7 +245,7 @@ namespace AccountManager.Core.Services.GraphServices
             if (lineGraph is not null)
                 await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-            return lineGraph;
+            return lineGraph ?? new();
         }
     }
 }

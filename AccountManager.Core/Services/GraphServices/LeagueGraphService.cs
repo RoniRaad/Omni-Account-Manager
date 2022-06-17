@@ -52,7 +52,7 @@ namespace AccountManager.Core.Services.GraphServices
 
                 for (int i = matchHistoryResponse?.Games?.Count - 1 ?? 0; i >= 0; i--)
                 {
-                    var game = matchHistoryResponse?.Games[i];
+                    var game = matchHistoryResponse?.Games?.ElementAt(i) ?? new();
                     var queueName = queueMapping?.FirstOrDefault(queue => queue.QueueId == game?.Json?.QueueId);
 
                     if (game is not null && 
@@ -99,7 +99,7 @@ namespace AccountManager.Core.Services.GraphServices
                 if (lineGraph is not null && lineGraph?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
-                return lineGraph;
+                return lineGraph ?? new();
             }
             catch
             {
@@ -123,7 +123,7 @@ namespace AccountManager.Core.Services.GraphServices
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account, 0, 40);
+                matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account, 0, 25);
                 pieChart = new();
 
                 if (matchHistoryResponse is null)
@@ -144,7 +144,7 @@ namespace AccountManager.Core.Services.GraphServices
                 if (pieChart is not null && pieChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
 
-                return pieChart;
+                return pieChart ?? new();
             }
             catch
             {
@@ -168,14 +168,14 @@ namespace AccountManager.Core.Services.GraphServices
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 40);
+                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 25);
                 barChart = new();
                 if (matchHistoryResponse is null)
                     return new();
 
-                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.ChampionName);
+                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
 
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping?.Key ?? "Unknown")?.Where((matchGrouping) => matchGrouping is not null)?.ToList() ?? new();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -185,14 +185,14 @@ namespace AccountManager.Core.Services.GraphServices
                     };
                 });
 
-                barChart.Data = barChartData;
+                barChart.Data = barChartData ?? new List<BarChartData>();
                 barChart.Title = "Recent Winrate";
                 barChart.Type = "percent";
 
                 if (barChart is not null && barChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
-                return barChart;
+                return barChart ?? new();
             }
             catch
             {
@@ -216,15 +216,15 @@ namespace AccountManager.Core.Services.GraphServices
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 40);
+                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 25);
                 if (matchHistoryResponse is null)
                     return new();
 
                 matchHistoryResponse.Games = matchHistoryResponse?.Games?.Where((game) => game?.Json?.GameDuration > 15 * 60).ToList();
 
                 barChart = new();
-                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant.Puuid == account.PlatformId, null)?.ChampionName);
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping.Key)?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping?.Key ?? "Unknown")?.Where((matchGrouping) => matchGrouping is not null).ToList();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -246,13 +246,13 @@ namespace AccountManager.Core.Services.GraphServices
                     };
                 });
 
-                barChart.Data = barChartData;
+                barChart.Data = barChartData ?? new List<BarChartData>();
                 barChart.Title = "Recent CS Per Minute";
 
                 if (barChart is not null && barChart?.Data?.Any() is true)
                     await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
-                return barChart;
+                return barChart ?? new();
             }
             catch
             {
