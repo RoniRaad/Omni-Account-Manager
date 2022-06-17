@@ -43,8 +43,10 @@
     private void DecrementPage()
     {
         pageIndex--;
-        if (pageIndex < 0)
-            pageIndex = Pages?.Count ?? 1 - 1;
+        if (Pages?.Count is null)
+            pageIndex = 0;
+        else if (pageIndex < 0)
+            pageIndex = Pages.Count - 1;
 
         navigationTitle = Pages?.ElementAt(pageIndex)?.GetField("Title")?.GetValue(null)?.ToString() ?? "Data";
     }

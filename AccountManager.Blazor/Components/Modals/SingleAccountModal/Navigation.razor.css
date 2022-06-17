@@ -1,6 +1,14 @@
 ﻿body {
 }
 
+.oi:hover {
+    color: #cfcfcf;
+}
+
+.oi:active {
+    color: #a5a5a5;
+}
+
 .navigation-container {
     background-color: #303030;
     display: flex;
