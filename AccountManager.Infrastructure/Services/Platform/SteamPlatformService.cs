@@ -54,9 +54,9 @@ namespace AccountManager.Infrastructure.Services.Platform
             return Task.FromResult<(bool, string)>(new (true,string.Empty));
         }
 
-        public async Task<(bool, Graphs)> TryFetchRankedGraphs(Account account)
+        public Task<(bool, Graphs)> TryFetchRankedGraphs(Account account)
         {
-            return (true, new());
+            return Task.FromResult<(bool, Graphs)>((true, new()));
         }
     }
 }

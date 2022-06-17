@@ -178,6 +178,12 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetValorantToken(Account account)
         {
+            var cacheKey = $"{account.Username}.{nameof(GetValorantToken)}";
+            _memoryCache.TryGetValue(cacheKey, out string? valorantToken);
+
+            if (!string.IsNullOrEmpty(valorantToken))
+                return valorantToken;
+
             var initialAuthTokenRequest = new RiotSessionRequest
             {
                 Id = "play-valorant-web-prod",
@@ -196,11 +202,20 @@ namespace AccountManager.Infrastructure.Clients
             
             var token = matches[0].Groups[1].Value;
 
+            if (string.IsNullOrEmpty(token))
+                _memoryCache.Set(cacheKey, token, DateTime.Now.AddMinutes(55));
+
             return token;
         }
 
         public async Task<string?> GetEntitlementToken(string token)
         {
+            var cacheKey = $"{token}.{nameof(GetEntitlementToken)}";
+            _memoryCache.TryGetValue(cacheKey, out string? entitlement);
+
+            if (!string.IsNullOrEmpty(entitlement))
+                return entitlement;
+
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
             .SetContent(new { })
@@ -210,21 +225,12 @@ namespace AccountManager.Infrastructure.Clients
             .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")
             .Post<EntitlementTokenResponse>();
 
-            return response.ResponseContent?.EntitlementToken;
-        }
-        public async Task<string?> GetStoreEntitlementToken(string token)
-        {
-            var response = await _curlRequestBuilder.CreateBuilder()
-            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
-            .SetContent(new { })
-            .SetBearerToken(token)
-            .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
-            .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")
-            .Post<EntitlementTokenResponse>();
+            if (!string.IsNullOrEmpty(response?.ResponseContent?.EntitlementToken))
+                _memoryCache.Set(cacheKey, response.ResponseContent.EntitlementToken, DateTime.Now.AddMinutes(55));
 
-            return response.ResponseContent?.EntitlementToken;
+            return response?.ResponseContent?.EntitlementToken;
         }
+
         public async Task<string?> GetPuuId(string username, string password)
         {
             var bearerToken = await GetValorantToken(new Account
@@ -302,7 +308,7 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<ValorantSkinLevelResponse> GetSkinFromUuid(string uuid)
         {
             var client = _httpClientFactory.CreateClient();
-            return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"https://valorant-api.com/v1/weapons/skinlevels/{uuid}");
+            return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"https://valorant-api.com/v1/weapons/skinlevels/{uuid}") ?? new();
         }
 
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
@@ -328,11 +334,11 @@ namespace AccountManager.Infrastructure.Clients
             var responseObj = await valClient.GetAsync($"/store/v2/storefront/{account.PlatformId}");
             var response = await responseObj.Content.ReadFromJsonAsync<ValorantShopOffers>();
             var allOffers = await GetAllShopOffers(account);
-            foreach (var offer in response.SkinsPanelLayout.SingleItemOffers)
+            foreach (var offer in response?.SkinsPanelLayout?.SingleItemOffers ?? new())
             {
                 var skin = await GetSkinFromUuid(offer);
                 offers.Add(skin);
-                skin.Data.Price = allOffers.Offers.FirstOrDefault(allOffer => allOffer.OfferID == offer).Cost._85ad13f73d1b51289eb27cd8ee0b5741;
+                skin.Data.Price = allOffers?.Offers?.FirstOrDefault(allOffer => allOffer?.OfferID == offer)?.Cost._85ad13f73d1b51289eb27cd8ee0b5741 ?? 0;
             }
 
             var referenceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US Eastern Standard Time");

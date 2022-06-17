@@ -21,3 +21,10 @@ input {
     color: white;
     text-align-last: center;
 }
+
+.btn-password-show {
+    position: inherit;
+    font-family: 'Icons';
+    border: none;
+    color: #ababab;
+}

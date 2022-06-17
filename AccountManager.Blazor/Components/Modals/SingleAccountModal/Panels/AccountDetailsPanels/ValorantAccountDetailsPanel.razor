@@ -7,13 +7,13 @@
         <div class="mb-3 row">
             <label for="staticEmail" class="col-5 col-form-label">Name</label>
             <div class="col-7">
-                <input type="text" readonly="" class="form-control-plaintext" value="@Account.Id">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Id">
             </div>
         </div>
         <div class="mb-3 row">
             <label for="staticEmail" class="col-5 col-form-label">Username</label>
             <div class="col-7">
-                <input type="text" readonly="" class="form-control-plaintext" value="@Account.Username">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Username">
             </div>
         </div>
         <div class="mb-3 row">
@@ -24,13 +24,27 @@
         </div>
         <div class="mb-3 row">
             <label for="staticEmail" class="col-5 col-form-label">Password</label>
-            <div class="col-7">
-                <input type="password" readonly="" class="form-control-plaintext" value="@Account?.Password">
+            <div class="col-7" style="display:flex; justify-content:flex-end">
+                <input type="@PasswordType" style="width: 60%;" readonly="" value="@Account?.Password" class="form-control-plaintext"  />
+                    <div class="input-group-append">
+                        <span @onclick="()=> passwordVisible = !passwordVisible" class="btn btn-outline-secondary oi-eye btn-password-show" style="color: @PasswordToggleButtonColor;" type="button"></span>
+                    </div>
             </div>
         </div>
     </div>
 </div>
 @code {
     [Parameter]
-    public Account Account { get; set; }
+    public Account? Account { get; set; }
+
+    private bool passwordVisible = false;
+
+    public string PasswordType
+    {
+        get { return passwordVisible ? "" : "password"; }
+    }
+    public string PasswordToggleButtonColor
+    {
+        get { return passwordVisible ? "#ababab;" : "#525252;"; }
+    }
 }

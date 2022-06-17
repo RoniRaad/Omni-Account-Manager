@@ -271,11 +271,11 @@ namespace AccountManager.Infrastructure.Clients
             var selectedChampGroup = userInGames?.GroupBy((userInGame) => userInGame?.ChampionName);
             return new UserChampSelectHistory()
             {
-                Champs = selectedChampGroup.Select((grouping) => new ChampSelectedCount()
+                Champs = selectedChampGroup?.Select((grouping) => new ChampSelectedCount()
                 {
-                    ChampName = grouping?.Key,
-                    SelectedCount = grouping.Count()
-                })
+                    ChampName = grouping?.Key ?? "Unknown",
+                    SelectedCount = grouping?.Count() ?? 0
+                }) ?? new List<ChampSelectedCount>()
             };
         }
 

@@ -19,7 +19,7 @@ else{
 
 @code {
     [Parameter, EditorRequired]
-    public LineGraph LineGraph { get; set; }
+    public LineGraph? LineGraph { get; set; }
 
     LineChart<CoordinatePair>? lineChart;
     LineChartOptions lineChartOptions = new()
