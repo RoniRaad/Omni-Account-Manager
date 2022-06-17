@@ -1,0 +1,66 @@
+﻿@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.AccountDetailsPanels
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Services
+@using Blazorise.Charts
+@inject AppState _state
+@inject IAccountService _accountService
+
+<div class="modal fade show d-block" draggable="true" ondragstart="event.preventDefault(); event.stopPropagation();"  tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
+            <div class="info-panel-container">
+                @if (Account.AccountType == Core.Enums.AccountType.League)
+                {
+                    <InfoPanel Account="Account" Pages="new List<Type>() {typeof(LeagueGraphPage)}"></InfoPanel>
+                }
+                else if (Account.AccountType == Core.Enums.AccountType.Valorant)
+                {
+                    <InfoPanel Account="Account" Pages="new List<Type>() {typeof(ValorantGraphPage), typeof(ValorantStorePage)}"></InfoPanel>
+                }
+
+            </div>
+            <div class="account-details-panel">
+                @if (Account.AccountType == Core.Enums.AccountType.League)
+                {
+                    <LeagueAccountDetailsPanel Account="Account"></LeagueAccountDetailsPanel>
+                }
+                else if (Account.AccountType == Core.Enums.AccountType.Valorant)
+                {
+                    <ValorantAccountDetailsPanel Account="Account"></ValorantAccountDetailsPanel>
+                }
+            </div>
+	    </div>
+	</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+            public Account Account { get; set; }
+    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    
+    [Parameter, EditorRequired]
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public EventCallback Close { get; set; }
+    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    
+    bool loginDisabled = false;
+    string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
+
+    async Task Login()
+    {
+        if (loginDisabled)
+            return;
+
+        loginDisabled = true;
+        await _accountService.Login(Account);
+        loginDisabled = false;
+    }
+    
+}

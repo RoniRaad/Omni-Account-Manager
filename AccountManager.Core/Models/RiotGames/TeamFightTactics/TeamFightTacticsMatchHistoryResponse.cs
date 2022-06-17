@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 namespace AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 
-public class TeamFightTacticsMatchHistoryResponse
+public class TeamFightTacticsMatchHistory
 {
     [JsonPropertyName("active_puuid")]
     public string? ActivePuuid { get; set; }

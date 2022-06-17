@@ -1,0 +1,55 @@
+﻿@using AccountManager.Core.Models
+ <div class="title-container">
+    <h2 class="" style="">League of Legends</h2>
+</div>
+<div class="account-details-container">
+    <div class="account-details-sub-container">
+        <div class="mb-3 row">
+            <label for="staticEmail" class="col-5 col-form-label">Name</label>
+            <div class="col-7">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Id">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="staticEmail" class="col-5 col-form-label">Username</label>
+            <div class="col-7">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Username">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="staticEmail" class="col-5 col-form-label">Rank</label>
+            <div class="col-7">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Rank?.Tier @Account?.Rank?.Ranking">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="staticEmail" class="col-5 col-form-label">Password</label>
+            <div class="col-7" style="display:flex; justify-content:flex-end">
+                <input type="@PasswordType" style="@PasswordWidth;" readonly="" value="@Account?.Password" class="form-control-plaintext"  />
+                    <div class="input-group-append">
+                        <span @onclick="()=> passwordVisible = !passwordVisible" class="btn btn-outline-secondary oi-eye btn-password-show" style="color: @PasswordToggleButtonColor;" type="button"></span>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public Account? Account { get; set; }
+
+    private bool passwordVisible = false;
+
+    public string PasswordType
+    {
+        get { return passwordVisible ? "" : "password"; }
+    }
+    public string PasswordToggleButtonColor
+    {
+        get { return passwordVisible ? "#ababab;" : "#525252;"; }
+    }
+
+    public string PasswordWidth
+    {
+        get { return passwordVisible ? "initial" : "60%"; }
+    }
+}

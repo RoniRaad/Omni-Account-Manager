@@ -2,8 +2,10 @@
 @using System.Diagnostics
 @using AccountManager.Blazor.Components
 @using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Services
 @using Microsoft.Extensions.Options
 @inject IOptions<AboutEndpoints> _aboutEndpointsOptions
+@inject AppState _state
 
 <div>
     <h3 style="text-align:center">Multi Account Manager</h3>

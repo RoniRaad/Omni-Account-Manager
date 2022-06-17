@@ -1,0 +1,11 @@
+﻿body {
+}
+
+.info-panel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    height: 100%;
+    overflow: hidden
+}

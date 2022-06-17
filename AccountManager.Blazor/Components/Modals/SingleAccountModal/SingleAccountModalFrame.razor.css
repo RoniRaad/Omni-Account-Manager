@@ -1,0 +1,46 @@
+﻿body {
+}
+
+.modal-dialog {
+    max-width: 1600px;
+    width: 91%;
+    height: 100%
+}
+
+.modal-content {
+    font-family: 'Roboto';
+    height: 90%;
+    flex-direction: row;
+}
+
+.btn-close {
+    margin: 15px;
+    position: absolute;
+    z-index: 10000;
+}
+
+.info-panel-container {
+    width: 70%;
+    height: 100%;
+}
+
+.modal {
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.account-details-panel {
+    z-index: 2;
+    width: 30%;
+    background-color: var(--secondary-dark);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    gap: 35px;
+    align-items: center;
+    box-shadow: -1px 0 2px 0px #080808;
+    border-left: 2px solid #202020;
+    justify-content: flex-start;
+    overflow: hidden;
+}

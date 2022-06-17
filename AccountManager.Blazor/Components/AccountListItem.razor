@@ -1,4 +1,5 @@
 ﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal
 @using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
@@ -8,10 +9,13 @@
 @using Blazorise.Charts.Trendline
 @using System.Drawing
 @inject AppState _state
-
+@inject ILeagueGraphService _leagueGraphService
+@inject IValorantGraphService _valorantGraphService
+@inject ITeamFightTacticsGraphService _tftGraphService
 @inherits LayoutComponentBase
-<div class="card">
-    <div class="card-body" >
+
+<div class="card" style="@cardStyle">
+    <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
         <div class="card-logo-slot">
             @if (Account.AccountType == Core.Enums.AccountType.League)
             {
@@ -52,11 +56,11 @@
             }
         </div>
         <h5 class="card-title">@Account?.Id</h5>
-        <div style="width: 40px;">
+        <div style="width: 40px;" @onmouseout="() => dragSymbolIsHovered = false" @onmouseover="() => dragSymbolIsHovered = true">
             <span class="drag-icon game-logo oi oi-menu"/>
         </div>
     </div>
-	<ul class="list-group list-group-flush">
+	<ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
 		<li class="list-group-item">
             <div>
                 <p class="account-title">@Account?.Username</p>
@@ -67,9 +71,8 @@
 					{
 						<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
-                    <div>
-                        <LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair">   
-                        </LineChart>
+                    <div @onmouseout="() => graphIsHovered = false" @onmouseover="() => graphIsHovered = true" >
+                        <LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair"/>
                     </div>  
             </div>
         </li>
@@ -94,3 +97,199 @@
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
 }
 
+@if (showFullTile)
+{
+    <SingleAccountModalFrame Account="Account" Close="() => showFullTile = false"></SingleAccountModalFrame>
+}
+
+@code {
+    private bool graphIsHovered = false;
+    private bool cardIsHovered = false;
+    private bool dragSymbolIsHovered = false;
+    private string cardStyle
+    {
+        get
+        {
+            if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered
+                || Account.AccountType == AccountType.TeamFightTactics 
+                || Account.AccountType == AccountType.Steam)
+                return "";
+
+            return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
+        }
+    }
+
+    private void OpenSingleAccountModal()
+    {
+        if (cardStyle == "")
+            return;
+            
+        showFullTile = true;
+    }
+
+    LineChart<CoordinatePair>? lineChart;
+    LineChartOptions lineChartOptions = new()
+    {
+        MaintainAspectRatio = false,
+        Scales = new()
+        {
+            X = new()
+            {
+                Ticks = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+
+
+                },
+                Title = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                },
+                Time = new()
+                {
+                    Unit = "day",
+                },
+                Type = "timeseries",
+            },
+            Y = new()
+            {
+                Ticks = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    }
+                },
+                Title = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    }
+                }
+            },
+        },
+        Plugins = new()
+        {
+            Legend = new()
+            {
+                Labels = new()
+                {
+                    Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                    BoxHeight = 10,
+                    BoxWidth = 16
+                },
+            },
+            Title = new()
+            {
+                Font = new()
+                    {
+                        Family = "Roboto",
+                        Size = 10
+                    },
+                Display = true,
+                Padding = 1,
+                Position = "left"
+            }
+        }
+    };
+
+    async Task HandleRedraw()
+    {
+        lineChart?.Clear();
+
+        if (lineChart is null)
+            return;
+
+        var datasets = displayGraph;
+        if (datasets is null)
+            return;
+
+        datasets.Data = datasets.Data.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
+        var chartDatasets = datasets.Data.Select((dataset) => new LineChartDataset<CoordinatePair>
+        {
+            Label = dataset.Label,
+            Data = dataset.Data,
+            BackgroundColor = !string.IsNullOrEmpty(dataset?.ColorHex)
+                ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
+                : backgroundColors,
+            BorderColor = dataset?.ColorHex != null
+                ? new List<string> { dataset.ColorHex }
+                : borderColors,
+            Fill = false,
+            PointRadius = 3,
+            Hidden = dataset?.Hidden ?? false,
+            PointBorderColor = borderColors,
+            SpanGaps = false
+        });
+
+        await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+
+        if (first)
+        {
+            _state.UpdateGraphs += async () =>
+            {
+                if (Account.AccountType == AccountType.League)
+                {
+                    displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
+                }
+                else if (Account.AccountType == AccountType.Valorant)
+                {
+                    displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+                }
+                else if (Account.AccountType == AccountType.TeamFightTactics)
+                {
+                    displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+                }
+                else
+                {
+                    displayGraph = new();
+                }
+
+                await HandleRedraw();
+            };
+
+            if (Account.AccountType == AccountType.League)
+            {
+                displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
+            }
+            else if (Account.AccountType == AccountType.Valorant)
+            {
+                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+            }
+            else if (Account.AccountType == AccountType.TeamFightTactics)
+            {
+                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+            }
+            else
+            {
+                displayGraph = new();
+            }
+
+            await HandleRedraw();
+        }
+    }
+    private bool showFullTile = false;
+    LineGraph displayGraph;
+
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+}

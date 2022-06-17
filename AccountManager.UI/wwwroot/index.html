@@ -21,6 +21,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script>
         Chart.defaults.scale.ticks.autoSkipPadding = 50;
+        Chart.defaults.scale.ticks.autoSkip = false;
+        window.disableChartAnimation = (chartId) => {
+            var chart = Chart.getChart(chartId);
+            if (chart) {
+                chart.options.animation.duration = 0;
+            }
+        };
+
+        window.enableChartAnimation = (chartId) => {
+            var chart = Chart.getChart(chartId);
+            if (chart) {
+                chart.options.animation.duration = 1000;
+            }
+        };
     </script>
     <div id="blazor-error-ui">
         An unhandled error has occurred.
