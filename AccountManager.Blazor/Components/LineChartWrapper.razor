@@ -135,6 +135,7 @@ else{
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        lineChartOptions.Plugins.Title.Text = LineGraph?.Title;
         await HandleRedraw();
     }
 

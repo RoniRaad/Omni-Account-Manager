@@ -4,12 +4,12 @@
 @inject IRiotClient _riotClient
 
 <div class="container" style="">
-    <div class="row" style="justify-content: center;/* gap: 25px; */row-gap: 63px;column-gap: 22px;align-items: center;margin-top: 49px;padding-top: -11px;">
+    <div class="row skin-container">
         @if (storeFrontSkins?.Any() is not true)
         {
             for (int i = 0; i < 4; i++)
             {
-                <div class="col-5" style="padding: 4px;padding-top: 11px;text-align-last: center;overflow: hidden;margin-bottom: 12px;margin-top:25px">
+                <div class="col-5 placeholder-container">
                     <div class="spinner-border" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -20,7 +20,7 @@
         {
             for (int i = 0; i < 4; i++)
             {
-                <div class="col-5" style="padding: 4px;padding-top: 11px;text-align-last: center;overflow: hidden;margin-bottom: 12px;margin-top:25px">
+                <div class="col-5 placeholder-container">
                     <h3>No Data</h3>
                 </div>
             }
@@ -29,12 +29,12 @@
         {
             @foreach (var skin in storeFrontSkins)
             {
-                <div class="col-5" style="background: var(--primary-light);border-radius: 15px;padding: 4px;padding-top: 11px;text-align-last: center;overflow: hidden;margin-bottom: 12px;/* border: 1px solid rgba(0,0,0,.125); */box-shadow: 0 0 3px #000;">
-                    <h5 style="margin-bottom:15px">@skin.Data.DisplayName</h5>
-                    <img style="max-height: 10vh; max-width: 30vw" src="@skin.Data.DisplayIcon"/>
-                    <div style="margin-top: 10px;display: flex;gap: 5px;justify-content: center;align-items: center;">
-                        <p style="font-size: 11px;">@skin.Data.Price </p>
-                       <svg class="game-logo-svg" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 4 24 19" style="fill: #c8c8c8;width:11px;"><path d="M1.756 5.345C1.482 5.029 1.042 4.915.65 5.063.259 5.209 0 5.583 0 6v7c0 .242.088.477.248.658l7 8C7.438 21.876 7.711 22 8 22h6c.392 0 .747-.229.91-.585.163-.355.103-.774-.154-1.07L1.756 5.345zM23.325 6.054c-.404-.138-.852-.005-1.114.332l-7 9c-.234.302-.276.711-.109 1.054C15.27 16.782 15.618 17 16 17h5c.334 0 .646-.167.832-.445l2-3C23.941 13.391 24 13.197 24 13V7C24 6.573 23.729 6.192 23.325 6.054z"></path></svg>
+                <div class="col-5 skin-tile">
+                    <h5>@skin.Data.DisplayName</h5>
+                    <img class="skin-icon" src="@skin.Data.DisplayIcon"/>
+                    <div class="skin-price-container">
+                        <p style="">@skin.Data.Price </p>
+                       <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 4 24 19"><path d="M1.756 5.345C1.482 5.029 1.042 4.915.65 5.063.259 5.209 0 5.583 0 6v7c0 .242.088.477.248.658l7 8C7.438 21.876 7.711 22 8 22h6c.392 0 .747-.229.91-.585.163-.355.103-.774-.154-1.07L1.756 5.345zM23.325 6.054c-.404-.138-.852-.005-1.114.332l-7 9c-.234.302-.276.711-.109 1.054C15.27 16.782 15.618 17 16 17h5c.334 0 .646-.167.832-.445l2-3C23.941 13.391 24 13.197 24 13V7C24 6.573 23.729 6.192 23.325 6.054z"></path></svg>
                     </div>
                 </div>
             }

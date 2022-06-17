@@ -1,0 +1,23 @@
+﻿body {
+}
+
+.title-container h2 {
+    margin-top: 30px;
+}
+
+.account-details-container {
+    display: flex;
+    width: 90%;
+}
+
+.account-details-sub-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 13px;
+}
+
+input {
+    color: white;
+    text-align-last: center;
+}

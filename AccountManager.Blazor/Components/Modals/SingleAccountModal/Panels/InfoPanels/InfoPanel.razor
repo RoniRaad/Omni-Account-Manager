@@ -1,10 +1,9 @@
 ﻿@using AccountManager.Core.Models
 @using System.Reflection
-<div style="display: flex;/* margin: 20px; */flex-direction: column;align-items: center;gap: 28px;height: 100%;">
 
+<div class="info-panel-container">
     <Navigation ShowPageNavigation="Pages.Count > 1" Title="@navigationTitle" IncrementPage="IncrementPage" DecrementPage="DecrementPage"></Navigation>
     <DynamicComponent Type="Pages[pageIndex]" Parameters="parameters"></DynamicComponent>
-
 </div>
 
 @code {
