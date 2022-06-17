@@ -5,6 +5,7 @@ using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
+using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AutoMapper;
@@ -241,36 +242,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 throw new RiotClientNotFoundException();
 
             return exePath;
-        }
-
-        public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
-        {
-            var matchHistory = await _riotClient.GetValorantCompetitiveHistory(account);
-            if (matchHistory?.Matches?.Any() is not true)
-                return new(false, new List<RankedGraphData>());
-
-            var matches = matchHistory.Matches.GroupBy((match) => match.TierAfterUpdate);
-            var graphData = matches.Select((match) =>
-            {
-                var rank = _mapper.Map<ValorantRank>(match.Key);
-                return new RankedGraphData()
-                {
-                    Data = match.Select((match) =>
-                    {
-                        return new CoordinatePair()
-                        {
-                            Y = match.RankedRatingAfterUpdate,
-                            X = match.MatchStartTime
-                        };
-                    }).ToList(),
-                    Tags = new(),
-                    Label = $"{rank.Tier} {rank.Ranking} RR",
-                    Hidden = match.Key != matchHistory.Matches.First().TierAfterUpdate,
-                    ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()]
-                };
-            }).OrderBy((graph) => graph.Hidden).ToList();
-
-            return (true, graphData);
         }
     }
 }

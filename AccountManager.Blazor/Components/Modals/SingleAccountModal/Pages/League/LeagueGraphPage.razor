@@ -1,0 +1,25 @@
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@inject ILeagueGraphService _graphService
+
+<div class="graph-container">
+    <div class="graph-row">
+        <div class="graph">
+            <LineChartWrapper LineGraph="rankedWinsGraph"></LineChartWrapper>
+        </div>
+        <div class="graph">
+            <PieChartWrapper PieChart="rankedChampSelectPieChart"></PieChartWrapper>
+        </div>
+    </div>
+    <div class="graph-row">
+        <div class="graph">
+            <BarChartWrapper BarChart="rankedWinrateByChamp"></BarChartWrapper>
+        </div>
+        <div class="graph">
+            <BarChartWrapper BarChart="rankedCsRateByChamp"></BarChartWrapper>
+        </div>
+    </div>
+</div>
+
+
+

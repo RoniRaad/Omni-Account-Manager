@@ -10,8 +10,8 @@ namespace AccountManager.Core.Models
     public class CoordinatePair
     {
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public int? Y { get; set; }
         [JsonPropertyName("x")]
-        public double X { get; set; }
+        public double? X { get; set; }
     }
 }

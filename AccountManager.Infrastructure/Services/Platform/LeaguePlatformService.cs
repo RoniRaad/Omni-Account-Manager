@@ -12,6 +12,7 @@ using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Exceptions;
+using AccountManager.Core.Models.RiotGames.League;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -175,77 +176,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return;
 
             _alertService.AddErrorMessage("There was an error attempting to sign in.");
-        }
-
-        public async Task<(bool, List<RankedGraphData>)> TryFetchRankedGraphData(Account account)
-        {
-            var rankCacheString = $"{account.Username}.leagueoflegends.rankgraphdata";
-            if (_memoryCache.TryGetValue(rankCacheString, out List <RankedGraphData> ? rankedGraphDataSets) && rankedGraphDataSets is not null)
-                return (true, rankedGraphDataSets);
-
-            var matchHistoryResponse = new UserMatchHistory();
-            try
-            {
-                if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
-                if (string.IsNullOrEmpty(account.PlatformId))
-                    return (false, new());
-
-                matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 15);
-                rankedGraphDataSets = new();
-                var soloQueueRank = await TryFetchRank(account);
-
-                var matchesGroups = matchHistoryResponse?.Matches?.Reverse()?.GroupBy((match) => match.Type);
-                if (matchesGroups is null)
-                    return (false, new());
-                
-                var orderedGroups = matchesGroups.Select((group) => group.OrderBy((match) => match.EndTime));
-
-                foreach (var matchGroup in orderedGroups)
-                {
-                    var matchWinDelta = 0;
-                    var isFirst = true;
-                    var rankedGraphData = new RankedGraphData()
-                    {
-                        Label = matchGroup.FirstOrDefault(new GameMatch())?.Type ?? "Other",
-                        Data = new(),
-                        Tags = new()
-                    };
-                    if (rankedGraphData.Label == "Solo")
-                        rankedGraphData.ColorHex = soloQueueRank.Item2.HexColor;
-
-                    foreach (var match in matchGroup)
-                    {
-                        if (!isFirst)
-                        {
-                                matchWinDelta += match.GraphValueChange;
-                        }
-
-                        var dateTime = match.EndTime;
-
-                        rankedGraphData.Data.Add(new CoordinatePair() { Y = matchWinDelta, X = dateTime.ToUnixTimeMilliseconds() });
-                        isFirst = false;
-                    }
-
-
-                    if (rankedGraphData.Data.Count > 1)
-                        rankedGraphDataSets.Add(rankedGraphData);
-                }
-
-                if (matchHistoryResponse is not null)
-                    _memoryCache.Set(rankCacheString, rankedGraphDataSets, TimeSpan.FromHours(1));
-
-                if (matchHistoryResponse is null)
-                    return (false, new());
-
-                rankedGraphDataSets = rankedGraphDataSets.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
-
-                return (true, rankedGraphDataSets);
-            }
-            catch
-            {
-                return (false, new());
-            }
         }
 
         private void StartLeague()

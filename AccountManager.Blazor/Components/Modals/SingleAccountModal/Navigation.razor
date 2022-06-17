@@ -1,0 +1,25 @@
+﻿<div class="navigation-container">
+    @if (ShowPageNavigation)
+    {
+        <span class="oi oi-chevron-left" @onclick="DecrementPage"></span>
+    }
+    <h2>@Title</h2>
+    @if (ShowPageNavigation)
+    {
+        <span class="oi oi-chevron-right" @onclick="IncrementPage"></span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "...";
+
+    [Parameter]
+    public Action DecrementPage { get; set; }
+
+    [Parameter]
+    public Action IncrementPage { get; set; }
+
+    [Parameter]
+    public bool ShowPageNavigation { get; set; } = true;
+}
