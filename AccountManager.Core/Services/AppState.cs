@@ -11,6 +11,7 @@ namespace AccountManager.Core.Services
         public RangeObservableCollection<Account> Accounts { get; set; }
         public event Action AccountsChanged;
         public event Action UpdateGraphs;
+        public bool IsInitialized { get; set; } = false;
         public AppState(IAccountService accountService)
         {
             _accountService = accountService;
@@ -22,6 +23,9 @@ namespace AccountManager.Core.Services
                 UpdateGraphs.Invoke();
             };
             Accounts.CollectionChanged += async (s, e) => {
+                if (!IsInitialized)
+                    return;
+
                 Accounts?.RemoveAll((account) => Accounts.Count((innerAccount) => account.Guid == innerAccount.Guid) > 1);
 
                 if (Accounts?.ToList() is not null)
@@ -61,6 +65,7 @@ namespace AccountManager.Core.Services
             var fullAccounts = new ObservableCollection<Account>(await _accountService.GetAllAccounts());
             Accounts.Clear();
             Accounts.AddRange(fullAccounts);
+            IsInitialized = true;
         }
 
         public void SaveAccounts()
