@@ -28,7 +28,6 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
@@ -86,7 +85,6 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
             RiotAuthCookies responseCookies;
-            await _semaphore.WaitAsync();
             try
             {
                 var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
@@ -172,7 +170,6 @@ namespace AccountManager.Infrastructure.Clients
             }
             finally
             {
-                _semaphore.Release(1);
             }
         }
 
@@ -202,7 +199,7 @@ namespace AccountManager.Infrastructure.Clients
             
             var token = matches[0].Groups[1].Value;
 
-            if (string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(token))
                 _memoryCache.Set(cacheKey, token, DateTime.Now.AddMinutes(55));
 
             return token;
@@ -261,6 +258,10 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account, int startIndex, int endIndex)
         {
+            var cacheKey = $"{account.Username}.{startIndex}.{endIndex}.{nameof(GetValorantCompetitiveHistory)}";
+            if (_memoryCache.TryGetValue(cacheKey, out ValorantRankedHistoryResponse? rankedHistory))
+                return rankedHistory;
+
             var client = _httpClientFactory.CreateClient("ValorantNA");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
             var bearerToken = await GetValorantToken(account);
@@ -273,8 +274,12 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex={startIndex}&endIndex={endIndex}");
+            rankedHistory = await response.Content.ReadFromJsonAsync<ValorantRankedHistoryResponse>();
+            
+            if (rankedHistory is not null)
+                _memoryCache.Set(cacheKey, rankedHistory);
 
-            return await response.Content.ReadFromJsonAsync<ValorantRankedHistoryResponse>();
+            return rankedHistory;
         }
 
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
@@ -351,6 +356,10 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account, int startIndex, int endIndex)
         {
+            var cacheKey = $"{account.Username}.{startIndex}.{endIndex}.{nameof(GetValorantGameHistory)}";
+            if (_memoryCache.TryGetValue(cacheKey, out List<ValorantMatch>? valorantMatches))
+                return valorantMatches;
+            
             var client = _httpClientFactory.CreateClient("ValorantNA");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await GetExpectedClientVersion());
             var bearerToken = await GetValorantToken(account);
@@ -365,7 +374,7 @@ namespace AccountManager.Infrastructure.Clients
             var gameHistoryDataResponse = await client.GetAsync($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex={startIndex}&endIndex={endIndex}");
             var gameHistoryData = await gameHistoryDataResponse.Content.ReadFromJsonAsync<ValorantGameHistoryDataResponse>();
 
-            var valorantMatches = new List<ValorantMatch>();
+            valorantMatches = new List<ValorantMatch>();
 
             foreach (var game in gameHistoryData?.History ?? new())
             {
@@ -374,6 +383,9 @@ namespace AccountManager.Infrastructure.Clients
                 if (gameData is not null)
                     valorantMatches.Add(gameData);
             }
+
+            if (valorantMatches is not null)
+                _memoryCache.Set(cacheKey, valorantMatches);
 
             return valorantMatches;
         }
