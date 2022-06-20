@@ -28,7 +28,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
-
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
         {
@@ -87,6 +87,7 @@ namespace AccountManager.Infrastructure.Clients
             RiotAuthCookies responseCookies;
             try
             {
+                await _semaphore.WaitAsync();
                 var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
 
                 if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
@@ -170,6 +171,7 @@ namespace AccountManager.Infrastructure.Clients
             }
             finally
             {
+                _semaphore.Release(1);
             }
         }
 
