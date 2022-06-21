@@ -115,6 +115,10 @@ namespace AccountManager.Infrastructure.Clients
                     requestCookies.Add(tdidCookie);
 
                 var cookieHeader = requestCookies.GetCookieHeader(new Uri(uri));
+
+                if (cookieHeader.Contains("tdid"))
+                    cookieHeader += $";tdid={Guid.NewGuid()}";
+
                 argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
                 argumentsBuilder.Add($"{uri}");
                 var argumentsString = argumentsBuilder.Build();
