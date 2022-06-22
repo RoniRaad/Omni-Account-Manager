@@ -17,6 +17,7 @@ using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using AutoMapper;
 using System.Reflection.Emit;
+using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -89,7 +90,7 @@ namespace AccountManager.Infrastructure.Clients
             try
             {
                 await _semaphore.WaitAsync();
-                var sessionCacheKey = $"{nameof(GetRiotSessionCookies)}.{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+                var cookiesCacheKey = $"{nameof(RiotAuthenticate)}.{account.Username}.riot.authrequest.{request.GetHashId()}.cookies";
 
                 if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))                                                
                     return null;
@@ -115,9 +116,6 @@ namespace AccountManager.Infrastructure.Clients
                 .Put<TokenResponseWrapper>();
 
                 responseCookies = new(authResponse.Cookies ?? new());
-
-                if (responseCookies?.Ssid is not null)
-                    _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
                 var tokenResponse = authResponse.ResponseContent;
                 if (tokenResponse?.Type == "multifactor")
@@ -149,8 +147,6 @@ namespace AccountManager.Infrastructure.Clients
                     .Put<TokenResponseWrapper>();
 
                     responseCookies = new RiotAuthCookies(authResponse?.Cookies ?? new());
-                    if (responseCookies?.Ssid is not null)
-                        _memoryCache.Set(sessionCacheKey, responseCookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
                     tokenResponse = authResponse?.ResponseContent;
 
@@ -176,16 +172,34 @@ namespace AccountManager.Infrastructure.Clients
             }
         }
 
-        public async Task<RiotAuthResponse> RefreshToken(RiotSessionRequest request, Account account)
+        public async Task<RiotAuthResponse?> RefreshToken(RiotSessionRequest request, RiotAuthCookies cookies)
         {
-            var authResponse = await _curlRequestBuilder.CreateBuilder()
-                .SetUri($"{_riotApiUri.Auth}/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&nonce=1")
+            var uriParameters = HttpUtility.UrlEncode($"redirect_uri={request.RedirectUri}&client_id={request.Id}&response_type={request.ResponseType}&nonce={request.Nonce}");
+            var tokenResponse = await _curlRequestBuilder.CreateBuilder()
+                .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
                 .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
-                .AddCookies(responseCookies?.GetCookies() ?? new())
-                .Put<TokenResponseWrapper>();
+                .AddCookies(cookies.GetCookies() ?? new())
+                .Get();
 
-            return 
+            var responseCookies = new RiotAuthCookies(tokenResponse?.Cookies ?? new());
+
+            var response = new RiotAuthResponse
+            {
+                Content = new TokenResponseWrapper {
+                    Response = new()
+                    {
+                        Parameters = new()
+                        {
+                            Uri = tokenResponse?.ResponseContent
+                        }
+                    },
+                    Type = tokenResponse?.StatusCode == HttpStatusCode.RedirectMethod ? "response" : "none"
+                },
+                Cookies = responseCookies
+            };
+            
+            return response;
         }
 
         public async Task<string?> GetValorantToken(Account account)
