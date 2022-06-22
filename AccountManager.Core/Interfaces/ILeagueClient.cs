@@ -11,7 +11,7 @@ namespace AccountManager.Core.Interfaces
         Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings();
         Task<Rank> GetSummonerRankByPuuidAsync(Account account);
         Task<Rank> GetTFTRankByPuuidAsync(Account account);
-        Task<UserChampSelectHistory> GetUserChampSelectHistory(Account account, int startIndex, int endIndex);
+        Task<UserChampSelectHistory?> GetUserChampSelectHistory(Account account, int startIndex, int endIndex);
         Task<MatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex);
         Task<TeamFightTacticsMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex);
     }
