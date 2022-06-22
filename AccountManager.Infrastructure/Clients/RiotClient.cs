@@ -16,6 +16,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using AutoMapper;
+using System.Reflection.Emit;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -55,7 +56,7 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<RiotAuthResponse?> GetRiotSessionCookies(RiotSessionRequest request, Account account)
         {
-            var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+            var sessionCacheKey = $"{nameof(GetRiotSessionCookies)}.{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
             _memoryCache.TryGetValue(sessionCacheKey, out Cookie? sessionCookie);
             var cookieCollection = new CookieCollection();
             if (sessionCookie is not null)
@@ -88,9 +89,9 @@ namespace AccountManager.Infrastructure.Clients
             try
             {
                 await _semaphore.WaitAsync();
-                var sessionCacheKey = $"{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+                var sessionCacheKey = $"{nameof(GetRiotSessionCookies)}.{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
 
-                if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
+                if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))                                                
                     return null;
 
                 var initialAuth = await GetRiotSessionCookies(request, account);
@@ -175,12 +176,22 @@ namespace AccountManager.Infrastructure.Clients
             }
         }
 
+        public async Task<RiotAuthResponse> RefreshToken(RiotSessionRequest request, Account account)
+        {
+            var authResponse = await _curlRequestBuilder.CreateBuilder()
+                .SetUri($"{_riotApiUri.Auth}/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&nonce=1")
+                .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
+                .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .AddCookies(responseCookies?.GetCookies() ?? new())
+                .Put<TokenResponseWrapper>();
+
+            return 
+        }
+
         public async Task<string?> GetValorantToken(Account account)
         {
             var cacheKey = $"{account.Username}.{nameof(GetValorantToken)}";
-            _memoryCache.TryGetValue(cacheKey, out string? valorantToken);
-
-            if (!string.IsNullOrEmpty(valorantToken))
+            if (_memoryCache.TryGetValue(cacheKey, out string? valorantToken))
                 return valorantToken;
 
             var initialAuthTokenRequest = new RiotSessionRequest
