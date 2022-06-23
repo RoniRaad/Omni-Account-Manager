@@ -17,6 +17,10 @@ namespace AccountManager.Core.Exceptions
         {
         }
 
+        public RiotClientNotFoundException(string? message, Exception? innerException) : base(message, innerException)
+        {
+        }
+
         protected RiotClientNotFoundException(SerializationInfo info, StreamingContext context)
         : base(info, context)
         {

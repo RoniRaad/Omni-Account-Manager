@@ -30,7 +30,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private static readonly SemaphoreSlim _semaphore = new(1);
         public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
         {
@@ -335,7 +335,6 @@ namespace AccountManager.Infrastructure.Clients
             .Get<UserInfoResponse>();
 
             var responseContent = response.ResponseContent;
-            var responseCookies = new RiotAuthCookies(response.Cookies ?? new());
 
             return responseContent?.PuuId;
         }
