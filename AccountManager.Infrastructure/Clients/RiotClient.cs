@@ -30,7 +30,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
-        private static readonly SemaphoreSlim _semaphore = new(1);
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, ICurlRequestBuilder curlRequestBuilder )
         {
@@ -90,7 +90,7 @@ namespace AccountManager.Infrastructure.Clients
             RiotAuthCookies responseCookies;
             if (_memoryCache.TryGetValue(cacheKey, out RiotAuthResponse? response)) 
             {
-                return response;
+                //return response; // Temporarily removed as this cached response may be invalidated by the user loggin out and destroying the session.
             }
             try
             {
