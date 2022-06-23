@@ -31,7 +31,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly ICurlRequestBuilder _curlRequestBuilder;
-        private static SemaphoreSlim semaphore = new(1, 1);
+        private static readonly SemaphoreSlim semaphore = new(1, 1);
 
         public RemoteLeagueClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
             LocalLeagueClient localLeagueClient, IUserSettingsService<UserSettings> settings,
@@ -103,7 +103,7 @@ namespace AccountManager.Infrastructure.Clients
             });
         }
 
-        private async Task<string> GetRiotAuthToken(Account account)
+        private async Task<string?> GetRiotAuthToken(Account account)
         {
             var request = new RiotSessionRequest
             {
@@ -119,8 +119,9 @@ namespace AccountManager.Infrastructure.Clients
             if (response is null || response?.Content?.Response?.Parameters?.Uri is null)
                 return string.Empty;
 
-            var firstPoundIndex = response.Content.Response.Parameters.Uri.IndexOf("#") + 1;
-            string queryString = response.Content.Response.Parameters.Uri[firstPoundIndex..];
+            var responseUri = new Uri(response.Content.Response.Parameters.Uri);
+
+            var queryString = responseUri.Fragment[1..];
             var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
 
             var token = queryDictionary["access_token"];
@@ -158,8 +159,8 @@ namespace AccountManager.Infrastructure.Clients
         {
             string token;
             var riotToken = await GetRiotAuthToken(account);
-            var userInfo = await GetUserInfo(riotToken);
-            var entitlement = await GetEntitlementJWT(riotToken);
+            var userInfo = await GetUserInfo(riotToken ?? "");
+            var entitlement = await GetEntitlementJWT(riotToken ?? "");
             if (string.IsNullOrEmpty(riotToken)
                 || string.IsNullOrEmpty(userInfo)
                 || string.IsNullOrEmpty(entitlement))

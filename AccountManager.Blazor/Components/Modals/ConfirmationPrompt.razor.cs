@@ -6,6 +6,6 @@ namespace AccountManager.Blazor.Components.Modals
     public partial class ConfirmationPrompt
     {
         [Parameter, EditorRequired]
-        public ConfirmationRequest Request { get; set; }
+        public ConfirmationRequest Request { get; set; } = new();
     } 
 }
