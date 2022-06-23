@@ -6,19 +6,19 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class History
     {
         [JsonPropertyName("MatchID")]
-        public string MatchID { get; set; }
+        public string MatchID { get; set; } = string.Empty;
 
         [JsonPropertyName("GameStartTime")]
-        public object GameStartTime { get; set; }
+        public object? GameStartTime { get; set; }
 
         [JsonPropertyName("QueueID")]
-        public string QueueID { get; set; }
+        public string QueueID { get; set; } = string.Empty;
     }
 
     public class ValorantGameHistoryDataResponse
     {
         [JsonPropertyName("Subject")]
-        public string Subject { get; set; }
+        public string Subject { get; set; } = string.Empty;
 
         [JsonPropertyName("BeginIndex")]
         public int BeginIndex { get; set; }
@@ -30,6 +30,6 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public int Total { get; set; }
 
         [JsonPropertyName("History")]
-        public List<History> History { get; set; }
+        public List<History> History { get; set; } = new();
     }
 }

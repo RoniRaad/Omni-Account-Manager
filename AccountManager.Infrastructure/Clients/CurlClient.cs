@@ -5,22 +5,23 @@ using CliWrap.Builders;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net;
 using System.Text.Json;
+using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
     public class CurlRequestBuilder : ICurlRequestBuilder, ICurlRequestBuilderInitialize, ICurlRequestBuilderReadyToExecute
     {
         private string uri = "";
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        private Command cliWrapper = Cli.Wrap(Path.Combine(".","curl","curl.exe"))
+        private static readonly SemaphoreSlim _semaphoreSlim = new(1);
+        private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(".","curl","curl.exe"))
             .WithWorkingDirectory(Directory.GetCurrentDirectory());
-        CookieContainer requestCookies = new();
-        ArgumentsBuilder argumentsBuilder = new ArgumentsBuilder();
-        IDistributedCache _persistantCache; 
+        private readonly CookieContainer _requestCookies = new();
+        private readonly ArgumentsBuilder _argumentsBuilder = new();
+        private readonly IDistributedCache _persistantCache; 
         public CurlRequestBuilder(IDistributedCache persistantCache) 
         {
             _persistantCache = persistantCache;
-            argumentsBuilder.Add("--tlsv1.3")
+            _argumentsBuilder.Add("--tlsv1.3")
                 .Add("--tls13-ciphers")
                 .Add("TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
                 .Add("-H")
@@ -46,30 +47,30 @@ namespace AccountManager.Infrastructure.Clients
 
         public ICurlRequestBuilderReadyToExecute SetUserAgent(string userAgent)
         {
-            argumentsBuilder.Add("-H").Add($"User-Agent: {userAgent}");
+            _argumentsBuilder.Add("-H").Add($"User-Agent: {userAgent}");
             return this;
         }
 
         public ICurlRequestBuilderReadyToExecute AddHeader(string name, string value)
         {
-            argumentsBuilder.Add("-H").Add($"{name}: {value}");
+            _argumentsBuilder.Add("-H").Add($"{name}: {value}");
             return this;
         }
         public ICurlRequestBuilderReadyToExecute SetBearerToken(string token)
         {
-            argumentsBuilder.Add("-H").Add($"Authorization: Bearer {token}");
+            _argumentsBuilder.Add("-H").Add($"Authorization: Bearer {token}");
             return this;
         }
 
         public ICurlRequestBuilderReadyToExecute AddHeaders(string name, string[] value)
         {
-            argumentsBuilder.Add("-H").Add($"{name}: {string.Join("; ", value)}");
+            _argumentsBuilder.Add("-H").Add($"{name}: {string.Join("; ", value)}");
             return this;
         }
 
         public ICurlRequestBuilderReadyToExecute AddCookie(Cookie cookie)
         {
-            requestCookies.Add(cookie);
+            _requestCookies.Add(cookie);
             return this;
         }
 
@@ -77,7 +78,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             var cookieContainer = new CookieContainer();
             cookieContainer.SetCookies(new Uri(uri), cookieHeader);
-            requestCookies.Add(cookieContainer.GetAllCookies());
+            _requestCookies.Add(cookieContainer.GetAllCookies());
 
             return this;
         }
@@ -85,61 +86,80 @@ namespace AccountManager.Infrastructure.Clients
         public ICurlRequestBuilderReadyToExecute AddCookie(string name, string value)
         {
             var cookie = new Cookie(name, value);
-            requestCookies.Add(cookie);
+            _requestCookies.Add(cookie);
 
             return this;
         }
 
         public ICurlRequestBuilderReadyToExecute AddCookies(CookieCollection cookie)
         {
-            requestCookies.Add(cookie);
+            _requestCookies.Add(cookie);
             return this;
         }
         public ICurlRequestBuilderReadyToExecute SetContent<T>(T content)
         {
-            argumentsBuilder.Add("-H").Add("Content-Type: application/json");
-            argumentsBuilder.Add("-d").Add(JsonSerializer.Serialize(content));
+            _argumentsBuilder.Add("-H").Add("Content-Type: application/json");
+            _argumentsBuilder.Add("-d").Add(JsonSerializer.Serialize(content));
             return this;
+        }
+
+        private CookieContainer ParseCookies(IEnumerable<string> setCookieHeaders)
+        {
+            var cookieContainer = new CookieContainer();
+
+            foreach (var responseCookieHeader in setCookieHeaders)
+            {
+                var trimmedCookieHeader = responseCookieHeader[12..];
+                var tempContainer = new CookieContainer();
+                tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
+                cookieContainer.Add(tempContainer.GetAllCookies());
+            }
+
+            return cookieContainer;
         }
 
         public async Task<CurlResponse<string>> ExecuteAsync()
         {
-            await semaphoreSlim.WaitAsync();
+            await _semaphoreSlim.WaitAsync();
+
             try
             {
                 var tdidCacheKey = $"riot.auth.tdid";
                 var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
-                var cookieContainer = new CookieContainer();
 
                 if (tdidCookie is not null)
-                    requestCookies.Add(tdidCookie);
+                    _requestCookies.Add(tdidCookie);
 
-                var cookieHeader = requestCookies.GetCookieHeader(new Uri(uri));
+                var cookieHeader = _requestCookies.GetCookieHeader(new Uri(uri));
 
-                if (cookieHeader.Contains("tdid"))
+                if (!cookieHeader.Contains("tdid"))
                     cookieHeader += $";tdid={Guid.NewGuid()}";
 
-                argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
-                argumentsBuilder.Add($"{uri}");
-                var argumentsString = argumentsBuilder.Build();
-                var response = await cliWrapper.WithArguments(argumentsString)
+                _argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
+                _argumentsBuilder.Add($"{uri}");
+
+                var argumentsString = _argumentsBuilder.Build();
+
+                var response = await _cliWrapper.WithArguments(argumentsString)
                 .WithValidation(CliWrap.CommandResultValidation.None)
                 .ExecuteBufferedAsync();
+
                 var responseLines = response.StandardOutput.Split("\n");
                 var cookieHeaders = responseLines.Where((header) => header.ToLower().StartsWith("set-cookie"))
-                    .Select((cookieHeader) => cookieHeader
-                    .Substring(cookieHeader.ToLower().IndexOf("set-cookie:")));
+                    .Select((cookieHeader) => cookieHeader[cookieHeader.ToLower().IndexOf("set-cookie:")..]);
 
-                int.TryParse(responseLines[0].Split(" ")[1], out var statusCode);
-                var responseJson = responseLines[^1];
+                var locationHeader = responseLines?.FirstOrDefault((header) => header?.ToLower()?.StartsWith("location") is true, null);
+                var locationValue = locationHeader?.Replace("location:", "").Trim();
 
-                foreach (var responseCookieHeader in cookieHeaders)
-                {
-                    var trimmedCookieHeader = responseCookieHeader[12..];
-                    var tempContainer = new CookieContainer();
-                    tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
-                    cookieContainer.Add(tempContainer.GetAllCookies());
-                }
+                if (!int.TryParse(responseLines?.ElementAtOrDefault(0)?.Split(" ")?.ElementAtOrDefault(1), out var statusCode))
+                    statusCode = 400;
+
+                string? responseJson = null;
+
+                if (responseLines is not null)
+                    responseJson = responseLines[^1];
+
+                var cookieContainer = ParseCookies(cookieHeaders);
 
                 var responseCookieCollection = cookieContainer.GetAllCookies();
                 var tdidResponseCookie = responseCookieCollection.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
@@ -152,16 +172,24 @@ namespace AccountManager.Infrastructure.Clients
                     ResponseContent = responseJson,
                     Headers = new(),
                     StatusCode = (HttpStatusCode)statusCode,
-                    Cookies = cookieContainer.GetAllCookies()
+                    Cookies = cookieContainer.GetAllCookies(),
+                    Location = locationValue
                 };
             }
             catch
             {
-                return null;
+                return new CurlResponse<string>
+                {
+                    ResponseContent = null,
+                    Headers = new(),
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Cookies = null,
+                    Location = null
+                };
             }
             finally
             {
-                semaphoreSlim.Release(1);
+                _semaphoreSlim.Release(1);
             }
         }
 
@@ -174,62 +202,63 @@ namespace AccountManager.Infrastructure.Clients
                 Cookies = stringResponse.Cookies,
                 Headers = stringResponse.Headers,
                 ResponseContent = JsonSerializer.Deserialize<T>(stringResponse?.ResponseContent ?? "{}"),
-                StatusCode = stringResponse?.StatusCode ?? HttpStatusCode.BadRequest
+                StatusCode = stringResponse?.StatusCode ?? HttpStatusCode.BadRequest,
+                Location = stringResponse?.Location
             };
         }
 
         public async Task<CurlResponse<string>> Delete()
         {
-            argumentsBuilder.Add("-i -X DELETE", false);
+            _argumentsBuilder.Add("-i -X DELETE", false);
 
             return await ExecuteAsync();
         }
 
         public async Task<CurlResponse<string>> Get()
         {
-            argumentsBuilder.Add("-i -X GET", false);
+            _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync();
         }
 
         public async Task<CurlResponse<string>> Post()
         {
-            argumentsBuilder.Add("-i -X POST", false);
+            _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync();
         }
 
         public async Task<CurlResponse<string>> Put()
         {
-            argumentsBuilder.Add("-i -X PUT", false);
+            _argumentsBuilder.Add("-i -X PUT", false);
 
             return await ExecuteAsync();
         }
 
         public async Task<CurlResponse<T>> Delete<T>() where T : new()
         {
-            argumentsBuilder.Add("-i -X DELETE", false);
+            _argumentsBuilder.Add("-i -X DELETE", false);
 
             return await ExecuteAsync<T>();
         }
 
         public async Task<CurlResponse<T>> Get<T>() where T : new()
         {
-            argumentsBuilder.Add("-i -X GET", false);
+            _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync<T>();
         }
 
         public async Task<CurlResponse<T>> Post<T>() where T : new()
         {
-            argumentsBuilder.Add("-i -X POST", false);
+            _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync<T>();
         }
 
         public async Task<CurlResponse<T>> Put<T>() where T : new()
         {
-            argumentsBuilder.Add("-i -X PUT", false);
+            _argumentsBuilder.Add("-i -X PUT", false);
 
             return await ExecuteAsync<T>();
         }
@@ -240,7 +269,7 @@ namespace AccountManager.Infrastructure.Clients
             public Dictionary<string, string>? Headers { get; set; }
             public CookieCollection? Cookies { get; set; }
             public string? ResponseContent { get; set; }
-
+            public string? Location { get; set; }
         }
 
         public class CurlResponse<T>
@@ -249,6 +278,7 @@ namespace AccountManager.Infrastructure.Clients
             public Dictionary<string, string>? Headers { get; set; }
             public CookieCollection? Cookies { get; set; }
             public T? ResponseContent { get; set; }
+            public string? Location { get; set; }
         }
     }
 }

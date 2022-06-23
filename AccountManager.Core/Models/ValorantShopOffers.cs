@@ -5,52 +5,52 @@ namespace AccountManager.Core.Models
     public class Bundle
     {
         [JsonPropertyName("ID")]
-        public string ID { get; set; }
+        public string ID { get; set; } = string.Empty;
 
         [JsonPropertyName("DataAssetID")]
-        public string DataAssetID { get; set; }
+        public string DataAssetID { get; set; } = string.Empty;
 
         [JsonPropertyName("CurrencyID")]
-        public string CurrencyID { get; set; }
+        public string CurrencyID { get; set; } = string.Empty;
 
         [JsonPropertyName("Items")]
-        public List<ItemWrapper> Items { get; set; }
+        public List<ItemWrapper> Items { get; set; } = new();
 
         [JsonPropertyName("DurationRemainingInSeconds")]
-        public int DurationRemainingInSeconds { get; set; }
+        public int DurationRemainingInSeconds { get; set; } = 0;
 
         [JsonPropertyName("WholesaleOnly")]
-        public bool WholesaleOnly { get; set; }
+        public bool WholesaleOnly { get; set; } = false;
     }
 
     public class Bundle2
     {
         [JsonPropertyName("ID")]
-        public string ID { get; set; }
+        public string ID { get; set; } = string.Empty;
 
         [JsonPropertyName("DataAssetID")]
-        public string DataAssetID { get; set; }
+        public string DataAssetID { get; set; } = string.Empty;
 
         [JsonPropertyName("CurrencyID")]
-        public string CurrencyID { get; set; }
+        public string CurrencyID { get; set; } = string.Empty;
 
         [JsonPropertyName("Items")]
-        public List<ItemWrapper> Items { get; set; }
+        public List<ItemWrapper> Items { get; set; } = new();
 
         [JsonPropertyName("DurationRemainingInSeconds")]
-        public int DurationRemainingInSeconds { get; set; }
+        public int DurationRemainingInSeconds { get; set; } = 0;
 
         [JsonPropertyName("WholesaleOnly")]
-        public bool WholesaleOnly { get; set; }
+        public bool WholesaleOnly { get; set; } = false;
     }
 
     public class FeaturedBundle
     {
         [JsonPropertyName("Bundle")]
-        public Bundle Bundle { get; set; }
+        public Bundle Bundle { get; set; } = new();
 
         [JsonPropertyName("Bundles")]
-        public List<Bundle> Bundles { get; set; }
+        public List<Bundle> Bundles { get; set; } = new();
 
         [JsonPropertyName("BundleRemainingDurationInSeconds")]
         public int BundleRemainingDurationInSeconds { get; set; }
@@ -59,49 +59,49 @@ namespace AccountManager.Core.Models
     public class ItemWrapper
     {
         [JsonPropertyName("Item")]
-        public ItemWrapper Item { get; set; }
+        public ItemWrapper Item { get; set; } = new();
 
         [JsonPropertyName("BasePrice")]
-        public int BasePrice { get; set; }
+        public int BasePrice { get; set; } = 0;
 
         [JsonPropertyName("CurrencyID")]
-        public string CurrencyID { get; set; }
+        public string CurrencyID { get; set; } = string.Empty;
 
         [JsonPropertyName("DiscountPercent")]
-        public int DiscountPercent { get; set; }
+        public int DiscountPercent { get; set; } = 0;
 
         [JsonPropertyName("DiscountedPrice")]
-        public int DiscountedPrice { get; set; }
+        public int DiscountedPrice { get; set; } = 0;
 
         [JsonPropertyName("IsPromoItem")]
-        public bool IsPromoItem { get; set; }
+        public bool IsPromoItem { get; set; } = false;
     }
 
     public class Item2
     {
         [JsonPropertyName("ItemTypeID")]
-        public string ItemTypeID { get; set; }
+        public string ItemTypeID { get; set; } = string.Empty;
 
         [JsonPropertyName("ItemID")]
-        public string ItemID { get; set; }
+        public string ItemID { get; set; } = string.Empty;
 
         [JsonPropertyName("Amount")]
-        public int Amount { get; set; }
+        public int Amount { get; set; } = 0;
     }
 
     public class ValorantShopOffers
     {
         [JsonPropertyName("FeaturedBundle")]
-        public FeaturedBundle FeaturedBundle { get; set; }
+        public FeaturedBundle FeaturedBundle { get; set; } = new();
 
         [JsonPropertyName("SkinsPanelLayout")]
-        public SkinsPanelLayout SkinsPanelLayout { get; set; }
+        public SkinsPanelLayout SkinsPanelLayout { get; set; } = new();
     }
 
     public class SkinsPanelLayout
     {
         [JsonPropertyName("SingleItemOffers")]
-        public List<string> SingleItemOffers { get; set; }
+        public List<string> SingleItemOffers { get; set; } = new();
 
         [JsonPropertyName("SingleItemOffersRemainingDurationInSeconds")]
         public int SingleItemOffersRemainingDurationInSeconds { get; set; }
