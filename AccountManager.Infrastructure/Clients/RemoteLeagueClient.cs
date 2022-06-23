@@ -13,6 +13,7 @@ using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using System;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -71,6 +72,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
+            
             var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"{_riotApiUri.LeagueNA}/leagues-ledge/v2/rankedStats/puuid/{account.PlatformId}");
 
             if (rankResponse?.Queues is null)
@@ -117,10 +119,11 @@ namespace AccountManager.Infrastructure.Clients
             if (response is null || response?.Content?.Response?.Parameters?.Uri is null)
                 return string.Empty;
 
-            var matches = Regex.Matches(response.Content.Response.Parameters.Uri,
-                @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+            var firstPoundIndex = response.Content.Response.Parameters.Uri.IndexOf("#") + 1;
+            string queryString = response.Content.Response.Parameters.Uri[firstPoundIndex..];
+            var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
 
-            var token = matches[0].Groups[1].Value;
+            var token = queryDictionary["access_token"];
 
             return token;
         }
