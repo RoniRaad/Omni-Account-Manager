@@ -8,6 +8,6 @@ namespace AccountManager.Core.Models
         public string? Title { get; set; }
         [JsonPropertyName("labels")]
         public List<string>? Labels { get; set; }
-        public IEnumerable<PieChartData> Data { get; set; }
+        public IEnumerable<PieChartData>? Data { get; set; }
     }
 }

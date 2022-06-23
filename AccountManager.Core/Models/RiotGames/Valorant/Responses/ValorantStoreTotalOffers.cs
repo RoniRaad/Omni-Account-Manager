@@ -16,49 +16,49 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
     public class Offer
     {
         [JsonPropertyName("OfferID")]
-        public string OfferID { get; set; }
+        public string OfferID { get; set; } = string.Empty;
 
         [JsonPropertyName("IsDirectPurchase")]
-        public bool IsDirectPurchase { get; set; }
+        public bool IsDirectPurchase { get; set; } = false;
 
         [JsonPropertyName("StartDate")]
-        public string StartDate { get; set; }
+        public string StartDate { get; set; } = string.Empty;
 
         [JsonPropertyName("Cost")]
-        public Cost Cost { get; set; }
+        public Cost Cost { get; set; } = new();
 
         [JsonPropertyName("Rewards")]
-        public List<Reward> Rewards { get; set; }
+        public List<Reward> Rewards { get; set; } = new();
     }
 
     public class Reward
     {
         [JsonPropertyName("ItemTypeID")]
-        public string ItemTypeID { get; set; }
+        public string ItemTypeID { get; set; } = string.Empty;
 
         [JsonPropertyName("ItemID")]
-        public string ItemID { get; set; }
+        public string ItemID { get; set; } = string.Empty;
 
         [JsonPropertyName("Quantity")]
-        public int Quantity { get; set; }
+        public int Quantity { get; set; } = 0;
     }
 
     public class ValorantStoreTotalOffers
     {
         [JsonPropertyName("Offers")]
-        public List<Offer> Offers { get; set; }
+        public List<Offer> Offers { get; set; } = new();
 
         [JsonPropertyName("UpgradeCurrencyOffers")]
-        public List<UpgradeCurrencyOffer> UpgradeCurrencyOffers { get; set; }
+        public List<UpgradeCurrencyOffer> UpgradeCurrencyOffers { get; set; } = new();
     }
 
     public class UpgradeCurrencyOffer
     {
         [JsonPropertyName("OfferID")]
-        public string OfferID { get; set; }
+        public string OfferID { get; set; } = string.Empty;
 
         [JsonPropertyName("StorefrontItemID")]
-        public string StorefrontItemID { get; set; }
+        public string StorefrontItemID { get; set; } = string.Empty;
     }
 
 
