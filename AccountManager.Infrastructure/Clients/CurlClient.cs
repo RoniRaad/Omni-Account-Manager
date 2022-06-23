@@ -131,6 +131,9 @@ namespace AccountManager.Infrastructure.Clients
                     .Select((cookieHeader) => cookieHeader
                     .Substring(cookieHeader.ToLower().IndexOf("set-cookie:")));
 
+                var locationHeader = responseLines?.FirstOrDefault((header) => header?.ToLower()?.StartsWith("location") is true, null);
+                var locationValue = locationHeader?.Replace("location:", "").Trim();
+
                 int.TryParse(responseLines[0].Split(" ")[1], out var statusCode);
                 var responseJson = responseLines[^1];
 
@@ -153,12 +156,20 @@ namespace AccountManager.Infrastructure.Clients
                     ResponseContent = responseJson,
                     Headers = new(),
                     StatusCode = (HttpStatusCode)statusCode,
-                    Cookies = cookieContainer.GetAllCookies()
+                    Cookies = cookieContainer.GetAllCookies(),
+                    Location = locationValue
                 };
             }
             catch
             {
-                return null;
+                return new CurlResponse<string>
+                {
+                    ResponseContent = null,
+                    Headers = new(),
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Cookies = null,
+                    Location = null
+                };
             }
             finally
             {
@@ -175,7 +186,8 @@ namespace AccountManager.Infrastructure.Clients
                 Cookies = stringResponse.Cookies,
                 Headers = stringResponse.Headers,
                 ResponseContent = JsonSerializer.Deserialize<T>(stringResponse?.ResponseContent ?? "{}"),
-                StatusCode = stringResponse?.StatusCode ?? HttpStatusCode.BadRequest
+                StatusCode = stringResponse?.StatusCode ?? HttpStatusCode.BadRequest,
+                Location = stringResponse?.Location
             };
         }
 
@@ -241,7 +253,7 @@ namespace AccountManager.Infrastructure.Clients
             public Dictionary<string, string>? Headers { get; set; }
             public CookieCollection? Cookies { get; set; }
             public string? ResponseContent { get; set; }
-
+            public string? Location { get; set; }
         }
 
         public class CurlResponse<T>
@@ -250,6 +262,7 @@ namespace AccountManager.Infrastructure.Clients
             public Dictionary<string, string>? Headers { get; set; }
             public CookieCollection? Cookies { get; set; }
             public T? ResponseContent { get; set; }
+            public string? Location { get; set; }
         }
     }
 }

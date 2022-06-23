@@ -55,9 +55,9 @@ namespace AccountManager.Infrastructure.Clients
             return response?.Data?.RiotClientVersion;
         }
 
-        private async Task<RiotAuthResponse?> GetRiotSessionCookies(RiotSessionRequest request, Account account)
+        private async Task<RiotAuthResponse?> CreateRiotSessionCookies(RiotSessionRequest request, Account account)
         {
-            var sessionCacheKey = $"{nameof(GetRiotSessionCookies)}.{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
+            var sessionCacheKey = $"{nameof(CreateRiotSessionCookies)}.{account.Username}.riot.authrequest.{request.GetHashId()}.ssid";
             _memoryCache.TryGetValue(sessionCacheKey, out Cookie? sessionCookie);
             var cookieCollection = new CookieCollection();
             if (sessionCookie is not null)
@@ -86,20 +86,38 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
+            var cacheKey = $"{account.Username}.{request.GetHashId()}.{nameof(RiotAuthenticate)}";
             RiotAuthCookies responseCookies;
+            if (_memoryCache.TryGetValue(cacheKey, out RiotAuthResponse? response)) 
+            {
+                return response;
+            }
             try
             {
                 await _semaphore.WaitAsync();
                 var cookiesCacheKey = $"{nameof(RiotAuthenticate)}.{account.Username}.riot.authrequest.{request.GetHashId()}.cookies";
+                var cookies = await _persistantCache.GetAsync<RiotAuthCookies>(cookiesCacheKey);
+
+                if (cookies is not null)
+                {
+                    var token = await RefreshToken(request, cookies);
+                    if (token?.Content?.Type == "response")
+                        return token;
+                }    
 
                 if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))                                                
                     return null;
 
-                var initialAuth = await GetRiotSessionCookies(request, account);
-                if (initialAuth?.Content?.Type == "response")
-                    return initialAuth;
-
+                var initialAuth = await CreateRiotSessionCookies(request, account);
                 var initialCookies = initialAuth?.Cookies ?? new();
+
+                if (initialAuth?.Content?.Type == "response")
+                {
+                    if (initialAuth?.Cookies is not null)
+                        await _persistantCache.SetAsync(cookiesCacheKey, initialCookies);
+
+                    return initialAuth;
+                }
 
                 var authResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
@@ -146,6 +164,7 @@ namespace AccountManager.Infrastructure.Clients
                     .AddCookies(responseCookies?.GetCookies() ?? new())
                     .Put<TokenResponseWrapper>();
 
+
                     responseCookies = new RiotAuthCookies(authResponse?.Cookies ?? new());
 
                     tokenResponse = authResponse?.ResponseContent;
@@ -154,11 +173,17 @@ namespace AccountManager.Infrastructure.Clients
                         _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
                 }
 
-                var response = new RiotAuthResponse
+                if (authResponse?.Cookies is not null)
+                    await _persistantCache.SetAsync<RiotAuthCookies>(cookiesCacheKey, responseCookies);
+
+                response = new RiotAuthResponse
                 {
                     Content = tokenResponse,
                     Cookies = responseCookies
                 };
+
+                _memoryCache.Set(cacheKey, response, TimeSpan.FromMinutes(55));
+
                 return response;
 
             }
@@ -174,7 +199,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<RiotAuthResponse?> RefreshToken(RiotSessionRequest request, RiotAuthCookies cookies)
         {
-            var uriParameters = HttpUtility.UrlEncode($"redirect_uri={request.RedirectUri}&client_id={request.Id}&response_type={request.ResponseType}&nonce={request.Nonce}");
+            var uriParameters = $"redirect_uri={HttpUtility.UrlEncode(request.RedirectUri)}&client_id={HttpUtility.UrlEncode(request.Id)}&response_type={HttpUtility.UrlEncode(request.ResponseType)}&nonce={HttpUtility.UrlEncode(request.Nonce)}&scope={HttpUtility.UrlEncode(request.Scope)}";
             var tokenResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
@@ -183,21 +208,53 @@ namespace AccountManager.Infrastructure.Clients
                 .Get();
 
             var responseCookies = new RiotAuthCookies(tokenResponse?.Cookies ?? new());
+            var location = tokenResponse?.Location;
+            var type = tokenResponse?.StatusCode == HttpStatusCode.RedirectMethod ? "response" : "none";
 
             var response = new RiotAuthResponse
             {
-                Content = new TokenResponseWrapper {
+                Content = new TokenResponseWrapper
+                {
                     Response = new()
                     {
                         Parameters = new()
                         {
-                            Uri = tokenResponse?.ResponseContent
+                            Uri = tokenResponse?.Location
                         }
                     },
-                    Type = tokenResponse?.StatusCode == HttpStatusCode.RedirectMethod ? "response" : "none"
+                    Type = type
                 },
                 Cookies = responseCookies
             };
+
+            if (location is null)
+                return response;
+
+            var locationUri = new Uri(location);
+            var fragment = locationUri.Fragment[1..];
+            var parsedFragment = HttpUtility.ParseQueryString(fragment);
+
+            if (type != "none")
+            {
+
+                if (!parsedFragment.AllKeys.Contains("access_token") || location?.Contains("error") is true)
+                {
+                    response.Content.Type = "error";
+                    return response;
+                }
+
+                if (location is null)
+                {
+                    response.Content.Type = "none";
+                    return response;
+                }
+
+                if (location?.StartsWith("/login") is true || location?.StartsWith("\\login") is true)
+                {
+                    response.Content.Type = "invalid_session";
+                    return response;
+                }
+            }
             
             return response;
         }
