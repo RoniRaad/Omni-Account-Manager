@@ -103,29 +103,47 @@ namespace AccountManager.Infrastructure.Clients
             return this;
         }
 
+        private CookieContainer ParseCookies(IEnumerable<string> setCookieHeaders)
+        {
+            var cookieContainer = new CookieContainer();
+
+            foreach (var responseCookieHeader in setCookieHeaders)
+            {
+                var trimmedCookieHeader = responseCookieHeader[12..];
+                var tempContainer = new CookieContainer();
+                tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
+                cookieContainer.Add(tempContainer.GetAllCookies());
+            }
+
+            return cookieContainer;
+        }
+
         public async Task<CurlResponse<string>> ExecuteAsync()
         {
             await semaphoreSlim.WaitAsync();
+
             try
             {
                 var tdidCacheKey = $"riot.auth.tdid";
                 var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
-                var cookieContainer = new CookieContainer();
 
                 if (tdidCookie is not null)
                     requestCookies.Add(tdidCookie);
 
                 var cookieHeader = requestCookies.GetCookieHeader(new Uri(uri));
 
-                if (cookieHeader.Contains("tdid"))
+                if (!cookieHeader.Contains("tdid"))
                     cookieHeader += $";tdid={Guid.NewGuid()}";
 
                 argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
                 argumentsBuilder.Add($"{uri}");
+
                 var argumentsString = argumentsBuilder.Build();
+
                 var response = await cliWrapper.WithArguments(argumentsString)
                 .WithValidation(CliWrap.CommandResultValidation.None)
                 .ExecuteBufferedAsync();
+
                 var responseLines = response.StandardOutput.Split("\n");
                 var cookieHeaders = responseLines.Where((header) => header.ToLower().StartsWith("set-cookie"))
                     .Select((cookieHeader) => cookieHeader
@@ -134,16 +152,15 @@ namespace AccountManager.Infrastructure.Clients
                 var locationHeader = responseLines?.FirstOrDefault((header) => header?.ToLower()?.StartsWith("location") is true, null);
                 var locationValue = locationHeader?.Replace("location:", "").Trim();
 
-                int.TryParse(responseLines[0].Split(" ")[1], out var statusCode);
-                var responseJson = responseLines[^1];
+                if (!int.TryParse(responseLines?.ElementAtOrDefault(0)?.Split(" ")?.ElementAtOrDefault(1), out var statusCode))
+                    statusCode = 400;
 
-                foreach (var responseCookieHeader in cookieHeaders)
-                {
-                    var trimmedCookieHeader = responseCookieHeader[12..];
-                    var tempContainer = new CookieContainer();
-                    tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
-                    cookieContainer.Add(tempContainer.GetAllCookies());
-                }
+                string? responseJson = null;
+
+                if (responseLines is not null)
+                    responseJson = responseLines[^1];
+
+                var cookieContainer = ParseCookies(cookieHeaders);
 
                 var responseCookieCollection = cookieContainer.GetAllCookies();
                 var tdidResponseCookie = responseCookieCollection.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);

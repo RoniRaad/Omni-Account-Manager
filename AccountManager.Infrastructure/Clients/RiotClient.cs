@@ -230,7 +230,13 @@ namespace AccountManager.Infrastructure.Clients
             if (location is null)
                 return response;
 
-            var locationUri = new Uri(location);
+            if (location?.StartsWith("/login") is true || location?.StartsWith("\\login") is true)
+            {
+                response.Content.Type = "invalid_session";
+                return response;
+            }
+
+            var locationUri = new Uri(location ?? "");
             var fragment = locationUri.Fragment[1..];
             var parsedFragment = HttpUtility.ParseQueryString(fragment);
 
@@ -246,12 +252,6 @@ namespace AccountManager.Infrastructure.Clients
                 if (location is null)
                 {
                     response.Content.Type = "none";
-                    return response;
-                }
-
-                if (location?.StartsWith("/login") is true || location?.StartsWith("\\login") is true)
-                {
-                    response.Content.Type = "invalid_session";
                     return response;
                 }
             }
