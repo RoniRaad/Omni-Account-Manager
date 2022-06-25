@@ -143,6 +143,8 @@ span:active {
 
 }
 
+
+
 ::deep .account-btn-container:hover ~ .card 
 {
     box-shadow: 0px 0px 6px white;

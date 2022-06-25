@@ -5,6 +5,7 @@
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
 @using AccountManager.Core.Static
+@using Blazorise
 @using Blazorise.Charts
 @using Blazorise.Charts.Trendline
 @using System.Drawing
@@ -71,8 +72,10 @@
 					{
 						<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
 					}
-                    <div @onmouseout="() => graphIsHovered = false" @onmouseover="() => graphIsHovered = true" >
-                        <LineChart Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair"/>
+                    <div style="display:flex;height:24vh; min-height:149px; max-height: 160px;align-items: center;gap: 8px;justify-content: center;" @onmouseout="() => graphIsHovered = false" @onmouseover="() => graphIsHovered = true" >
+                        <span class="oi oi-chevron-left"></span>
+                        <LineChart Class="line-chart" Options="lineChartOptions" @ref="lineChart" TItem="CoordinatePair"/>
+                        <span class="oi oi-chevron-right"></span>
                     </div>  
             </div>
         </li>
