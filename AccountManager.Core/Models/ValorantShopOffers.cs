@@ -47,7 +47,7 @@ namespace AccountManager.Core.Models
     public class FeaturedBundle
     {
         [JsonPropertyName("Bundle")]
-        public Bundle Bundle { get; set; } = new();
+        public Bundle? Bundle { get; set; }
 
         [JsonPropertyName("Bundles")]
         public List<Bundle> Bundles { get; set; } = new();
@@ -59,7 +59,7 @@ namespace AccountManager.Core.Models
     public class ItemWrapper
     {
         [JsonPropertyName("Item")]
-        public ItemWrapper Item { get; set; } = new();
+        public ItemWrapper? Item { get; set; }
 
         [JsonPropertyName("BasePrice")]
         public int BasePrice { get; set; } = 0;
