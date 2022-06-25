@@ -279,3 +279,7 @@ p {
 .btn-dark:hover {
 	background-color: var(--secondary-dark);
 }
+
+.line-chart {
+	width: 90%;
+}
