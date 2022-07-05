@@ -1,0 +1,27 @@
+﻿@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages
+@using AccountManager.Core.Models
+<li class="list-group-item" style="padding:8px">
+    <div>
+        <p class="account-title">@Account?.Username</p>
+			@if (Account?.Rank?.Tier is null && Account?.Rank?.Ranking is null){
+				<p class="account-rank">N/A</p>
+			}
+			else
+			{
+				<p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
+			}
+        <div style="display:flex;height:24vh; min-height:149px; max-height: 160px;align-items: center;gap: 8px;justify-content: center;" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph" >
+            <TileContentData Account="Account"></TileContentData>
+        </div>
+    </div>
+</li>
+@code {
+    [Parameter]
+    public Account Account { get; set; }
+    
+    [Parameter]
+    public EventCallback MouseEnterGraph { get; set; }
+
+    [Parameter]
+    public EventCallback MouseExitGraph { get; set; }
+}

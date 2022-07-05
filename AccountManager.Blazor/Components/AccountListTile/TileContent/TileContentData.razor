@@ -1,0 +1,21 @@
+﻿@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages
+@using AccountManager.Core.Models
+<div style="height: 100%; width:100%" id="carousel-@this.GetHashCode()" class="carousel slide" data-bs-ride="carousel">
+    <div style="height: 100%;" class="carousel-inner">
+        <div style="height: 100%;" class="carousel-item active">
+            <LeagueWinsPage Account="Account"/>
+        </div>
+        <div style="height: 100%;" class="carousel-item">
+            <LeagueWinsPage Account="Account"/>
+        </div>
+    </div>
+    <div class="carousel-indicators" style="margin-bottom: 3px;">
+        <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Account Account { get; set; }
+}

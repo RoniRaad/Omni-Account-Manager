@@ -1,0 +1,150 @@
+﻿body {
+}
+
+p {
+    font-family: Roboto;
+    font-size: 25px
+}
+
+th {
+    width: 32px
+}
+
+tr {
+    vertical-align: middle;
+    font-family: Roboto;
+    font-size: 25px;
+    color: white;
+    border-color: #787b7c;
+}
+
+td {
+    max-width: 32vw;
+    word-wrap: break-word;
+}
+
+.game-logo {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-logo-svg {
+    margin: auto;
+    display: block;
+}
+
+.name-container span {
+    font-size: 10px;
+    font-weight: 100;
+    text-align: left;
+}
+
+.logo-container {
+    display: flex
+}
+
+.name-container {
+    margin-left: 40px
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 0px;
+    align-content: flex-start;
+    font-size: 20px;
+    gap: 24px
+}
+
+    .buttons-container span {
+        cursor: pointer
+    }
+
+div .modal {
+    display: block;
+    color: var(--primary-dark);
+}
+
+.form-control {
+    margin-bottom: 12px
+}
+
+.card-body {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-btn-container {
+    text-align: center;
+}
+
+    .account-btn-container span {
+        cursor: pointer;
+        padding: 3px;
+    }
+
+.card-logo-slot {
+    background-color: #1a1a1a;
+    width: fit-content;
+    padding: 3px;
+    border-radius: 6px;
+}
+
+.card-body {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    justify-content: space-between
+}
+
+.card {
+    color: white;
+    margin: 10px;
+    background-color: var(--secondary-dark);
+    box-shadow: 0px 0px 6px #202020;
+}
+
+.card-title {
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    margin-left: 7px;
+}
+
+.list-group-item {
+    background-color: var(--secondary-light);
+    color: white;
+}
+
+.account-title {
+    text-align: center;
+    font-size: 12px;
+}
+
+.account-rank {
+    text-align: center;
+    font-size: 12px;
+}
+
+span:active {
+    color: darkgrey
+}
+
+.drag-icon {
+    cursor: grab;
+    width: 100%;
+}
+
+.card:hover {
+}
+
+
+
+::deep .account-btn-container:hover ~ .card {
+    box-shadow: 0px 0px 6px white;
+    cursor: grab;
+}
