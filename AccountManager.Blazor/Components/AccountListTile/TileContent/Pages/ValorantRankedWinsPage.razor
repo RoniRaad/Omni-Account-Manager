@@ -132,11 +132,11 @@
         {
             _state.UpdateGraphs += async () =>
             {
-                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+                displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
                 await HandleRedraw();
             };
 
-            displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+            displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
             lineChartOptions.Plugins.Title.Text = displayGraph?.Title;
             await HandleRedraw();
         }
