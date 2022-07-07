@@ -14,7 +14,7 @@
 </div>
 <div class="carousel-indicators">
     <div>
-        <span @onclick="decrementPage" class="oi oi-chevron-left" style="" />
+        <span @onclick="decrementPage" class="oi oi-chevron-left" />
     </div>
     @foreach (var i in Enumerable.Range(0, pages?.Count ?? 0))
     {
@@ -22,7 +22,7 @@
     }
 
     <div>
-        <span @onclick="incrementPage" class="oi oi-chevron-right" style="font-size: 7px;height: 8px; text-align: center;margin-left:3px;cursor: pointer" />
+        <span @onclick="incrementPage" class="oi oi-chevron-right" />
     </div>
 </div>
 
