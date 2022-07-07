@@ -6,10 +6,6 @@ namespace AccountManager.Blazor.Pages
     {
         private Account? editAccountTarget;
         private bool addAccountPrompt { get; set; } = false;
-        protected override void OnInitialized()
-        {
-            _appState.AccountsChanged += () => InvokeAsync(() => StateHasChanged());
-        }
         public void SaveList()
         {
             _appState.SaveAccounts();
@@ -17,6 +13,7 @@ namespace AccountManager.Blazor.Pages
         public void LoadList()
         {
             _ = _appState.UpdateAccounts();
+            InvokeAsync(() => StateHasChanged());
         }
         public void StartAddAccount()
         {

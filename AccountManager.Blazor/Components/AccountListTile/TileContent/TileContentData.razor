@@ -1,56 +1,29 @@
 ﻿@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages
+@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
+@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 @using AccountManager.Core.Models
-<div style="height: 100%; width:100%" id="carousel-@this.GetHashCode()" class="carousel slide" data-bs-ride="carousel">
-    <div style="height: 100%;" class="carousel-inner">
-        @if (Account.AccountType == Core.Enums.AccountType.League)
-        {
-            <div style="height: 100%;" class="carousel-item active">
-                <LeagueWinsPage Account="Account"/>
-            </div>
-        }
-        else if (Account.AccountType == Core.Enums.AccountType.Valorant)
-        {
-            <div style="height: 100%;" class="carousel-item active">
-                <ValorantRRChangePage Account="Account"/>
-            </div>        
-            <div style="height: 100%;" class="carousel-item">
-                <ValorantAverageACSPage Account="Account"/>
-            </div>        
-            <div style="height: 100%;" class="carousel-item">
-                <ValorantRankedWinsPage Account="Account"/>
-            </div>        
-            <div style="height: 100%;" class="carousel-item">
-                <ValorantMostUsedOpPage Account="Account"/>
-            </div>
-        }
-        else
-        {
-            <div style="height: 100%;" class="carousel-item active">
-                <LeagueWinsPage Account="Account"/>
-            </div>
-        }
+@using Microsoft.Extensions.Caching.Memory
+@using System.Reflection
+@inject IMemoryCache _cache
 
+<div class="data-page-container">
+    @if (pages?.Count > 0)
+    {
+        <DynamicComponent Type="pages[activePage]" Parameters="pageParams"></DynamicComponent>
+    }
+</div>
+<div class="carousel-indicators">
+    <div>
+        <span @onclick="decrementPage" class="oi oi-chevron-left" style="" />
     </div>
-    <div class="carousel-indicators" style="margin-bottom: 3px;">
-       @if (Account.AccountType == Core.Enums.AccountType.League)
-        {
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-        }
-        else if (Account.AccountType == Core.Enums.AccountType.Valorant)
-        {
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="3" aria-label="Slide 4"></button>
-        }
-        else
-        {
-            <button type="button" data-bs-target="#carousel-@this.GetHashCode()" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-        }
+    @foreach (var i in Enumerable.Range(0, pages?.Count ?? 0))
+    {
+        <button type="button" class="@getPageButtonClass(i)" @onclick="() => setPage(i)"></button>
+    }
+
+    <div>
+        <span @onclick="incrementPage" class="oi oi-chevron-right" style="font-size: 7px;height: 8px; text-align: center;margin-left:3px;cursor: pointer" />
     </div>
 </div>
 
-@code {
-    [Parameter]
-    public Account Account { get; set; }
-}
+

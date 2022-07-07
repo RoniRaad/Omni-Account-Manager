@@ -18,15 +18,15 @@
     private Dictionary<string, object> parameters = new Dictionary<string, object>
         {
             ["Account"] = new Account(),
-            ["IncrementPage"] = null,
-            ["DecrementPage"] = null,
+            ["IncrementPage"] = () => { },
+            ["DecrementPage"] = () => { },
     };
 
     protected override Task OnInitializedAsync()
     {
         parameters["Account"] = Account ?? new();
-        parameters["IncrementPage"] = IncrementPage;
-        parameters["DecrementPage"] = DecrementPage;
+        parameters["IncrementPage"] = (object)IncrementPage;
+        parameters["DecrementPage"] = (object)DecrementPage;
         navigationTitle = Pages?.ElementAt(pageIndex)?.GetField("Title")?.GetValue(null)?.ToString() ?? "Data";
         return base.OnInitializedAsync();
     }

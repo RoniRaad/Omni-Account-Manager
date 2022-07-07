@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Interfaces;
-using Blazorise.Charts;
+using AccountManager.Core.Enums;
 
-namespace AccountManager.Blazor.Components
+namespace AccountManager.Blazor.Components.AccountListTile
 {
-    public partial class AccountListItem
+    public partial class AccountListTile
     {
         [Parameter, EditorRequired]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -26,37 +26,28 @@ namespace AccountManager.Blazor.Components
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public IAccountService AccountService { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        ConfirmationRequest? deleteAccountConfirmationRequest = null;
+        private bool graphIsHovered = false;
+        private bool cardIsHovered = false;
+        private bool dragSymbolIsHovered = false;
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
-        async Task Login()
+        private string cardStyle
         {
-            if (loginDisabled)
-                return;
-
-            loginDisabled = true;
-            await AccountService.Login(Account);
-            loginDisabled = false;
-        }
-        
-        public void Delete()
-        {
-            deleteAccountConfirmationRequest = new ConfirmationRequest()
+            get
             {
-                Callback = (userConfirmed) =>
-                {
-                    if (userConfirmed)
-                    {
-                        AccountService.RemoveAccount(Account);
-                        ReloadList();
-                    }
-
-                    deleteAccountConfirmationRequest = null;
-                    InvokeAsync(() => StateHasChanged());
-                },
-                RequestMessage = "Are you sure you want to delete this account? This can NOT be undone."
-            };
+                if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered || Account.AccountType == AccountType.TeamFightTactics || Account.AccountType == AccountType.Steam)
+                    return "";
+                return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
+            }
         }
+
+        private void OpenSingleAccountModal()
+        {
+            if (cardStyle == "")
+                return;
+            showFullTile = true;
+        }
+
+        private bool showFullTile = false;
     }
 }
