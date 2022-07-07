@@ -1,0 +1,11 @@
+﻿@using AccountManager.Core.Enums
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Services
+@using Blazorise.Charts
+@inject AppState _state
+@inject ILeagueGraphService _leagueGraphService
+@implements ILeaguePage
+
+<BarChart @ref="barChart" Options="barChartOptions" TItem="double?"></BarChart>
+

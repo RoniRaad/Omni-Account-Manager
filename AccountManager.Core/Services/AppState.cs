@@ -9,31 +9,13 @@ namespace AccountManager.Core.Services
     {
         private readonly IAccountService _accountService;
         public RangeObservableCollection<Account> Accounts { get; set; }
-        public event Action AccountsChanged;
-        public event Action UpdateGraphs;
         public bool IsInitialized { get; set; } = false;
         public AppState(IAccountService accountService)
         {
             _accountService = accountService;
             Accounts = new RangeObservableCollection<Account>();
             Accounts.AddRange(_accountService.GetAllAccountsMin());
-            UpdateGraphs = delegate { };
-            AccountsChanged = delegate
-            {
-                UpdateGraphs.Invoke();
-            };
-            Accounts.CollectionChanged += async (s, e) => {
-                if (!IsInitialized)
-                    return;
-
-                Accounts?.RemoveAll((account) => Accounts.Count((innerAccount) => account.Guid == innerAccount.Guid) > 1);
-
-                if (Accounts?.ToList() is not null)
-                    _accountService.WriteAllAccounts(Accounts?.ToList() ?? new());
-
-                await Task.Delay(1); // Fixes UI bugs with elements dependent on the Accounts property
-                AccountsChanged.Invoke();
-            };
+          
             _ = UpdateAccounts();
 
             StartUpdateTimer();
@@ -73,9 +55,5 @@ namespace AccountManager.Core.Services
             _accountService.WriteAllAccounts(Accounts.ToList());
         }
 
-        public void NotifyChange()
-        {
-            AccountsChanged.Invoke();
-        }
     }
 }
