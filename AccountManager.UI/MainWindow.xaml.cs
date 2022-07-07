@@ -14,6 +14,7 @@ using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Core.Services.GraphServices;
+using AccountManager.Infrastructure.CachedClient;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;

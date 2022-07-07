@@ -65,7 +65,7 @@ namespace AccountManager.Infrastructure.Clients
             });
         }
 
-        public async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
+        private async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
         {
             var sessionToken = await GetLeagueSessionToken(account);
 
@@ -250,15 +250,8 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<List<LeagueQueueMapResponse>?> GetLeagueQueueMappings()
         {
-            if (_memoryCache.TryGetValue(nameof(GetLeagueQueueMappings), out List<LeagueQueueMapResponse>? queueMapping))
-                return queueMapping;
-
             var client = _httpClientFactory.CreateClient();
-            queueMapping = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>($"{_riotApiUri.RiotCDN}/docs/lol/queues.json");
-
-            if (queueMapping is not null)
-                _memoryCache.Set(nameof(GetLeagueQueueMappings), queueMapping);
-
+            var queueMapping = await client.GetFromJsonAsync<List<LeagueQueueMapResponse>>($"{_riotApiUri.RiotCDN}/docs/lol/queues.json");
             return queueMapping;
         }
 
@@ -283,14 +276,10 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<UserChampSelectHistory?> GetUserChampSelectHistory(Account account, int startIndex, int endIndex)
         {
-            var cacheKey = $"{nameof(GetUserChampSelectHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            if (_memoryCache.TryGetValue(cacheKey, out UserChampSelectHistory? matchHistory))
-                return matchHistory;
-
             var rankResponse = await GetUserLeagueMatchHistory(account, startIndex, endIndex);
             var userInGames = rankResponse?.Games?.Select((game) => game?.Json?.Participants?.FirstOrDefault((participants) => participants?.Puuid == account.PlatformId, null));
             var selectedChampGroup = userInGames?.GroupBy((userInGame) => userInGame?.ChampionName);
-            matchHistory =  new UserChampSelectHistory()
+            var matchHistory =  new UserChampSelectHistory()
             {
                 Champs = selectedChampGroup?.Select((grouping) => new ChampSelectedCount()
                 {
@@ -299,49 +288,30 @@ namespace AccountManager.Infrastructure.Clients
                 }) ?? new List<ChampSelectedCount>()
             };
 
-            if (matchHistory is not null)
-                _memoryCache.Set(cacheKey, matchHistory);
-
             return matchHistory;
         }
 
         public async Task<MatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
         {
-            var cacheKey = $"{nameof(GetUserLeagueMatchHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            if (_memoryCache.TryGetValue(cacheKey, out MatchHistory? matchHistory))
-                return matchHistory;
-
             var rankResponse = await GetLeagueMatchHistory(account, startIndex, endIndex);
-
             if (rankResponse is null)
                 return null;
 
-            matchHistory = _autoMapper.Map<MatchHistory>(rankResponse);
-
-            if (matchHistory is not null)
-                _memoryCache.Set(cacheKey, matchHistory);
+            var matchHistory = _autoMapper.Map<MatchHistory>(rankResponse);
 
             return matchHistory;
         }
 
         public async Task<TeamFightTacticsMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
         {
-            var cacheKey = $"{nameof(GetUserTeamFightTacticsMatchHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            if (_memoryCache.TryGetValue(cacheKey, out TeamFightTacticsMatchHistory? matchHistory))
-                return matchHistory;
-
             if (!_settings.Settings.UseAccountCredentials)
                 return new();
-
 
             var token = await GetLeagueSessionToken(account);
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistory>($"{_riotApiUri.LeagueSessionUS}/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex={startIndex}&count={endIndex}");
             
-            if (matchHistory is not null)
-                _memoryCache.Set(cacheKey, matchHistory);
-
             return rankResponse;
         }
 

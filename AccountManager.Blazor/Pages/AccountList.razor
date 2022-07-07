@@ -16,7 +16,7 @@
 
 <div class="container-fluid" style="padding-left:0px;padding-right:0px;margin-top: -12px;justify-content: space-between;">
     <div class="row" style="--bs-gutter-x: 0rem">
-        <Dropzone Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(item => "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2")" Items="_appState.Accounts" TItem="Account">
+        <Dropzone Class="display-content" OnReplacedItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(item => "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2")" Items="_appState.Accounts" TItem="Account">
                 <AccountListTile AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}" ></AccountListTile>
         </Dropzone>
 
