@@ -2,9 +2,6 @@
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League;
-using AccountManager.Core.Static;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
 {
@@ -12,39 +9,27 @@ namespace AccountManager.Core.Services.GraphServices
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IDistributedCache _persistantCache;
-        const AccountType accountType = AccountType.League;
-        const string cacheKeyFormat = "{0}.{1}.{2}";
 
-        public LeagueGraphService(ILeagueClient leagueClient, IRiotClient riotClient, 
-            IMemoryCache memoryCache, IDistributedCache persistantCache)
+        public LeagueGraphService(ILeagueClient leagueClient, IRiotClient riotClient)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
-            _memoryCache = memoryCache;
-            _persistantCache = persistantCache;
         }
 
         public async Task<LineGraph> GetRankedWinsGraph(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsGraph), accountType);
-            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
-            if (lineGraph is not null)
-                return lineGraph;
-
-            lineGraph = new();
+            var lineGraph = new LineGraph();
 
             try
             {
                 var soloQueueRank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
 
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 15);
+                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account);
                 var queueMapping = await _leagueClient.GetLeagueQueueMappings();
 
                 var gameMatchesByType = new Dictionary<string, RankedGraphData>();
@@ -96,8 +81,6 @@ namespace AccountManager.Core.Services.GraphServices
                 lineGraph.Title = "Ranked Wins";
                 lineGraph.Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
 
-                if (lineGraph is not null && lineGraph?.Data?.Any() is true)
-                    await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
                 return lineGraph ?? new();
             }
@@ -109,21 +92,17 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<PieChart> GetRankedChampSelectPieChart(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedChampSelectPieChart), accountType);
-            PieChart? pieChart = await _persistantCache.GetAsync<PieChart>(cacheKey);
-
-            if (pieChart is not null)
-                return pieChart;
+            PieChart? pieChart = new();
 
             var matchHistoryResponse = new UserChampSelectHistory();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account, 0, 25);
+                matchHistoryResponse = await _leagueClient.GetUserChampSelectHistory(account);
                 pieChart = new();
 
                 if (matchHistoryResponse is null)
@@ -141,9 +120,6 @@ namespace AccountManager.Core.Services.GraphServices
                 pieChart.Title = "Recently Used Champs";
                 pieChart.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
                 
-                if (pieChart is not null && pieChart?.Data?.Any() is true)
-                    await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
-
                 return pieChart ?? new();
             }
             catch
@@ -155,20 +131,16 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<BarChart> GetRankedWinrateByChampBarChartAsync(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinrateByChampBarChartAsync), accountType);
-            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
-
-            if (barChart is not null)
-                return barChart;
+            BarChart? barChart = new BarChart();
 
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 25);
+                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account);
                 barChart = new();
                 if (matchHistoryResponse is null)
                     return new();
@@ -189,9 +161,6 @@ namespace AccountManager.Core.Services.GraphServices
                 barChart.Title = "Recent Winrate";
                 barChart.Type = "percent";
 
-                if (barChart is not null && barChart?.Data?.Any() is true)
-                    await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
-
                 return barChart ?? new();
             }
             catch
@@ -203,20 +172,16 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<BarChart> GetRankedCsRateByChampBarChartAsync(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedCsRateByChampBarChartAsync), accountType);
-            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
-
-            if (barChart is not null)
-                return barChart;
+            BarChart? barChart = new();
 
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account, 0, 25);
+                var matchHistoryResponse = await _leagueClient.GetUserLeagueMatchHistory(account);
                 if (matchHistoryResponse is null)
                     return new();
 
@@ -248,9 +213,6 @@ namespace AccountManager.Core.Services.GraphServices
 
                 barChart.Data = barChartData ?? new List<BarChartData>();
                 barChart.Title = "Recent CS Per Minute";
-
-                if (barChart is not null && barChart?.Data?.Any() is true)
-                    await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
 
                 return barChart ?? new();
             }

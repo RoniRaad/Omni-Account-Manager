@@ -1,9 +1,16 @@
 ﻿@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages
+@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Infrastructure.CachedClients
+@using Microsoft.Extensions.Caching.Distributed
+@using Microsoft.Extensions.Caching.Memory
+@inject ILeagueClient _leagueClient 
 
+@inject IDistributedCache _distributedCache
+@inject IMemoryCache _memoryCache
 
 <li class="list-group-item" style="padding:8px">
-    <span class="oi oi-reload" style="position: absolute;margin: 7px;right: 0;font-size: 9px;cursor: pointer;"></span>
+    <span class="oi oi-reload" @onclick="RefreshData" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph" />
     <div>
         <p class="account-title">@Account?.Username</p>
         @if (Account?.Rank?.Tier is null && Account?.Rank?.Ranking is null)

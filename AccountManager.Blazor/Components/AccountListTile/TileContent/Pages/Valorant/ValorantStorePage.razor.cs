@@ -23,7 +23,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             _account = Account;
 
             storeFrontSkins.Clear();
-            var items = await _riotClient.GetValorantShopDeals(Account);
+            var items = await _valorantClient.GetValorantShopDeals(Account);
 
             foreach (var item in items)
             {
@@ -42,7 +42,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 _account = Account;
 
                 storeFrontSkins.Clear();
-                var items = await _riotClient.GetValorantShopDeals(Account);
+                var items = await _valorantClient.GetValorantShopDeals(Account);
 
                 foreach (var item in items)
                 {

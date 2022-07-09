@@ -16,6 +16,9 @@
 .data-page-container {
     height: 94%;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .carousel-indicators {
@@ -30,6 +33,7 @@
 span {
     font-size: 7px;
     height: 8px;
+    margin-left: 3px;
     margin-right: 3px;
     cursor: pointer
 }

@@ -38,5 +38,37 @@ namespace AccountManager.Core.Static
 
             return JsonSerializer.Deserialize<T>(value);
         }
+
+        public static async Task<T?> GetOrCreateAsync<T>(this IDistributedCache cache, string key, Func<Task<T>> factory)
+        {
+            var value = await cache.GetAsync<T>(key);
+            if (value is not null)
+                return value;
+
+            value = await factory();
+
+            if (value is null)
+                return value;
+
+            await cache.SetAsync(key, value);
+
+            return value;
+        }
+
+        public static async Task<T?> GetOrCreateAsync<T>(this IDistributedCache cache, string key, Func<Task<T>> factory, TimeSpan expireTimeSpan)
+        {
+            var value = await cache.GetAsync<T>(key);
+            if (value is not null)
+                return value;
+
+            value = await factory();
+
+            if (value is null)
+                return value;
+
+            await cache.SetAsync(key, value, expireTimeSpan);
+
+            return value;
+        }
     }
 }

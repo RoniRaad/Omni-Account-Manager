@@ -65,6 +65,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
             },
         };
+
         async Task HandleRedraw()
         {
             barChart?.Clear();
@@ -77,9 +78,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             _account = Account;
+            displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
         }
 
         protected override async Task OnAfterRenderAsync(bool first)

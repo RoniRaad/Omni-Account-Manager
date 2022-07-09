@@ -3,30 +3,22 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Responses;
 using AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
-using AccountManager.Infrastructure.Clients;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace AccountManager.Infrastructure.CachedClient
+namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedRemoteLeagueClient
+    public class CachedLeagueClient : ILeagueClient
     {
         private readonly IMemoryCache _memoryCache;
-        private readonly IUserSettingsService<UserSettings> _settings;
         private readonly ILeagueClient _leagueClient;
-
-        public CachedRemoteLeagueClient(IMemoryCache memoryCache, ILeagueClient leagueClient,
-            ICurlRequestBuilder curlRequestBuilder, IUserSettingsService<UserSettings> settings)
+        public CachedLeagueClient(IMemoryCache memoryCache, ILeagueClient leagueClient)
         {
             _memoryCache = memoryCache;
-            _settings = settings;
             _leagueClient = leagueClient;
         }
 
         public async Task<Rank> GetSummonerRankByPuuidAsync(Account account)
         {
-            if (!_settings.Settings.UseAccountCredentials)
-                return new Rank();
-
             var cacheKey = $"{nameof(GetSummonerRankByPuuidAsync)}.{account.Username}";
 
             return await _memoryCache.GetOrCreateAsync(cacheKey,
@@ -38,10 +30,7 @@ namespace AccountManager.Infrastructure.CachedClient
 
         public async Task<Rank> GetTFTRankByPuuidAsync(Account account)
         {
-            var cacheKey = $"{nameof(GetTFTRankByPuuidAsync)}.{account.Username}";
-
-            if (!_settings.Settings.UseAccountCredentials)
-                return new Rank();
+            var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetTFTRankByPuuidAsync)}";
 
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
@@ -61,36 +50,36 @@ namespace AccountManager.Infrastructure.CachedClient
                 }) ?? new();
         }
 
-        public async Task<UserChampSelectHistory?> GetUserChampSelectHistory(Account account, int startIndex, int endIndex)
+        public async Task<UserChampSelectHistory?> GetUserChampSelectHistory(Account account)
         {
-            var cacheKey = $"{nameof(GetUserChampSelectHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            
+            var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetUserChampSelectHistory)}";
+
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserChampSelectHistory(account, startIndex, endIndex);
+                   return await _leagueClient.GetUserChampSelectHistory(account);
                }) ?? new();
         }
 
-        public async Task<MatchHistory?> GetUserLeagueMatchHistory(Account account, int startIndex, int endIndex)
+        public async Task<MatchHistory?> GetUserLeagueMatchHistory(Account account)
         {
-            var cacheKey = $"{nameof(GetUserLeagueMatchHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            
+            var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetUserLeagueMatchHistory)}";
+
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserLeagueMatchHistory(account, startIndex, endIndex);
+                   return await _leagueClient.GetUserLeagueMatchHistory(account);
                }) ?? new();
         }
 
-        public async Task<TeamFightTacticsMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account, int startIndex, int endIndex)
+        public async Task<TeamFightTacticsMatchHistory?> GetUserTeamFightTacticsMatchHistory(Account account)
         {
-            var cacheKey = $"{nameof(GetUserTeamFightTacticsMatchHistory)}.{account.Username}.{startIndex}.{endIndex}";
-            
+            var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetUserTeamFightTacticsMatchHistory)}";
+
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserTeamFightTacticsMatchHistory(account, startIndex, endIndex);
+                   return await _leagueClient.GetUserTeamFightTacticsMatchHistory(account);
                }) ?? new();
         }
     }

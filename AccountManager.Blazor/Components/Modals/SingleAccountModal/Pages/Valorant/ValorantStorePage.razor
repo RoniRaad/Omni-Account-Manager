@@ -1,7 +1,9 @@
 ﻿@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.RiotGames.Valorant.Responses
-@inject IRiotClient _riotClient
+@using AccountManager.Infrastructure.CachedClients
+@using AccountManager.Infrastructure.Clients
+@inject IValorantClient _valorantClient
 
 <div class="container" style="">
     <div class="row skin-container">

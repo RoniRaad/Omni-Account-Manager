@@ -1,19 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
-using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages;
 using AccountManager.Core.Models;
+using AccountManager.Core.Interfaces;
+using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -27,5 +15,33 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         [Parameter]
         public EventCallback MouseExitGraph { get; set; }
+
+        public void RefreshData()
+        {
+            var cacheKeys = typeof(ILeagueGraphService).GetMembers()
+            .Concat(typeof(IValorantGraphService).GetMembers())
+            .Concat(typeof(ITeamFightTacticsGraphService).GetMembers())
+            .Concat(typeof(ILeagueClient).GetMembers())
+            .Concat(typeof(IValorantClient).GetMembers()).Select(method => $"{Account.Username}.{Account.AccountType}.{method.Name}");
+
+            foreach (var key in cacheKeys)
+            {
+                _memoryCache.Remove(key);
+                _distributedCache.Remove(key);
+            }
+
+            Account = new Account()
+            {
+                AccountType = Account.AccountType,
+                Guid = Account.Guid,
+                Id = Account.Id,
+                PlatformId = Account.PlatformId,
+                Password = Account.Password,
+                Username = Account.Username,
+                Rank = Account.Rank,
+            };
+
+            InvokeAsync(() => StateHasChanged());
+        }
     }
 }

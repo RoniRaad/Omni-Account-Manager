@@ -40,7 +40,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return false;
             }
         }
-
+       
         public bool IsFileLocked(string filePath)
         {
             if (!File.Exists(filePath))

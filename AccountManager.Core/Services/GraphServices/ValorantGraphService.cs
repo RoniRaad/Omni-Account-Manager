@@ -4,6 +4,7 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Static;
+using AccountManager.Infrastructure.Clients;
 using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,34 +13,26 @@ namespace AccountManager.Core.Services.GraphServices
 {
     public class ValorantGraphService : IValorantGraphService
     {
-        private readonly IRiotClient _riotClient;
         private readonly AlertService _alertService;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IDistributedCache _persistantCache;
+        private readonly IValorantClient _valorantClient;
         private readonly IMapper _mapper;
-        const AccountType accountType = AccountType.Valorant;
-        const string cacheKeyFormat = "{0}.{1}.{2}";
-        public ValorantGraphService(IRiotClient riotClient, AlertService alertService,
-            IMemoryCache memoryCache, IMapper mapper, IDistributedCache persistantCache)
+        public ValorantGraphService(AlertService alertService, IMapper mapper,
+             IDistributedCache persistantCache,
+             IValorantClient valorantClient)
         {
-            _riotClient = riotClient;
             _alertService = alertService;
-            _memoryCache = memoryCache;
             _mapper = mapper;
-            _persistantCache = persistantCache;
+            _valorantClient = valorantClient;
         }
         public async Task<LineGraph> GetRankedWinsLineGraph(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsLineGraph), accountType);
-            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
-            if (lineGraph is not null)
-                return lineGraph;
+            LineGraph? lineGraph = new();
 
             IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
 
             try
             {
-                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+                matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
             catch
             {
@@ -89,24 +82,16 @@ namespace AccountManager.Core.Services.GraphServices
                 Title = "Ranked Wins"
             };
 
-            if (lineGraph is not null)
-                await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
-
             return lineGraph ?? new();
         }
 
         public async Task<BarChart> GetRankedACS(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedWinsLineGraph), accountType);
-            BarChart? barChart = await _persistantCache.GetAsync<BarChart>(cacheKey);
-            if (barChart is not null)
-                return barChart;
-
             IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
 
             try
             {
-                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+                matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
             catch
             {
@@ -136,31 +121,25 @@ namespace AccountManager.Core.Services.GraphServices
                 };
             }).ToList();
 
-            barChart = new BarChart
+            var barChart = new BarChart
             {
                 Labels = groupedMatches.Select(group => group.Key).ToList(),
                 Data = barChartData,
                 Title = "Average ACS"
             };
 
-            if (barChart is not null)
-                await _persistantCache.SetAsync(cacheKey, barChart, new TimeSpan(0, 30, 0));
-
             return barChart ?? new();
         }
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRecentlyUsedOperatorsPieChartAsync), accountType);
-            PieChart? pieChart = await _persistantCache.GetAsync<PieChart>(cacheKey);
-            if (pieChart is not null)
-                return pieChart;
+            PieChart? pieChart = new PieChart();
 
             IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
 
             try
             {
-                matchHistory = await _riotClient.GetValorantGameHistory(account, 0, 15) ?? new List<ValorantMatch>();
+                matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
             catch
             {
@@ -188,24 +167,18 @@ namespace AccountManager.Core.Services.GraphServices
             pieChart.Data = dataList;
             pieChart.Title = "Recently Used Agents";
 
-            if (pieChart is not null)
-                await _persistantCache.SetAsync(cacheKey, pieChart, new TimeSpan(0, 30, 0));
-
             return pieChart ?? new();
         }
 
         public async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedRRChangeLineGraph), accountType);
-            LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
-            if (lineGraph is not null)
-                return lineGraph;
+            LineGraph? lineGraph = new();
 
             ValorantRankedHistoryResponse matchHistory = new ValorantRankedHistoryResponse();
 
             try
             {
-                matchHistory = await _riotClient.GetValorantCompetitiveHistory(account, 0, 15) ?? new ValorantRankedHistoryResponse();
+                matchHistory = await _valorantClient.GetValorantCompetitiveHistory(account) ?? new ValorantRankedHistoryResponse();
             }
             catch
             {
@@ -241,9 +214,6 @@ namespace AccountManager.Core.Services.GraphServices
                 Data = graphData,
                 Title = "RR Change"
             };
-
-            if (lineGraph is not null)
-                await _persistantCache.SetAsync(cacheKey, lineGraph, new TimeSpan(0, 30, 0));
 
             return lineGraph ?? new();
         }
