@@ -99,11 +99,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             _account = Account;
-            displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
-            await HandleRedraw();
         }
 
         protected override async Task OnAfterRenderAsync(bool first)
@@ -112,6 +110,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
                 await HandleRedraw();
+
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 

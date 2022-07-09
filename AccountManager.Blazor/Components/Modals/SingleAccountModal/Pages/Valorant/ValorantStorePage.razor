@@ -7,7 +7,7 @@
 
 <div class="container" style="">
     <div class="row skin-container">
-        @if (storeFrontSkins?.Any() is not true)
+        @if (storeFrontSkins is null)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -18,7 +18,7 @@
                 </div>
             }
         }
-        else if (noDataReturned)
+        else if (storeFrontSkins?.Any() is not true)
         {
             for (int i = 0; i < 4; i++)
             {

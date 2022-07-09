@@ -13,6 +13,10 @@
         <span class="visually-hidden">Loading...</span>
     </div>
 }
+else if (displayGraph?.Data?.Any() is not true)
+{
+    <h5 style="color:#858585">No data available</h5>
+}
 
-<LineChart Class="@(displayGraph is null ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
+<LineChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
 

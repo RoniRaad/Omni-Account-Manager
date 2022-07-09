@@ -1,0 +1,45 @@
+﻿body {
+}
+
+.skins-page-container {
+    display: flex;
+    align-items: center;
+    height: 100%
+}
+
+p {
+    color: #666666;
+    margin-left: -4px;
+    writing-mode: vertical-rl;
+    text-orientation: unset;
+    transform: rotate(-180deg);
+    text-align: center;
+    position: absolute;
+    font-family: 'Roboto';
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.skins-display-container {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.skin-container {
+    width: 40%;
+    height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-light);
+    border-radius: 5px
+}
+
+.skin-icon {
+    max-width: 95%;
+    max-height: 95%
+}

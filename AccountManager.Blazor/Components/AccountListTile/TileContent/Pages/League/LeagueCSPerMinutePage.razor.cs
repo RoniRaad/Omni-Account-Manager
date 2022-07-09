@@ -81,7 +81,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         protected override async Task OnInitializedAsync()
         {
             _account = Account;
-            displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
         }
 
         protected override async Task OnAfterRenderAsync(bool first)
@@ -90,6 +89,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
                 await HandleRedraw();
+
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 

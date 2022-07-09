@@ -25,8 +25,8 @@
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" >
-                        <TextBlock Margin="7,0,0,0" VerticalAlignment="Center" Foreground="White">Multi Account Manager</TextBlock>
-                        <TextBlock x:Name="versionNum" Margin="7,0,315,0" VerticalAlignment="Center" Foreground="White">v1.6.2.0</TextBlock>
+                        <TextBlock Margin="7,0,0,0" VerticalAlignment="Center" Foreground="White">Omni Account Manager</TextBlock>
+                        <TextBlock x:Name="versionNum" Margin="7,0,315,0" VerticalAlignment="Center" Foreground="White">v1.6.3.0</TextBlock>
                     </StackPanel>
                 </Grid>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">

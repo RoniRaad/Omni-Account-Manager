@@ -75,6 +75,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
                 await HandleRedraw();
+
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 
