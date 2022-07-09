@@ -1,5 +1,4 @@
-﻿
-using AccountManager.Core.Enums;
+﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
@@ -26,7 +25,7 @@ namespace AccountManager.Core.Services.GraphServices
         }
         public async Task<LineGraph> GetRankedPlacementOffset(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, nameof(GetRankedPlacementOffset), accountType);
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, accountType, nameof(GetRankedPlacementOffset));
             LineGraph? lineGraph = await _persistantCache.GetAsync<LineGraph>(cacheKey);
             if (lineGraph is not null)
                 return lineGraph;
@@ -34,11 +33,11 @@ namespace AccountManager.Core.Services.GraphServices
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return new();
 
-                var matchHistoryResponse = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account, 0, 10);
+                var matchHistoryResponse = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account);
 
                 var queueMapping = await _leagueClient.GetLeagueQueueMappings();
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
@@ -14,7 +12,8 @@ using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Core.Services.GraphServices;
-using AccountManager.Infrastructure.CachedClient;
+using AccountManager.Core.Services.GraphServices.Cached;
+using AccountManager.Infrastructure.CachedClients;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
@@ -23,9 +22,9 @@ using AccountManager.Infrastructure.Services.Token;
 using AccountManager.UI.Extensions;
 using Blazorise;
 using Blazorise.Bootstrap;
-using Blazorise.Charts;
 using Blazorise.Icons.FontAwesome;
-using CloudFlareUtilities;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
@@ -33,10 +32,10 @@ using Plk.Blazor.DragDrop;
 
 namespace AccountManager.UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
 
@@ -228,15 +227,22 @@ namespace AccountManager.UI
 
 				cfg.AllowNullDestinationValues = true;
 			});
-			serviceCollection.AddTransient<RemoteLeagueClient>();
-			serviceCollection.AddSingleton<LocalLeagueClient>();
+			serviceCollection.AddTransient<LeagueClient>();
+			serviceCollection.AddSingleton<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
-			serviceCollection.AddSingleton<LeagueFileSystemService>();
-			serviceCollection.AddSingleton<ILeagueClient, RemoteLeagueClient>();
-			serviceCollection.AddSingleton<IRiotClient, RiotClient>();
+			serviceCollection.AddSingleton<ValorantClient>();
+            serviceCollection.AddSingleton<LeagueFileSystemService>();
+            serviceCollection.AddSingleton<ValorantGraphService>();
+            serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
+			serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
+			serviceCollection.AddSingleton<RiotClient>();
+			serviceCollection.AddSingleton<LeagueClient>();
+			serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
+			serviceCollection.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<ILeagueGraphService, LeagueGraphService>();
-			serviceCollection.AddSingleton<IValorantGraphService, ValorantGraphService>();
+			serviceCollection.AddSingleton<LeagueGraphService>();
+			serviceCollection.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
+			serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();

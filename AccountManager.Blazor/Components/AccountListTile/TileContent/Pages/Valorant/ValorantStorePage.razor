@@ -2,23 +2,32 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
+@using AccountManager.Infrastructure.CachedClients
+@using AccountManager.Infrastructure.Clients
 @using Blazorise.Charts
 @inject AppState _state
-@inject IRiotClient _riotClient
+@inject IValorantClient _valorantClient
 @implements IValorantPage
 
-<div style="display:flex;align-items: center;height: 100%">
-    <p style="color: #666666;margin-left: -4px;writing-mode: vertical-rl;text-orientation: unset;transform: rotate(-180deg);text-align: center;position: absolute;font-family: 'Roboto';font-size: 10px;font-weight: bold;">Store Front</p>
-    <div style="display:flex;height:100%;flex-direction: row;align-items: center;flex-wrap: wrap;justify-content: space-around;">
-        @if (storeFrontSkins?.Any() is true)
-        {
-            for (int i = 0; i < 4; i++)
+@if (storeFrontSkins?.Any() is not true)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else
+{
+    <div style="display:flex;align-items: center;height: 100%">
+        <p style="color: #666666;margin-left: -4px;writing-mode: vertical-rl;text-orientation: unset;transform: rotate(-180deg);text-align: center;position: absolute;font-family: 'Roboto';font-size: 10px;font-weight: bold;">Store Front</p>
+        <div style="display:flex;height:100%;flex-direction: row;align-items: center;flex-wrap: wrap;justify-content: space-around;">
+            @for (int i = 0; i < 4; i++)
             {
                 <div title="@storeFrontSkins[i].Data.DisplayName: @storeFrontSkins[i].Data.Price VP" style="width:40%; height:40%;display: flex;align-items: center;justify-content: center; background-color: var(--primary-light);border-radius:5px">
                     <img class="skin-icon" style="max-width:95%; max-height:95%" src="@storeFrontSkins[i].Data.DisplayIcon" />
                 </div>
             }
-        }
+        </div>
     </div>
-</div>
+}
+
 

@@ -62,9 +62,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             _account = Account;
+            displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
+            await HandleRedraw();
         }
 
         protected override async Task OnAfterRenderAsync(bool first)

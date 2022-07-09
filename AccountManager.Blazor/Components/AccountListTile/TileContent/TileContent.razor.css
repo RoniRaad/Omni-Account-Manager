@@ -156,3 +156,11 @@ span:active {
     box-shadow: 0px 0px 6px white;
     cursor: grab;
 }
+
+span {
+    position: absolute;
+    margin: 7px;
+    right: 0;
+    font-size: 9px;
+    cursor: pointer;
+}

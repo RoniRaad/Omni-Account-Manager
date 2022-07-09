@@ -7,6 +7,13 @@
 @inject IValorantGraphService _valorantGraphService
 @implements IValorantPage
 
-<PieChart @ref="pieChart" Options="pieChartOptions" TItem="PieChartData"></PieChart>
+@if (displayGraph is null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+
+<PieChart Class="@(displayGraph is null ? " d-none" : "")" @ref="pieChart" Options="pieChartOptions" TItem="PieChartData"></PieChart>
 
 

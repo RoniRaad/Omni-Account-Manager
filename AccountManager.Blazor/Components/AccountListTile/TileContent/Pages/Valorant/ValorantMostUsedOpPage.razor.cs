@@ -69,8 +69,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
-{
+        protected override async Task OnInitializedAsync()
+        {
             _account = Account;
         }
 

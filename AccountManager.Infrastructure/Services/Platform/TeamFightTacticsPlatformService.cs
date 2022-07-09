@@ -9,6 +9,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http.Json;
 using AccountManager.Core.Exceptions;
+using AccountManager.Infrastructure.CachedClients;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -195,7 +196,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return (false, rank);
 
@@ -223,7 +224,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (!string.IsNullOrEmpty(account.PlatformId))
                     return (true, account.PlatformId);
 
-                var id = await _riotClient.GetPuuId(account.Username, account.Password);
+                var id = await _riotClient.GetPuuId(account);
                 return (id is not null, id ?? string.Empty);
             }
             catch

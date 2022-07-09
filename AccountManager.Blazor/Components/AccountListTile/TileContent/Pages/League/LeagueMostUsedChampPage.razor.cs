@@ -67,9 +67,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             _account = Account;
+            displayGraph = await _leagueGraphService.GetRankedChampSelectPieChart(Account);
+
         }
 
         protected override async Task OnAfterRenderAsync(bool first)
@@ -81,7 +83,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             }
         }
 
-        protected override async Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
 {
             if (_account != Account)
 {

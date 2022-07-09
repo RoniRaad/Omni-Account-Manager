@@ -37,7 +37,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
             if (Account is null)
                 return;
             storeFrontSkins.Clear();
-            var items = await _riotClient.GetValorantShopDeals(Account);
+            var items = await _valorantClient.GetValorantShopDeals(Account);
             foreach (var item in items)
             {
                 storeFrontSkins.Add(item);

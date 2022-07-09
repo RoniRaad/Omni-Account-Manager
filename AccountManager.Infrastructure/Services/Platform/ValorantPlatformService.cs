@@ -7,6 +7,8 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Services;
+using AccountManager.Infrastructure.CachedClients;
+using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,6 +20,7 @@ namespace AccountManager.Infrastructure.Services.Platform
     public class ValorantPlatformService : IPlatformService
     {
         private readonly ITokenService _riotService;
+        private readonly IValorantClient _valorantClient;
         private readonly IRiotClient _riotClient;
         private readonly RiotFileSystemService _riotFileSystemService;
         private readonly AlertService _alertService;
@@ -28,7 +31,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
-            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService)
+            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService, IValorantClient valorantClient)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
@@ -38,6 +41,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _memoryCache = memoryCache;
             _mapper = mapper;
             _settingsService = settingsService;
+            _valorantClient = valorantClient;
         }
         private async Task<bool> TryLoginUsingRCU(Account account)
         {
@@ -197,11 +201,11 @@ namespace AccountManager.Infrastructure.Services.Platform
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    account.PlatformId = await _riotClient.GetPuuId(account.Username, account.Password);
+                    account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
                     return (false, rank);
 
-                rank = await _riotClient.GetValorantRank(account);
+                rank = await _valorantClient.GetValorantRank(account);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
                     _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
@@ -226,7 +230,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return new (true, account.PlatformId);
                 }
 
-                var id = await _riotClient.GetPuuId(account.Username, account.Password);
+                var id = await _riotClient.GetPuuId(account);
                 return new(id is not null, id ?? string.Empty);
             }
             catch

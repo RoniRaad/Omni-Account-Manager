@@ -13,8 +13,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         private Account _account = new();
         [Parameter]
         public Account Account { get; set; } = new();
-
+        LineGraph? displayGraph;
         LineChart<CoordinatePair>? lineChart;
+
         LineChartOptions lineChartOptions = new()
         {
             MaintainAspectRatio = false,
@@ -97,9 +98,12 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             });
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
-        protected override void OnInitialized()
+
+        protected override async Task OnInitializedAsync()
         {
             _account = Account;
+            displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
+            await HandleRedraw();
         }
 
         protected override async Task OnAfterRenderAsync(bool first)
@@ -122,7 +126,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             }
         }
 
-        LineGraph? displayGraph;
         List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
         List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
     }

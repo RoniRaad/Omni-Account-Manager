@@ -7,6 +7,13 @@
 @inject IValorantGraphService _valorantGraphService
 @implements IValorantPage
 
-<LineChart @ref="lineChart" Options="lineChartOptions"  TItem="CoordinatePair"></LineChart>
+@if (displayGraph is null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+
+<LineChart Class="@(displayGraph is null ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
 
 
