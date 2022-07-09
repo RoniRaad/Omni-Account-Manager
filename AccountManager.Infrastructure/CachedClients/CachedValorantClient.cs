@@ -1,4 +1,5 @@
-﻿using AccountManager.Core.Models;
+﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Clients;
@@ -26,7 +27,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _valorantClient.GetValorantCompetitiveHistory(account);
+                   var value = await _valorantClient.GetValorantCompetitiveHistory(account);
+                   if (value is null)
+                       entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                   return value;
                }) ?? new();
         }
 
@@ -37,7 +42,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _valorantClient.GetValorantGameHistory(account);
+                   var value = await _valorantClient.GetValorantGameHistory(account);
+                   if (value is null)
+                       entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                   return value;
                }) ?? new List<ValorantMatch>();
         }
 
@@ -48,7 +57,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
-                    return await _valorantClient.GetValorantRank(account);
+                    var value = await _valorantClient.GetValorantRank(account);
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
                 }) ?? new();
         }
 
@@ -56,11 +69,18 @@ namespace AccountManager.Infrastructure.CachedClients
         {
             var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetValorantShopDeals)}";
 
+            var expireDate = DateTimeOffset.UtcNow;
+            expireDate = expireDate
+                .AddHours(-expireDate.Hour)
+                .AddMinutes(-expireDate.Minute)
+                .AddSeconds(-expireDate.Second)
+                .AddHours(12);
+
             return await _persistantCache.GetOrCreateAsync(cacheKey,
                 async () =>
                 {
                     return await _valorantClient.GetValorantShopDeals(account);
-                }, TimeSpan.FromHours(1)) ?? new();
+                }, expireDate) ?? new();
         }
 
         public async Task<string?> GetValorantToken(Account account)
@@ -71,7 +91,11 @@ namespace AccountManager.Infrastructure.CachedClients
                 async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55);
-                    return await _valorantClient.GetValorantToken(account);
+                    var value = await _valorantClient.GetValorantToken(account);
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
                 }) ?? "";
         }
     }

@@ -228,21 +228,22 @@ namespace AccountManager.UI
 				cfg.AllowNullDestinationValues = true;
 			});
 			serviceCollection.AddTransient<LeagueClient>();
-			serviceCollection.AddSingleton<LeagueTokenClient>();
+			serviceCollection.AddTransient<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
 			serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
-			serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
-			serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
+            serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
+            serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
+            serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
 			serviceCollection.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
-			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
-			serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
+            serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
+            serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
+			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
@@ -279,5 +280,12 @@ namespace AccountManager.UI
         {
 			SystemCommands.MinimizeWindow(this);
 		}
+        private void Maximize(object sender, RoutedEventArgs e)
+        {
+			if (this.WindowState != WindowState.Maximized)
+				SystemCommands.MaximizeWindow(this);
+			else
+                SystemCommands.RestoreWindow(this);
+        }
     }
 }

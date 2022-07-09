@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using AccountManager.Core.Enums;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
 

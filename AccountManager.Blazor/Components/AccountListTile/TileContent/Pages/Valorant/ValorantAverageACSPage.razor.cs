@@ -61,7 +61,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             _account = Account;
         }

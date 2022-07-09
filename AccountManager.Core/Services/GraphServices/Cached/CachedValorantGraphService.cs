@@ -45,7 +45,7 @@ namespace AccountManager.Core.Services.GraphServices.Cached
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
-            var cacheKey = string.Format(cacheKeyFormat, account.Username, account.AccountType, nameof(GetRankedACS));
+            var cacheKey = string.Format(cacheKeyFormat, account.Username, account.AccountType, nameof(GetRecentlyUsedOperatorsPieChartAsync));
             return await _persistantCache.GetOrCreateAsync(cacheKey,
                 async () => await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(account), TimeSpan.FromHours(1)) ?? new();
         }

@@ -24,7 +24,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
-                    return await _leagueClient.GetSummonerRankByPuuidAsync(account);
+                    var value = await _leagueClient.GetSummonerRankByPuuidAsync(account);
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
                 }) ?? new();
         }
 
@@ -35,7 +39,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
-                    return await _leagueClient.GetTFTRankByPuuidAsync(account);
+                    var value = await _leagueClient.GetTFTRankByPuuidAsync(account);
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
                 }) ?? new();
         }
 
@@ -46,7 +54,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
-                    return await _leagueClient.GetLeagueQueueMappings();
+                    var value = await _leagueClient.GetLeagueQueueMappings();
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
                 }) ?? new();
         }
 
@@ -57,7 +69,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserChampSelectHistory(account);
+                   var value = await _leagueClient.GetUserChampSelectHistory(account);
+                   if (value is null)
+                       entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                   return value;
                }) ?? new();
         }
 
@@ -68,7 +84,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserLeagueMatchHistory(account);
+                   var value = await _leagueClient.GetUserLeagueMatchHistory(account);
+                   if (value is null)
+                       entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                   return value;
                }) ?? new();
         }
 
@@ -79,7 +99,11 @@ namespace AccountManager.Infrastructure.CachedClients
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                async (entry) =>
                {
-                   return await _leagueClient.GetUserTeamFightTacticsMatchHistory(account);
+                   var value = await _leagueClient.GetUserTeamFightTacticsMatchHistory(account);
+                   if (value is null)
+                       entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                   return value;
                }) ?? new();
         }
     }
