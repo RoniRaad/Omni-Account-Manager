@@ -14,7 +14,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         public Account Account { get; set; } = new();
         private Account _account = new();
 
-        List<ValorantSkinLevelResponse> storeFrontSkins = new();
+        List<ValorantSkinLevelResponse>? storeFrontSkins;
         protected override async Task OnInitializedAsync()
         {
             if (Account is null)
@@ -22,17 +22,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
             _account = Account;
 
-            storeFrontSkins.Clear();
-            var items = await _valorantClient.GetValorantShopDeals(Account);
-
-            foreach (var item in items)
-            {
-                storeFrontSkins.Add(item);
-            }
-        }
-
-        protected override void OnInitialized()
-        {
+            storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
         }
 
         protected override async Task OnParametersSetAsync()
@@ -41,13 +31,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-                storeFrontSkins.Clear();
-                var items = await _valorantClient.GetValorantShopDeals(Account);
-
-                foreach (var item in items)
-                {
-                    storeFrontSkins.Add(item);
-                }
+                var storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
             }
         }
     }

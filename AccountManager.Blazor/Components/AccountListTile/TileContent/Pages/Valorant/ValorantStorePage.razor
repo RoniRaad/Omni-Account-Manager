@@ -9,21 +9,25 @@
 @inject IValorantClient _valorantClient
 @implements IValorantPage
 
-@if (storeFrontSkins?.Any() is not true)
+@if (storeFrontSkins is null)
 {
     <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
 }
+else if (storeFrontSkins?.Any() is not true)
+{
+    <h5 style="color:#858585">No data available</h5>
+}
 else
 {
-    <div style="display:flex;align-items: center;height: 100%">
-        <p style="color: #666666;margin-left: -4px;writing-mode: vertical-rl;text-orientation: unset;transform: rotate(-180deg);text-align: center;position: absolute;font-family: 'Roboto';font-size: 10px;font-weight: bold;">Store Front</p>
-        <div style="display:flex;height:100%;flex-direction: row;align-items: center;flex-wrap: wrap;justify-content: space-around;">
+    <div class="skins-page-container">
+        <p>Store Front</p>
+        <div class="skins-display-container">
             @for (int i = 0; i < 4; i++)
             {
-                <div title="@storeFrontSkins[i].Data.DisplayName: @storeFrontSkins[i].Data.Price VP" style="width:40%; height:40%;display: flex;align-items: center;justify-content: center; background-color: var(--primary-light);border-radius:5px">
-                    <img class="skin-icon" style="max-width:95%; max-height:95%" src="@storeFrontSkins[i].Data.DisplayIcon" />
+                <div class="skin-container" title="@storeFrontSkins[i].Data.DisplayName: @storeFrontSkins[i].Data.Price VP">
+                    <img class="skin-icon" src="@storeFrontSkins[i].Data.DisplayIcon" />
                 </div>
             }
         </div>

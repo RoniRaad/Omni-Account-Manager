@@ -80,6 +80,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
                 await HandleRedraw();
+
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 

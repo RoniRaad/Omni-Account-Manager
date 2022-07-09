@@ -124,6 +124,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
                 await HandleRedraw();
+
+                await InvokeAsync(() => StateHasChanged());
             }
         }
 

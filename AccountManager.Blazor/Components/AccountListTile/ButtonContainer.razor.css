@@ -59,9 +59,9 @@ td {
     gap: 24px
 }
 
-    .buttons-container span {
-        cursor: pointer
-    }
+.buttons-container span {
+    cursor: pointer
+}
 
 div .modal {
     display: block;

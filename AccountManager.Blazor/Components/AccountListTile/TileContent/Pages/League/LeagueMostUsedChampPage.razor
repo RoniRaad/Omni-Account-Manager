@@ -13,6 +13,10 @@
         <span class="visually-hidden">Loading...</span>
     </div>
 }
+else if (displayGraph?.Data?.Any() is not true)
+{
+    <h5 style="color:#858585">No data available</h5>
+}
 
-<PieChart Class="@(displayGraph is null ? " d-none" : "")"  @ref="pieChart" Options="pieChartOptions" TItem="PieChartData"></PieChart>
+<PieChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")"  @ref="pieChart" Options="pieChartOptions" TItem="PieChartData"></PieChart>
 

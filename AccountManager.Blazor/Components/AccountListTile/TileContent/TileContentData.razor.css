@@ -31,9 +31,13 @@
 }
 
 span {
-    font-size: 7px;
-    height: 8px;
+    font-size: 8px;
+    cursor: pointer;
+    top: 0;
     margin-left: 3px;
     margin-right: 3px;
-    cursor: pointer
+}
+
+span:active {
+    color: darkgrey
 }
