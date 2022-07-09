@@ -52,6 +52,28 @@
                         </Button.Style>
                         &#128473;&#xFE0E;
                     </Button>
+                    <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Width="40px" BorderThickness="0" Background="#1d1d1d" Foreground="White" Click="Maximize">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Background" Value="LightBlue" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Border x:Name="Border" Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FF727272" TargetName="Border" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        &#x1f5d6;
+                    </Button>
                     <Button WindowChrome.IsHitTestVisibleInChrome="True" Height="24" Width="40px" BorderThickness="0" Background="#1d1d1d" Foreground="White" Click="Minimize">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -64,7 +86,7 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#FFEDE9E9" TargetName="Border" />
+                                                    <Setter Property="Background" Value="#FF727272" TargetName="Border" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>

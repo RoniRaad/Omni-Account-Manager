@@ -96,7 +96,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             _account = Account;
         }

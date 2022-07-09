@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Components;
-using AccountManager.Core.Enums;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
 using Blazorise.Charts;
-using System.Diagnostics;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {

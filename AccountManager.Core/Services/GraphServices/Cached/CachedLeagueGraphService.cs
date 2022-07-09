@@ -20,7 +20,7 @@ namespace AccountManager.Core.Services.GraphServices
             _graphService = graphService;
         }
 
-        public async Task<PieChart> GetRankedChampSelectPieChart(Account account)
+        public async Task<PieChart?> GetRankedChampSelectPieChart(Account account)
         {
             var cacheKey = string.Format(cacheKeyFormat, account.Username, accountType, nameof(GetRankedChampSelectPieChart));
 
@@ -28,7 +28,7 @@ namespace AccountManager.Core.Services.GraphServices
                 async () => await _graphService.GetRankedChampSelectPieChart(account), TimeSpan.FromHours(1)) ?? new();
         }
 
-        public async Task<BarChart> GetRankedCsRateByChampBarChartAsync(Account account)
+        public async Task<BarChart?> GetRankedCsRateByChampBarChartAsync(Account account)
         {
             var cacheKey = string.Format(cacheKeyFormat, account.Username, accountType, nameof(GetRankedCsRateByChampBarChartAsync));
 
@@ -36,7 +36,7 @@ namespace AccountManager.Core.Services.GraphServices
                 async () => await _graphService.GetRankedCsRateByChampBarChartAsync(account), TimeSpan.FromHours(1)) ?? new();
         }
 
-        public async Task<BarChart> GetRankedWinrateByChampBarChartAsync(Account account)
+        public async Task<BarChart?> GetRankedWinrateByChampBarChartAsync(Account account)
         {
             var cacheKey = string.Format(cacheKeyFormat, account.Username, accountType, nameof(GetRankedWinrateByChampBarChartAsync));
 
@@ -44,7 +44,7 @@ namespace AccountManager.Core.Services.GraphServices
                 async () => await _graphService.GetRankedWinrateByChampBarChartAsync(account), TimeSpan.FromHours(1)) ?? new();
         }
 
-        public async Task<LineGraph> GetRankedWinsGraph(Account account)
+        public async Task<LineGraph?> GetRankedWinsGraph(Account account)
         {
             var cacheKey = string.Format(cacheKeyFormat, account.Username, accountType, nameof(GetRankedWinsGraph));
 

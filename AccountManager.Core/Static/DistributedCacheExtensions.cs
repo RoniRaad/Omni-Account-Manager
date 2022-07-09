@@ -8,22 +8,22 @@ namespace AccountManager.Core.Static
         public static async Task SetAsync<T>(this IDistributedCache cache, string key, T value)
         {
             var json = JsonSerializer.Serialize(value);
-            await cache.SetStringAsync(key + typeof(T).Name, json);
+            await cache.SetStringAsync(key, json);
         }
 
         public static async Task SetAsync<T>(this IDistributedCache cache, string key, T value, TimeSpan expireTimeSpan)
         {
             var json = JsonSerializer.Serialize(value);
-            await cache.SetStringAsync(key + typeof(T).Name, json, new DistributedCacheEntryOptions()
+            await cache.SetStringAsync(key, json, new DistributedCacheEntryOptions()
             {
                 AbsoluteExpiration = DateTimeOffset.Now.Add(expireTimeSpan),
             });
         }
 
-        public static async Task SetAsync<T>(this IDistributedCache cache, string key, T value, DateTime absoluteExpiry)
+        public static async Task SetAsync<T>(this IDistributedCache cache, string key, T value, DateTimeOffset absoluteExpiry)
         {
             var json = JsonSerializer.Serialize(value);
-            await cache.SetStringAsync(key + typeof(T).Name, json, new DistributedCacheEntryOptions()
+            await cache.SetStringAsync(key, json, new DistributedCacheEntryOptions()
             {
                 AbsoluteExpiration = absoluteExpiry,
             });
@@ -31,12 +31,20 @@ namespace AccountManager.Core.Static
 
         public static async Task<T?> GetAsync<T>(this IDistributedCache cache, string key)
         {
-            var value = await cache.GetStringAsync(key + typeof(T).Name);
+            var value = await cache.GetStringAsync(key);
 
             if (value is null)
                 return default;
 
-            return JsonSerializer.Deserialize<T>(value);
+            try
+            {
+                var deserializedValue = JsonSerializer.Deserialize<T>(value);
+                return deserializedValue;
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         public static async Task<T?> GetOrCreateAsync<T>(this IDistributedCache cache, string key, Func<Task<T>> factory)
@@ -67,6 +75,22 @@ namespace AccountManager.Core.Static
                 return value;
 
             await cache.SetAsync(key, value, expireTimeSpan);
+
+            return value;
+        }
+
+        public static async Task<T?> GetOrCreateAsync<T>(this IDistributedCache cache, string key, Func<Task<T>> factory, DateTimeOffset expireDateTime)
+        {
+            var value = await cache.GetAsync<T>(key);
+            if (value is not null)
+                return value;
+
+            value = await factory();
+
+            if (value is null)
+                return value;
+
+            await cache.SetAsync(key, value, expireDateTime);
 
             return value;
         }

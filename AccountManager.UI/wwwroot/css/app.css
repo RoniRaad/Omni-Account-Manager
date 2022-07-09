@@ -11,6 +11,11 @@
 	width: 155px;
 }
 
+.no-data-label {
+	color:#858585; 
+	padding-bottom: 15px;
+}
+
 :root {
 	--primary-dark: #1d1d1d;
 	--primary-light: #2f2f2f;

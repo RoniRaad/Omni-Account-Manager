@@ -9,7 +9,7 @@ using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class CurlRequestBuilder : ICurlRequestBuilder, ICurlRequestBuilderInitialize, ICurlRequestBuilderReadyToExecute
+    public class CurlRequestBuilder : ICurlRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
     {
         private string uri = "";
         private static readonly SemaphoreSlim _semaphoreSlim = new(1);
@@ -28,53 +28,53 @@ namespace AccountManager.Infrastructure.Clients
                 .Add("Accept-Language: *");
         }
 
-        public ICurlRequestBuilderInitialize CreateBuilder()
+        public IHttpRequestBuilderInitialize CreateBuilder()
         {
             return new CurlRequestBuilder(_persistantCache);
         }
 
-        public ICurlRequestBuilderReadyToExecute CreateBuilder(string uri)
+        public IHttpRequestBuilderReadyToExecute CreateBuilder(string uri)
         {
             var builder = new CurlRequestBuilder(_persistantCache);
             return builder.SetUri(uri);
         }
 
-        public ICurlRequestBuilderReadyToExecute SetUri(string destination)
+        public IHttpRequestBuilderReadyToExecute SetUri(string destination)
         {
             uri = destination;
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute SetUserAgent(string userAgent)
+        public IHttpRequestBuilderReadyToExecute SetUserAgent(string userAgent)
         {
             _argumentsBuilder.Add("-H").Add($"User-Agent: {userAgent}");
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddHeader(string name, string value)
+        public IHttpRequestBuilderReadyToExecute AddHeader(string name, string value)
         {
             _argumentsBuilder.Add("-H").Add($"{name}: {value}");
             return this;
         }
-        public ICurlRequestBuilderReadyToExecute SetBearerToken(string token)
+        public IHttpRequestBuilderReadyToExecute SetBearerToken(string token)
         {
             _argumentsBuilder.Add("-H").Add($"Authorization: Bearer {token}");
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddHeaders(string name, string[] value)
+        public IHttpRequestBuilderReadyToExecute AddHeaders(string name, string[] value)
         {
             _argumentsBuilder.Add("-H").Add($"{name}: {string.Join("; ", value)}");
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddCookie(Cookie cookie)
+        public IHttpRequestBuilderReadyToExecute AddCookie(Cookie cookie)
         {
             _requestCookies.Add(cookie);
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddCookie(string cookieHeader)
+        public IHttpRequestBuilderReadyToExecute AddCookie(string cookieHeader)
         {
             var cookieContainer = new CookieContainer();
             cookieContainer.SetCookies(new Uri(uri), cookieHeader);
@@ -83,7 +83,7 @@ namespace AccountManager.Infrastructure.Clients
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddCookie(string name, string value)
+        public IHttpRequestBuilderReadyToExecute AddCookie(string name, string value)
         {
             var cookie = new Cookie(name, value);
             _requestCookies.Add(cookie);
@@ -91,12 +91,12 @@ namespace AccountManager.Infrastructure.Clients
             return this;
         }
 
-        public ICurlRequestBuilderReadyToExecute AddCookies(CookieCollection cookie)
+        public IHttpRequestBuilderReadyToExecute AddCookies(CookieCollection cookie)
         {
             _requestCookies.Add(cookie);
             return this;
         }
-        public ICurlRequestBuilderReadyToExecute SetContent<T>(T content)
+        public IHttpRequestBuilderReadyToExecute SetContent<T>(T content)
         {
             _argumentsBuilder.Add("-H").Add("Content-Type: application/json");
             _argumentsBuilder.Add("-d").Add(JsonSerializer.Serialize(content));
@@ -193,7 +193,7 @@ namespace AccountManager.Infrastructure.Clients
             }
         }
 
-        public async Task<CurlResponse<T>> ExecuteAsync<T>() where T : new()
+        public async Task<IHttpRequestBuilderResponse<T>> ExecuteAsync<T>() where T : new()
         {
             var stringResponse = await ExecuteAsync();
 
@@ -207,72 +207,63 @@ namespace AccountManager.Infrastructure.Clients
             };
         }
 
-        public async Task<CurlResponse<string>> Delete()
+        public async Task<IHttpRequestBuilderResponse<string>> Delete()
         {
             _argumentsBuilder.Add("-i -X DELETE", false);
 
             return await ExecuteAsync();
         }
 
-        public async Task<CurlResponse<string>> Get()
+        public async Task<IHttpRequestBuilderResponse<string>> Get()
         {
             _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync();
         }
 
-        public async Task<CurlResponse<string>> Post()
+        public async Task<IHttpRequestBuilderResponse<string>> Post()
         {
             _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync();
         }
 
-        public async Task<CurlResponse<string>> Put()
+        public async Task<IHttpRequestBuilderResponse<string>> Put()
         {
             _argumentsBuilder.Add("-i -X PUT", false);
 
             return await ExecuteAsync();
         }
 
-        public async Task<CurlResponse<T>> Delete<T>() where T : new()
+        public async Task<IHttpRequestBuilderResponse<T>> Delete<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X DELETE", false);
 
             return await ExecuteAsync<T>();
         }
 
-        public async Task<CurlResponse<T>> Get<T>() where T : new()
+        public async Task<IHttpRequestBuilderResponse<T>> Get<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync<T>();
         }
 
-        public async Task<CurlResponse<T>> Post<T>() where T : new()
+        public async Task<IHttpRequestBuilderResponse<T>> Post<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync<T>();
         }
 
-        public async Task<CurlResponse<T>> Put<T>() where T : new()
+        public async Task<IHttpRequestBuilderResponse<T>> Put<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X PUT", false);
 
             return await ExecuteAsync<T>();
         }
 
-        public class CurlResponse
-        {
-            public HttpStatusCode StatusCode { get; set; }
-            public Dictionary<string, string>? Headers { get; set; }
-            public CookieCollection? Cookies { get; set; }
-            public string? ResponseContent { get; set; }
-            public string? Location { get; set; }
-        }
-
-        public class CurlResponse<T>
+        public class CurlResponse<T> : IHttpRequestBuilderResponse<T>
         {
             public HttpStatusCode StatusCode { get; set; }
             public Dictionary<string, string>? Headers { get; set; }

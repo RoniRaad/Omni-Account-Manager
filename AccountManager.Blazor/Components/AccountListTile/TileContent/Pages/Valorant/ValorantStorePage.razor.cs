@@ -31,7 +31,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-                var storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
             }
         }
     }

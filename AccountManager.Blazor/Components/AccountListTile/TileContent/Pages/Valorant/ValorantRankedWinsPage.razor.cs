@@ -102,7 +102,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 Label = dataset.Label,
                 Data = dataset.Data,
                 BackgroundColor = !string.IsNullOrEmpty(dataset?.ColorHex) ? dataset.ColorHex + "90" // Add an alpha value to the end of the hex color to make it slightly translucent
- : backgroundColors,
+                    : backgroundColors,
                 BorderColor = dataset?.ColorHex != null ? new List<string> { dataset.ColorHex } : borderColors,
                 Fill = false,
                 PointRadius = 3,
@@ -113,7 +113,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             _account = Account;
         }

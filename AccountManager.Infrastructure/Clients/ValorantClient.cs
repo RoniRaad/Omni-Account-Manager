@@ -1,14 +1,9 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
-using AccountManager.Core.Static;
 using AutoMapper;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -17,32 +12,20 @@ namespace AccountManager.Infrastructure.Clients
 {
     public class ValorantClient : IValorantClient
     {
-        private readonly IMemoryCache _memoryCache;
-        private readonly IDistributedCache _persistantCache;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly LeagueTokenClient _localLeagueClient;
         private readonly IUserSettingsService<UserSettings> _settings;
         private readonly IRiotClient _riotClient;
-        private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
-        private readonly ICurlRequestBuilder _curlRequestBuilder;
-        private static readonly SemaphoreSlim semaphore = new(1, 1);
         private const int historyLength = 15;
-        public ValorantClient(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory,
-            LeagueTokenClient localLeagueClient, IUserSettingsService<UserSettings> settings,
-            IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper,
-            ICurlRequestBuilder curlRequestBuilder, IDistributedCache persistantCache)
+        public ValorantClient(IHttpClientFactory httpClientFactory,
+            IUserSettingsService<UserSettings> settings,
+            IRiotClient riotClient, IMapper autoMapper)
         {
-            _memoryCache = memoryCache;
             _httpClientFactory = httpClientFactory;
-            _localLeagueClient = localLeagueClient;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
             _riotClient = riotClient;
-            _riotApiUri = riotApiOptions.Value;
             _autoMapper = autoMapper;
-            _curlRequestBuilder = curlRequestBuilder;
-            _persistantCache = persistantCache;
         }
 
         public async Task<string?> GetValorantToken(Account account)
@@ -172,12 +155,6 @@ namespace AccountManager.Infrastructure.Clients
 
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {
-            var cacheKey = $"{account.Username}.{nameof(GetAllShopOffers)}";
-            var offers = await _persistantCache.GetAsync<ValorantStoreTotalOffers>(cacheKey);
-
-            if (offers is not null)
-                return offers;
-
             var client = _httpClientFactory.CreateClient("ValorantNA");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
             var bearerToken = await GetValorantToken(account);
@@ -190,10 +167,7 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
             var response = await client.GetAsync($"/store/v1/offers/");
-            offers = await response.Content.ReadFromJsonAsync<ValorantStoreTotalOffers>();
-
-            if (offers is not null)
-                await _persistantCache.SetAsync(cacheKey, offers, TimeSpan.FromHours(1));
+            var offers = await response.Content.ReadFromJsonAsync<ValorantStoreTotalOffers>();
 
             return offers;
         }

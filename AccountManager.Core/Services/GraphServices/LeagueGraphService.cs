@@ -16,9 +16,9 @@ namespace AccountManager.Core.Services.GraphServices
             _riotClient = riotClient;
         }
 
-        public async Task<LineGraph> GetRankedWinsGraph(Account account)
+        public async Task<LineGraph?> GetRankedWinsGraph(Account account)
         {
-            var lineGraph = new LineGraph();
+            LineGraph lineGraph;
 
             try
             {
@@ -77,22 +77,22 @@ namespace AccountManager.Core.Services.GraphServices
                         gameMatchesByType[gameMatch.Type].Data.Add(new CoordinatePair() { Y = gameMatchesOffsetByType[gameMatch.Type], X = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameCreation ?? 0).ToLocalTime().ToUnixTimeMilliseconds() });
                     }
                 }
-
+                lineGraph = new();
                 lineGraph.Title = "Ranked Wins";
                 lineGraph.Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
 
 
-                return lineGraph ?? new();
+                return lineGraph;
             }
             catch
             {
-                return new();
+                return null;
             }
         }
 
-        public async Task<PieChart> GetRankedChampSelectPieChart(Account account)
+        public async Task<PieChart?> GetRankedChampSelectPieChart(Account account)
         {
-            PieChart? pieChart = new();
+            PieChart? pieChart;
 
             var matchHistoryResponse = new UserChampSelectHistory();
             try
@@ -120,18 +120,18 @@ namespace AccountManager.Core.Services.GraphServices
                 pieChart.Title = "Recently Used Champs";
                 pieChart.Labels = matchHistoryResponse.Champs.Select((champ) => champ.ChampName).ToList();
                 
-                return pieChart ?? new();
+                return pieChart;
             }
             catch
             {
-                return new();
+                return null;
             }
         }
 
 
-        public async Task<BarChart> GetRankedWinrateByChampBarChartAsync(Account account)
+        public async Task<BarChart?> GetRankedWinrateByChampBarChartAsync(Account account)
         {
-            BarChart? barChart = new BarChart();
+            BarChart? barChart;
 
             try
             {
@@ -165,12 +165,12 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch
             {
-                return new();
+                return null;
             }
         }
 
 
-        public async Task<BarChart> GetRankedCsRateByChampBarChartAsync(Account account)
+        public async Task<BarChart?> GetRankedCsRateByChampBarChartAsync(Account account)
         {
             BarChart? barChart = new();
 
@@ -218,7 +218,7 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch
             {
-                return new();
+                return null;
             }
         }
     }
