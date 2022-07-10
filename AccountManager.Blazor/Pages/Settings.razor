@@ -19,7 +19,7 @@
                     </th>
                     <td>
                         <div class="form-check">
-                            <input type="checkbox"@onchange="(ChangeEventArgs e) => {
+                            <input type="checkbox" @onchange="(ChangeEventArgs e) => {
                                 _settings.Settings.UseAccountCredentials = (bool)(e?.Value ?? true); 
                                 _settings.Save();
                             }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
@@ -59,6 +59,28 @@
                         <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Steam client install location</p>
+                    </th>
+                    <td>
+                        <div class="input-group">
+                            <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam" @bind-Value="_settings.Settings.SteamInstallDirectory"></InputText>
+                        </div>
+                        <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Steam library locations</p>
+                    </th>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam\steamapps"  value="@(String.Join(", ", _settings.Settings.SteamLibraryDirectories))" readonly />
+                        </div>
+                        <span class="btn-text-save btn btn-dark" @onclick="() => ShowSteamLibraryDirectoriesModal = true" type="button">Edit</span>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </EditForm>
@@ -71,4 +93,8 @@
 @if (ShowRiotFolderPicker)
 {
     <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
+}
+@if (ShowSteamLibraryDirectoriesModal)
+{
+    <SteamLibraryDirectoriesModal ></SteamLibraryDirectoriesModal>
 }

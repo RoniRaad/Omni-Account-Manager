@@ -4,5 +4,6 @@ namespace AccountManager.Blazor.Pages
     {
         public bool ShowChangePasswordPrompt { get; set; } = false;
         public bool ShowRiotFolderPicker { get; set; } = false;
+        public bool ShowSteamLibraryDirectoriesModal { get; set; } = false;
     }
 }
