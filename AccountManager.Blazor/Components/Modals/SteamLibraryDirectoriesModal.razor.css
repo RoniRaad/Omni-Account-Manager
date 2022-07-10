@@ -1,0 +1,30 @@
+﻿body {
+}
+
+.directory-list-item {
+    padding: 15px 10px 15px 15px;
+    font-family: 'Roboto';
+}
+
+.oi-folder {
+    margin-right: 5px
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+input {
+    width: -webkit-fill-available;
+}
+
+.modal {
+    z-index: 100000;
+}
+
+.modal-body {
+    padding: 0px;
+}

@@ -1,0 +1,45 @@
+﻿@namespace AccountManager.Blazor.Components
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@inject IUserSettingsService<UserSettings> _userSettings
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Steam Library Directories</h5>
+				<button @onclick="Close" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div style="display:flex; margin:11px">
+					<input type="text" placeholder="Ex: C:\Program Files (x86)\Steam\appdata" @bind-value="newDirectory" style="margin-right: 4px;"></input>
+					<button class="btn btn-success" @onclick="() => _userSettings.Settings.SteamLibraryDirectories.Add(newDirectory)">Add</button>
+				</div>
+				<ul>
+					@foreach (var directory in _userSettings.Settings.SteamLibraryDirectories)
+					{
+						
+						<li class="directory-list-item" style="display:flex;justify-content: space-between;">
+							<div>
+								<span class="oi oi-folder"></span>
+								@directory
+							</div>
+
+							<span @onclick="() => _userSettings.Settings.SteamLibraryDirectories.RemoveAll((lib) => lib == directory)" class="oi oi-trash" style="float:right;cursor:pointer"></span>
+						</li>
+					}
+				</ul>
+			</div>
+			<div class="modal-footer">
+				<button @onclick="Close" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button @onclick="() => _userSettings.Save()" type="button" class="btn btn-dark">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public Action Close { get; set; } = () => { };
+	private string newDirectory = "";
+}

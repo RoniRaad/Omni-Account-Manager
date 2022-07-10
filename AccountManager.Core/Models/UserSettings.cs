@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AccountManager.Core.Static;
+using AccountManager.Infrastructure.Services.FileSystem;
 
 namespace AccountManager.Core.Models
 {
@@ -10,14 +7,28 @@ namespace AccountManager.Core.Models
     {
         public UserSettings()
         {
+            SteamInstallDirectory = "";
+            if (SteamFileSystemService.TryGetSteamDirectory(out var steamDirectory))
+            {
+                SteamInstallDirectory = steamDirectory;
+            }
+            SteamLibraryDirectories = new();
+            
+            if (!string.IsNullOrEmpty(SteamInstallDirectory))
+            {
+                SteamLibraryDirectories.Add(Path.Combine(SteamInstallDirectory, "appdata"));
+            }
+
             var potentialRiotDrives = DriveInfo.GetDrives().Where((drive) => Directory.Exists($@"{drive}\Riot Games"));
             var riotDrive = potentialRiotDrives.Any() ? potentialRiotDrives.First() : null;
             if (riotDrive is not null)
-                RiotInstallDirectory = @$"{(riotDrive)}\Riot Games\";
+                RiotInstallDirectory = Path.Combine(riotDrive.ToString(), "Riot Games");
             else
                 RiotInstallDirectory = "";
         }
         public bool UseAccountCredentials { get; set; } = true;
         public string RiotInstallDirectory { get; set; }
+        public string SteamInstallDirectory { get; set; }
+        public List<string> SteamLibraryDirectories { get; set; }
     }
 }
