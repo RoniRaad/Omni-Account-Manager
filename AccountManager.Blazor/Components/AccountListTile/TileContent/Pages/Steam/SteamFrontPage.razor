@@ -1,9 +1,79 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Models.Steam
 @using AccountManager.Core.Services
+@using AccountManager.Core.Static
 @using Blazorise.Charts
+@using Microsoft.Extensions.Caching.Distributed
 @inject AppState _state
+@inject IDistributedCache _persistantCache
+@inject IUserSettingsService<UserSettings> _userSettings
 @implements IDefaultPage
 
-<h5 class="no-data-label">No data available</h5>
+<p>Run Game on Login</p>
+<div style="font-size: 11px;width: 100%;height: 100%; overflow: auto;display:flex;flex-direction:column;color:gray">
+    <div style="display:flex; gap: 3px; margin-left: 5px;">
+        @if (SelectedSteamGame == "none")
+        {
+            <input @onchange="(args) =>  OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steamGameSelection-@this.GetHashCode()" value="none" checked="checked" />
+        }
+        else
+        {
+            <input @onchange="(args) =>  OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steamGameSelection-@this.GetHashCode()" value="none" />
+        }
+
+        <label class="form-check-label" for="radio-default-@Account.Guid">None</label>
+    </div>
+    @foreach (var game in Games)
+    {
+        <div style="display:flex; gap: 3px; margin-left: 5px;">
+            @if (SelectedSteamGame == @game.AppId)
+            {
+                <input @onchange="(args) =>  OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@this.GetHashCode()" name="steamGameSelection-@this.GetHashCode()" value="@game.AppId" checked="checked"/>
+            }
+            else
+            {
+                <input @onchange="(args) =>  OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@this.GetHashCode()" name="steamGameSelection-@this.GetHashCode()" value="@game.AppId" />
+            }
+            <label class="form-check-label" for="@game.AppId-@this.GetHashCode()">@game.Name</label>
+        </div>
+    }
+</div>
+
+@code{
+    List<SteamGameManifest> Games { get; set; } = new();
+    public string SelectedSteamGame = "none";
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            var libraryDirectories = _userSettings.Settings.SteamLibraryDirectories;
+            foreach (var library in libraryDirectories)
+            {
+                foreach (var manifestDirectory in SteamFileSystemHelper.GetInstalledGamesManifest(library))
+                {
+                    var deserializedManifest = SteamFileSystemHelper.ParseGameManifest(manifestDirectory);
+                    Games.Add(deserializedManifest);
+                }
+            }
+        }
+        catch
+        {
+
+        }
+        await base.OnInitializedAsync();
+    }
+
+    public void SetGame(string appId)
+    {
+        _persistantCache.SetString($"{Account.Guid}.SelectedSteamGame", appId);
+        SelectedSteamGame = appId;
+    }
+
+    public void OnRadioClicked(ChangeEventArgs args)
+    {
+        SetGame(args.Value.ToString());
+    }
+}
