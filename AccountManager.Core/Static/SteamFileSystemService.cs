@@ -1,7 +1,9 @@
 ﻿
+using AccountManager.Core.Models.Steam;
+
 namespace AccountManager.Core.Static
 {
-    public static class SteamFileSystemService
+    public static class SteamFileSystemHelper
     {
         public static bool TryGetSteamDirectory(out string steamDirectory)
         {
@@ -35,6 +37,11 @@ namespace AccountManager.Core.Static
             });
 
             return steamGames;
+        }
+
+        public static SteamGameManifest ParseGameManifest(string[] manifestFileLines)
+        {
+            return AcfDeserializer.Deserialize<SteamGameManifestWrapper>(manifestFileLines).AppState;
         }
     }
 }

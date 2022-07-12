@@ -96,5 +96,5 @@
 }
 @if (ShowSteamLibraryDirectoriesModal)
 {
-    <SteamLibraryDirectoriesModal ></SteamLibraryDirectoriesModal>
+    <SteamLibraryDirectoriesModal Close="() => {ShowSteamLibraryDirectoriesModal=false; InvokeAsync(()=>StateHasChanged());}"></SteamLibraryDirectoriesModal>
 }

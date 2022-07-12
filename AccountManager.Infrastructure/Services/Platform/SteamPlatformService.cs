@@ -1,11 +1,19 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Diagnostics;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
     public class SteamPlatformService : IPlatformService
     {
+        private readonly IDistributedCache _persistantCache;
+
+        public SteamPlatformService(IDistributedCache persistantCache)
+        {
+            _persistantCache = persistantCache;
+        }
+
         public void StopSteam()
         {
             foreach (Process steamProcess in Process.GetProcessesByName("Steam"))
@@ -36,7 +44,12 @@ namespace AccountManager.Infrastructure.Services.Platform
         }
         public async Task Login(Account account)
         {
-            await LoginAsync(account.Username, account.Password, "");
+            var args = "";
+            var steamGameToLaunch = await _persistantCache.GetStringAsync($"{account.Guid}.SelectedSteamGame");
+            if (steamGameToLaunch is not null && steamGameToLaunch != "none")
+                args = $"-applaunch {steamGameToLaunch}";
+
+            await LoginAsync(account.Username, account.Password, args);
         }
         public string GetCommandLineValue(string commandline , string key)
         {

@@ -13,10 +13,10 @@
 			<div class="modal-body">
 				<div style="display:flex; margin:11px">
 					<input type="text" placeholder="Ex: C:\Program Files (x86)\Steam\appdata" @bind-value="newDirectory" style="margin-right: 4px;"></input>
-					<button class="btn btn-success" @onclick="() => _userSettings.Settings.SteamLibraryDirectories.Add(newDirectory)">Add</button>
+					<button class="btn btn-success" @onclick="() => steamLibraryDirectories.Add(newDirectory)">Add</button>
 				</div>
 				<ul>
-					@foreach (var directory in _userSettings.Settings.SteamLibraryDirectories)
+					@foreach (var directory in steamLibraryDirectories)
 					{
 						
 						<li class="directory-list-item" style="display:flex;justify-content: space-between;">
@@ -25,14 +25,14 @@
 								@directory
 							</div>
 
-							<span @onclick="() => _userSettings.Settings.SteamLibraryDirectories.RemoveAll((lib) => lib == directory)" class="oi oi-trash" style="float:right;cursor:pointer"></span>
+							<span @onclick="() => steamLibraryDirectories.RemoveAll((lib) => lib == directory)" class="oi oi-trash" style="float:right;cursor:pointer"></span>
 						</li>
 					}
 				</ul>
 			</div>
 			<div class="modal-footer">
 				<button @onclick="Close" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				<button @onclick="() => _userSettings.Save()" type="button" class="btn btn-dark">Save</button>
+				<button @onclick="Save" type="button" class="btn btn-dark">Save</button>
 			</div>
 		</div>
 	</div>
@@ -41,5 +41,18 @@
 @code {
 	[Parameter]
 	public Action Close { get; set; } = () => { };
+	private List<string> steamLibraryDirectories = new();
 	private string newDirectory = "";
+
+	protected override void OnInitialized()
+	{
+		steamLibraryDirectories = _userSettings.Settings.SteamLibraryDirectories.ToList();
+	}
+
+	public void Save()
+	{
+		_userSettings.Settings.SteamLibraryDirectories = steamLibraryDirectories;
+		_userSettings.Save();
+		Close();
+	}
 }

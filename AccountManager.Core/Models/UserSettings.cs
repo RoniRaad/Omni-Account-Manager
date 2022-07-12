@@ -8,7 +8,7 @@ namespace AccountManager.Core.Models
         public UserSettings()
         {
             SteamInstallDirectory = "";
-            if (SteamFileSystemService.TryGetSteamDirectory(out var steamDirectory))
+            if (SteamFileSystemHelper.TryGetSteamDirectory(out var steamDirectory))
             {
                 SteamInstallDirectory = steamDirectory;
             }
