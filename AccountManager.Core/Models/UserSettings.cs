@@ -16,7 +16,7 @@ namespace AccountManager.Core.Models
             
             if (!string.IsNullOrEmpty(SteamInstallDirectory))
             {
-                SteamLibraryDirectories.Add(Path.Combine(SteamInstallDirectory, "appdata"));
+                SteamLibraryDirectories.Add(Path.Combine(SteamInstallDirectory, "steamapps"));
             }
 
             var potentialRiotDrives = DriveInfo.GetDrives().Where((drive) => Directory.Exists($@"{drive}\Riot Games"));

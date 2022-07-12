@@ -11,21 +11,21 @@
 				<button @onclick="Close" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<div style="display:flex; margin:11px">
-					<input type="text" placeholder="Ex: C:\Program Files (x86)\Steam\appdata" @bind-value="newDirectory" style="margin-right: 4px;"></input>
+				<div class="modal-body-top-bar">
+					<input type="text" placeholder="Ex: C:\Program Files (x86)\Steam\appdata" @bind-value="newDirectory"></input>
 					<button class="btn btn-success" @onclick="() => steamLibraryDirectories.Add(newDirectory)">Add</button>
 				</div>
 				<ul>
 					@foreach (var directory in steamLibraryDirectories)
 					{
 						
-						<li class="directory-list-item" style="display:flex;justify-content: space-between;">
+						<li class="directory-list-item">
 							<div>
 								<span class="oi oi-folder"></span>
 								@directory
 							</div>
 
-							<span @onclick="() => steamLibraryDirectories.RemoveAll((lib) => lib == directory)" class="oi oi-trash" style="float:right;cursor:pointer"></span>
+							<span @onclick="() => steamLibraryDirectories.RemoveAll((lib) => lib == directory)" class="oi oi-trash delete-library-icon"></span>
 						</li>
 					}
 				</ul>

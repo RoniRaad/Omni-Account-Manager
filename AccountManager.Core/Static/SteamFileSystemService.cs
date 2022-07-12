@@ -1,5 +1,9 @@
 ﻿
 using AccountManager.Core.Models.Steam;
+using Gameloop.Vdf;
+using Gameloop.Vdf.JsonConverter;
+using Gameloop.Vdf.Linq;
+using System.Text.Json;
 
 namespace AccountManager.Core.Static
 {
@@ -21,17 +25,26 @@ namespace AccountManager.Core.Static
             return true;
         }
 
-        public static List<string[]> GetInstalledGamesManifest(string libraryPath)
+        public static List<string> GetInstalledGamesManifest(string libraryPath)
         {
             var steamLibraryPath = libraryPath;
-            string[] steamAppFiles = Directory.GetFiles(steamLibraryPath);
-            List<string[]> steamGames = new List<string[]>();
+            IEnumerable<string> steamAppFiles = Enumerable.Empty<string>();
+            try
+            {
+                steamAppFiles = Directory.GetFiles(steamLibraryPath);
+            }
+            catch
+            {
+                return new();
+            }
+
+            List<string> steamGames = new List<string>();
 
             steamAppFiles.ToList().ForEach((file) =>
             {
                 if (file.Contains("appmanifest"))
                 {
-                    string[] fileContents = File.ReadAllLines(file);
+                    var fileContents = File.ReadAllText(file);
                     steamGames.Add(fileContents);
                 }
             });
@@ -39,9 +52,13 @@ namespace AccountManager.Core.Static
             return steamGames;
         }
 
-        public static SteamGameManifest ParseGameManifest(string[] manifestFileLines)
+        public async static Task<SteamGameManifest> ParseGameManifest(string manifestData)
         {
-            return AcfDeserializer.Deserialize<SteamGameManifestWrapper>(manifestFileLines).AppState;
+            VProperty test = VdfConvert.Deserialize(manifestData);
+            var deserializedObj = test.ToJson();
+            var testObj = await JsonSerializer.DeserializeAsync<SteamGameManifestWrapper>(deserializedObj.ToString());
+            return deserializedObj.ToObject<SteamGameManifestWrapper>().AppState;
+            //return AcfDeserializer.Deserialize<SteamGameManifestWrapper>(manifestFileLines).AppState;
         }
     }
 }
