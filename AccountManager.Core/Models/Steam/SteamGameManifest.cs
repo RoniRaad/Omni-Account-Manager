@@ -3,8 +3,8 @@ namespace AccountManager.Core.Models.Steam
 {
     public class SteamGameManifest
     {
-        public string? AppId { get; set; }
-        public string? Name { get; set; }
+        public string? appid { get; set; }
+        public string? name { get; set; }
         public string? LastOwner { get; set; }
     }
 

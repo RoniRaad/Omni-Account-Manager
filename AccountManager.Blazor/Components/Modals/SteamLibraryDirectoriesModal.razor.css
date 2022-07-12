@@ -4,6 +4,8 @@
 .directory-list-item {
     padding: 15px 10px 15px 15px;
     font-family: 'Roboto';
+    display: flex;
+    justify-content: space-between;
 }
 
 .oi-folder {
@@ -19,6 +21,7 @@ ul {
 
 input {
     width: -webkit-fill-available;
+    margin-right: 4px;
 }
 
 .modal {
@@ -27,4 +30,14 @@ input {
 
 .modal-body {
     padding: 0px;
+}
+
+delete-library-icon {
+    float: right;
+    cursor: pointer
+}
+
+.modal-body-top-bar {
+    display: flex;
+    margin: 11px
 }
