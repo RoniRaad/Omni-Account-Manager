@@ -33,6 +33,6 @@
 
 @if (showFullTile)
 {
-    <SingleAccountModalFrame Account="Account" Close="() => showFullTile = false"></SingleAccountModalFrame>
+    <SingleAccountModalFrame Account="Account" Close="() => {showFullTile = false; InvokeAsync(() => StateHasChanged());}"></SingleAccountModalFrame>
 }
 

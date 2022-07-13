@@ -24,7 +24,7 @@
                                 _settings.Save();
                             }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
                             <label class="form-check-label" for="credentialsCheckBox">
-                                Use Credentials
+                                Use credentials
                             </label>
                         </div>
                     </td>
@@ -72,13 +72,17 @@
                 </tr>
                 <tr>
                     <th scope="row">
-                        <p>Steam library locations</p>
+                        <p>Only show steam games owned by the account</p>
                     </th>
                     <td>
-                        <div class="input-group">
-                            <input type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam\steamapps"  value="@(String.Join(", ", _settings.Settings.SteamLibraryDirectories))" readonly />
+                        <div class="form-check">
+                            <input type="checkbox" @onchange="(ChangeEventArgs e) => {
+                                _settings.Settings.OnlyShowOwnedSteamGames = (bool)(e?.Value ?? true); 
+                                _settings.Save();
+                            }" id="steamGamesCheckbox" checked="@_settings.Settings.OnlyShowOwnedSteamGames"></input>
+                            <label class="form-check-label" for="steamGamesCheckbox">
+                            </label>
                         </div>
-                        <span class="btn-text-save btn btn-dark" @onclick="() => ShowSteamLibraryDirectoriesModal = true" type="button">Edit</span>
                     </td>
                 </tr>
             </tbody>
@@ -93,8 +97,4 @@
 @if (ShowRiotFolderPicker)
 {
     <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
-}
-@if (ShowSteamLibraryDirectoriesModal)
-{
-    <SteamLibraryDirectoriesModal Close="() => {ShowSteamLibraryDirectoriesModal=false; InvokeAsync(()=>StateHasChanged());}"></SteamLibraryDirectoriesModal>
 }

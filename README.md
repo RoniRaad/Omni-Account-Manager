@@ -1,5 +1,5 @@
 # Multi-Account-Manager
-The multi account manager is a one stop shop for managing many gaming related accounts. It currently supports the following platforms/games: Steam, Riot, League of Legends, Valorant, and Team Fight Tactics. Ranks are also displayed for the latter 3 games.
+The Omni Account Manager (Omni AM) allows gamers to control and manager their accounts from one convient location. For each account, useful data is displayed and a login button is provided to allow seemless account switching. Clicking on an applicable account tile may also provide extra account specific data.
 
-Download the most current release here:
+Download the most current stable release here:
 https://github.com/RoniRaad/Multi-Game-Account-Manager/blob/master/publish/setup.exe?raw=true

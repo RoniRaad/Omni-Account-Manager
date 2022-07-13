@@ -3,6 +3,7 @@
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.AccountDetailsPanels
 @using AccountManager.Blazor.Components.Modals.SingleAccountModal.Panels.InfoPanels
+@using AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
@@ -23,6 +24,10 @@
                 {
                     <InfoPanel Account="Account" Pages="new List<Type>() {typeof(ValorantStorePage), typeof(ValorantGraphPage)}"></InfoPanel>
                 }
+                else if (Account.AccountType == Core.Enums.AccountType.Steam)
+                {
+                    <InfoPanel Account="Account" Pages="new List<Type>() {typeof(SteamGameSelectPage)}"></InfoPanel>
+                }
             </div>
             <div class="account-details-panel">
                 @if (Account.AccountType == Core.Enums.AccountType.League)
@@ -32,6 +37,10 @@
                 else if (Account.AccountType == Core.Enums.AccountType.Valorant)
                 {
                     <ValorantAccountDetailsPanel Account="Account"></ValorantAccountDetailsPanel>
+                }
+                else if (Account.AccountType == Core.Enums.AccountType.Steam)
+                {
+                    <SteamAccountDetailsPanel Account="Account"></SteamAccountDetailsPanel>
                 }
             </div>
 	    </div>
