@@ -1,34 +1,28 @@
-﻿using AccountManager.Core.Static;
-using AccountManager.Infrastructure.Services.FileSystem;
-
-namespace AccountManager.Core.Models
+﻿namespace AccountManager.Core.Models
 {
     public class UserSettings
     {
         public UserSettings()
         {
             SteamInstallDirectory = "";
-            if (SteamFileSystemHelper.TryGetSteamDirectory(out var steamDirectory))
-            {
-                SteamInstallDirectory = steamDirectory;
-            }
-            SteamLibraryDirectories = new();
             
-            if (!string.IsNullOrEmpty(SteamInstallDirectory))
-            {
-                SteamLibraryDirectories.Add(Path.Combine(SteamInstallDirectory, "steamapps"));
-            }
-
-            var potentialRiotDrives = DriveInfo.GetDrives().Where((drive) => Directory.Exists($@"{drive}\Riot Games"));
+            var potentialRiotDrives = DriveInfo.GetDrives().Where((drive) => Directory.Exists(Path.Combine(drive.ToString(), "Riot Games")));
+            var potentialSteamDrives = DriveInfo.GetDrives().Where((drive) => Directory.Exists(Path.Combine(drive.ToString(), "Program Files (x86)", "Steam")));
             var riotDrive = potentialRiotDrives.Any() ? potentialRiotDrives.First() : null;
+            
             if (riotDrive is not null)
                 RiotInstallDirectory = Path.Combine(riotDrive.ToString(), "Riot Games");
             else
                 RiotInstallDirectory = "";
+
+            if (potentialSteamDrives?.Count() > 0)
+                SteamInstallDirectory = Path.Combine(potentialSteamDrives.First().ToString(),
+                    "Program Files (x86)", "Steam");
         }
+
         public bool UseAccountCredentials { get; set; } = true;
         public string RiotInstallDirectory { get; set; }
         public string SteamInstallDirectory { get; set; }
-        public List<string> SteamLibraryDirectories { get; set; }
+        public bool OnlyShowOwnedSteamGames { get; set; } = true;
     }
 }

@@ -15,18 +15,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         [Parameter]
         public Account Account { get; set; } = new();
         List<SteamGameManifest> Games { get; set; } = new();
-        public string SelectedSteamGame = "none";
-
-        public void SetGame(string appId)
-        {
-            _persistantCache.SetString($"{Account.Guid}.SelectedSteamGame", appId);
-        }
-
-        public void OnRadioClicked(ChangeEventArgs args)
-        {
-            SetGame(args?.Value?.ToString() ?? "none");
-            SelectedSteamGame = args?.Value?.ToString() ?? "none";
-        }
 
         protected override void OnInitialized()
         {
@@ -42,37 +30,47 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
             await base.OnParametersSetAsync();
         }
+        public string SelectedSteamGame = "none";
 
-        public async Task RefreshGame()
+        public void SetGame(string appId)
         {
+            _persistantCache.SetString($"{Account.Guid}.SelectedSteamGame", appId);
+        }
+
+        public void OnRadioClicked(ChangeEventArgs args)
+        {
+            SetGame(args?.Value?.ToString() ?? "none");
+            SelectedSteamGame = args?.Value?.ToString() ?? "none";
+        }
+        public async Task RefreshGamesAsync()
+        {
+            Games.Clear();
+
             SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
-            var libraryDirectories = _userSettings.Settings.SteamLibraryDirectories;
             if (!File.Exists(Path.Combine(_userSettings.Settings.SteamInstallDirectory, "steam.exe")))
             {
                 steamInstallNotFound = true;
             }
-            foreach (var library in libraryDirectories)
+
+            Games.AddRange(_steamLibraryService.GetGameManifests());
+
+            Games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _userSettings.Settings.OnlyShowOwnedSteamGames));
+        }
+
+        protected async override Task OnAfterRenderAsync(bool first)
+        {
+            var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            if (cachedSelectedGame != SelectedSteamGame)
             {
-                foreach (var manifestDirectory in SteamFileSystemHelper.GetInstalledGamesManifest(library))
-                {
-                    try
-                    {
-                        var deserializedManifest = await SteamFileSystemHelper.ParseGameManifest(manifestDirectory);
-                        Games.Add(deserializedManifest);
-                    }
-                    catch
-                    {
-                    }
-
-                }
+                SelectedSteamGame = cachedSelectedGame;
+                StateHasChanged();
             }
-
-            Games.RemoveAll(game => game.name == "Steamworks Common Redistributables");
+            await base.OnAfterRenderAsync(first);
         }
 
         protected async override Task OnInitializedAsync()
         {
-            await RefreshGame();
+            await RefreshGamesAsync();
             await base.OnInitializedAsync();
         }
     }

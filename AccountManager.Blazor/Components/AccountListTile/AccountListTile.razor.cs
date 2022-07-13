@@ -35,7 +35,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         {
             get
             {
-                if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered || Account.AccountType == AccountType.TeamFightTactics || Account.AccountType == AccountType.Steam)
+                if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered || Account.AccountType == AccountType.TeamFightTactics) 
                     return "";
                 return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
             }
