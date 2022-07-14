@@ -1,9 +1,53 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Models.Steam
 @using AccountManager.Core.Services
+@using AccountManager.Core.Static
 @using Blazorise.Charts
+@using Microsoft.Extensions.Caching.Distributed
 @inject AppState _state
+@inject IDistributedCache _persistantCache
+@inject ISteamLibraryService _steamLibraryService
+@inject IUserSettingsService<UserSettings> _userSettings
 @implements IDefaultPage
 
-<h5 class="no-data-label">No data available</h5>
+@if (steamInstallNotFound){
+    <h5 class="no-data-label">Steam install not found</h5>
+}
+else if (Games.Count == 0)
+{
+    <h5 class="no-data-label">No data available</h5>
+}
+else
+{
+    <p>Run Game on Login</p>
+    <div class="steam-game-page-container">
+        <div class="steam-game-list-item">
+            @if (SelectedSteamGame == "none")
+            {
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steam-game-@Account.Guid" value="none" checked="checked" />
+            }
+            else
+            {
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steam-game-@Account.Guid" value="none" />
+            }
+
+            <label class="form-check-label" for="radio-default-@Account.Guid">None</label>
+        </div>
+        @foreach (var game in Games)
+        {
+            <div class="steam-game-list-item">
+            @if (SelectedSteamGame == @game.AppId)
+            {
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Guid" name="steam-game-@Account.Guid" value="@game.AppId" checked="checked"/>
+            }
+            else
+            {
+                    <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Guid" name="steam-game-@Account.Guid" value="@game.AppId" />
+            }
+            <label class="form-check-label" for="@game.AppId-@this.GetHashCode()">@game.Name</label>
+        </div>
+        }
+    </div>
+}

@@ -234,6 +234,7 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
+            serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));

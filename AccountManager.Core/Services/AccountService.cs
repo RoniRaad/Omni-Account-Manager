@@ -57,7 +57,10 @@ namespace AccountManager.Core.Services
             {
                 var account = accounts[i];
                 var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-                account.PlatformId ??= (await platformService.TryFetchId(account)).Item2;
+                if (string.IsNullOrEmpty(account.PlatformId))
+                {
+                    account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                }
                 var rank = (await platformService.TryFetchRank(account)).Item2;
                 if (!string.IsNullOrEmpty(rank.Tier))
                     account.Rank = rank;
