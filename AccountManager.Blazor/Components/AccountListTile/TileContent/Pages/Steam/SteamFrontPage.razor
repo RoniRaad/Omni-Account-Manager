@@ -46,7 +46,7 @@ else
             {
                     <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Guid" name="steam-game-@Account.Guid" value="@game.AppId" />
             }
-            <label class="form-check-label" for="@game.AppId-@this.GetHashCode()">@game.Name</label>
+            <label class="form-check-label" for="@game.AppId-@Account.Guid">@game.Name</label>
         </div>
         }
     </div>
