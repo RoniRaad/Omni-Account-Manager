@@ -14,14 +14,14 @@
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="Application Files\Multi-Account-Manager_1_6_3_0\Multi-Account-Manager.dll.manifest" size="64001">
+    <dependentAssembly dependencyType="install" codebase="Application Files\Multi-Account-Manager_1_6_3_0\Multi-Account-Manager.dll.manifest" size="65203">
       <assemblyIdentity name="Multi-Account-Manager.exe" version="1.6.3.0" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>JpaDc/r+J3XCaI3qQ9slZsgSyKU/XDptxZEWzrke308=</dsig:DigestValue>
+        <dsig:DigestValue>VY/nT7HVgVYbVLh+4QLZrne1E3Ie3p+nI8+Qi50t/ac=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
