@@ -19,7 +19,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
 
         public static string Title = "Game Select";
         List<SteamGameManifest> games = new();
-        bool? steamInstallNotFound = false;
+        bool steamInstallNotFound = false;
         public string SelectedSteamGame = "none";
 
         protected override async Task OnInitializedAsync()
@@ -32,7 +32,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
 
         public void SetGame(string appId)
         {
-            _persistantCache.SetString($"{Account.Guid}.SelectedSteamGame", appId);
+            _persistantCache.SetString($"{Account?.Guid}.SelectedSteamGame", appId);
         }
 
         public void OnRadioClicked(ChangeEventArgs args)
@@ -43,15 +43,16 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
         public async Task RefreshGame()
         {
             games.Clear();
-            SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account?.Guid}.SelectedSteamGame") ?? "none";
             if (!File.Exists(Path.Combine(_userSettings.Settings.SteamInstallDirectory, "steam.exe")))
             {
                 steamInstallNotFound = true;
             }
 
-            games.AddRange(_steamLibraryService.GetGameManifests());
+            if (_steamLibraryService.TryGetGameManifests(out var gameManifests))
+                games.AddRange(gameManifests);
 
-            games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _userSettings.Settings.OnlyShowOwnedSteamGames));
+            games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account?.PlatformId && _userSettings.Settings.OnlyShowOwnedSteamGames));
         }
     }
 }

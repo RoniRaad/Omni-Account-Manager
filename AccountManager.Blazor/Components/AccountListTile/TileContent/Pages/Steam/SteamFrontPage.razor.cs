@@ -52,7 +52,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
                 steamInstallNotFound = true;
             }
 
-            Games.AddRange(_steamLibraryService.GetGameManifests());
+            if (_steamLibraryService.TryGetGameManifests(out var gameManifests))
+            {
+                Games.AddRange(gameManifests);
+            }
 
             Games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _userSettings.Settings.OnlyShowOwnedSteamGames));
         }

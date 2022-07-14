@@ -31,10 +31,15 @@ namespace AccountManager.Infrastructure.Services
             return true;
         }
 
-        private List<string> GetInstalledGamesManifest(string libraryPath)
+        private bool TryGetInstalledGamesManifest(string libraryPath, out List<string> installedGameManifests)
         {
             var steamLibraryPath = libraryPath;
             IEnumerable<string> steamAppFiles = Enumerable.Empty<string>();
+            installedGameManifests = new List<string>();
+
+            if (!Directory.Exists(steamLibraryPath))
+                return false;
+
             try
             {
                 steamAppFiles = Directory.GetFiles(steamLibraryPath);
@@ -44,47 +49,66 @@ namespace AccountManager.Infrastructure.Services
                 return new();
             }
 
-            List<string> steamGames = new List<string>();
 
-            steamAppFiles.ToList().ForEach((file) =>
+            foreach (var file in steamAppFiles.ToList())
             {
                 if (file.Contains("appmanifest"))
                 {
                     var fileContents = File.ReadAllText(file);
-                    steamGames.Add(fileContents);
+                    installedGameManifests.Add(fileContents);
                 }
-            });
+            };
 
-            return steamGames;
+            return true;
         }
 
-        public LibraryFoldersWrapper GetLibraryFolders()
+        public bool TryGetLibraryFolders(out LibraryFoldersWrapper? libraryFolders)
         {
-            var libraryFoldersData = File.ReadAllText(Path.Combine(_userSettings.Settings.SteamInstallDirectory, "config", "libraryfolders.vdf"));
-            return DeserializeVcfOrAcf<LibraryFoldersWrapper>(libraryFoldersData);
+            string libraryFoldersData;
+            libraryFolders = null;
+            try
+            {
+                libraryFoldersData = File.ReadAllText(Path.Combine(_userSettings.Settings.SteamInstallDirectory, "config", "libraryfolders.vdf"));
+                libraryFolders = DeserializeVcfOrAcf<LibraryFoldersWrapper>(libraryFoldersData);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public List<SteamGameManifest> GetGameManifests()
+        public bool TryGetGameManifests(out List<SteamGameManifest> gameManifests)
         {
-            var games = new List<SteamGameManifest>();
-            var libraryDirectories = GetLibraryFolders();
+            gameManifests = new List<SteamGameManifest>();
+
+            if (!TryGetLibraryFolders(out var libraryDirectories) || libraryDirectories is null)
+            {
+                return false;
+            }
+
             foreach (var folder in libraryDirectories.LibraryFolders)
             {
-                var gameManifestData = GetInstalledGamesManifest(Path.Combine(folder.Value.Path, "steamapps"));
-                foreach (var gameData in gameManifestData)
+                if (!TryGetInstalledGamesManifest(Path.Combine(folder.Value.Path, "steamapps"), out var gameManifestData))
                 {
-                    try
-                    {
-                        games.Add(DeserializeVcfOrAcf<SteamGameManifestWrapper>(gameData).AppState);
-                    }
-                    catch
-                    {
+                    return false;
+                }
 
+                try
+                {
+                    foreach (var gameData in gameManifestData)
+                    {
+            
+                        gameManifests.Add(DeserializeVcfOrAcf<SteamGameManifestWrapper>(gameData).AppState);
                     }
+                }
+                catch
+                {
+                    return false;
                 }
             }
 
-            return games;
+            return true;
         }
 
         public bool TryGetUserId(Account account, out string userId)
