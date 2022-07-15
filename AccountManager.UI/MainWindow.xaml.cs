@@ -2,7 +2,9 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
@@ -270,7 +272,32 @@ namespace AccountManager.UI
 				.Build();
 			Resources.Add("services", serviceCollection.BuildServiceProvider());
 			InitializeComponent();
-        }
+			Task.Run(() =>
+			{
+				try
+				{
+					if (File.Exists("Multi-Account-Manager.exe.manifest"))
+					{
+						var assembly = XElement.Load("Multi-Account-Manager.exe.manifest");
+						XNamespace ns = "urn:schemas-microsoft-com:asm.v1";
+						var remoteVersionString = assembly?.Element(ns + "assemblyIdentity")?.Attribute("version")?.Value;
+						if (remoteVersionString is not null)
+						{
+							var version = new Version(remoteVersionString);
+							this.Dispatcher.Invoke(() => {
+								versionNum.Text = $"v{version}";
+							});
+						}
+					}
+				}
+				catch
+				{
+					this.Dispatcher.Invoke(() => {
+						versionNum.Text = "";
+					});
+				}
+			});
+		}
 
 		private void Close(object sender, RoutedEventArgs e)
         {
