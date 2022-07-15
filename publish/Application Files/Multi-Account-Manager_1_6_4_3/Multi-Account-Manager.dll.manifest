@@ -54,31 +54,31 @@
       </hash>
     </dependentAssembly>
   </dependency>
-  <file name="AccountManager.Blazor.dll" size="170496">
+  <file name="AccountManager.Blazor.dll" size="180736">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>FK1GotOZ+s2iKRZueqjGcX/y+Wv6k/HBANHk+ROR0Hw=</dsig:DigestValue>
+      <dsig:DigestValue>d1PI1T6AUjbfwMo0sox78DMr88jdZFApglsCJpbjsy0=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="AccountManager.Core.dll" size="303104">
+  <file name="AccountManager.Core.dll" size="323072">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>wJBdykgK4v9WUurWQcaR3XpmD1v2lfUOQdmg38f+Wrs=</dsig:DigestValue>
+      <dsig:DigestValue>S1LsE4GvPrngJsiSdXVqS1LUVfaljbxv62+lXgN+fUw=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="AccountManager.Infrastructure.dll" size="133120">
+  <file name="AccountManager.Infrastructure.dll" size="153600">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>+sMj0NtbvoNa6l3q2/vL8k+2BeIkNc7mXTWjQh8nrtU=</dsig:DigestValue>
+      <dsig:DigestValue>5T5/qy0CMSUaCCfmrc4J69SMCZIMiMez/Hqc7xdK0Vg=</dsig:DigestValue>
     </hash>
   </file>
   <file name="appsettings.json" size="491">
@@ -594,31 +594,31 @@
       <dsig:DigestValue>Ypt7i3sBc9hUdepaDUkgmQVrJFYnHwWONvJrdbp5W9o=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="Multi-Account-Manager.dll" size="35328">
+  <file name="Multi-Account-Manager.dll" size="36864">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>XMKArYLY6whUdL9sEHRl7ZXQQYChboSpmaKtiTaabYk=</dsig:DigestValue>
+      <dsig:DigestValue>yf70+yHtrmjQ1sjJgzuI5X+J17G27RrnoBSzquqlFXQ=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="Multi-Account-Manager.exe" size="151552">
+  <file name="Multi-Account-Manager.exe" size="150016">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>pwwxZGC+zqtpD51CzIwcQkCT0D4kuNrGy/uUYC5RebU=</dsig:DigestValue>
+      <dsig:DigestValue>rgCmvGiW+u53u8uil1Zj0tnA1eaCUt7CnAQAgpN6Qow=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="Multi-Account-Manager.runtimeconfig.json" size="372">
+  <file name="Multi-Account-Manager.runtimeconfig.json" size="266">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>HsoPDHAHCqg7tgnkt0mybctECXhDJgMnJjlHIiJKCYo=</dsig:DigestValue>
+      <dsig:DigestValue>MhtORju6zWETqjN1Eb3r9ec1bplxdENGsoQkYHx7SDo=</dsig:DigestValue>
     </hash>
   </file>
   <file name="NeoSmart.Caching.Sqlite.dll" size="32768">
