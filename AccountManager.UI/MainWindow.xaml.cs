@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
@@ -25,6 +26,7 @@ using AccountManager.UI.Extensions;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using IPC.NamedPipe;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -45,6 +47,7 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
+
 			// This file acts as a flag to delete the cache file before initializing
 			if (File.Exists(@".\deletecache"))
             {
@@ -299,7 +302,7 @@ namespace AccountManager.UI
 			});
 		}
 
-		private void Close(object sender, RoutedEventArgs e)
+        private void Close(object sender, RoutedEventArgs e)
         {
 			this.Close();
         }

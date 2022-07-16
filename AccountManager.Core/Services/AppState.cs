@@ -1,6 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using IPC.NamedPipe;
 using System.Collections.ObjectModel;
 
 namespace AccountManager.Core.Services
@@ -19,6 +20,28 @@ namespace AccountManager.Core.Services
             _ = UpdateAccounts();
 
             StartUpdateTimer();
+            Node node = new Node("omni-account-manager", "omni-account-manager", "localhost", OnReceived);
+            node.Start();
+        }
+
+        private void OnReceived(PipeMessage recvMessage)
+        {
+            if (recvMessage.GetPayloadType() == PipeMessageType.PMTString)
+            {
+                var message = recvMessage.GetPayload().ToString();
+                var splitMessage = message.Split(":");
+                if (splitMessage.Length > 1)
+                {
+                    var method = splitMessage[0];
+                    var args = splitMessage[1..];
+                    if (method == "startAccount")
+                    {
+                        var accountGuid = args.First();
+                        var account = Accounts.First((acc) => acc.Guid == new Guid(accountGuid));
+                        _accountService.Login(account);
+                    }
+                }
+            }
         }
 
         public void StartUpdateTimer()
