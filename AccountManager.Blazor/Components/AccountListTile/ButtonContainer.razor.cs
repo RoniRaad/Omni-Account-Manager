@@ -42,7 +42,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
             loginDisabled = false;
         }
 
-        public void Delete() // TODO: Update list on delete
+        public void Delete()
         {
             deleteAccountConfirmationRequest = new ConfirmationRequest()
             {
@@ -59,6 +59,11 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 }, 
                 RequestMessage = "Are you sure you want to delete this account? This can NOT be undone."
             };
+        }
+
+        public void Export()
+        {
+            
         }
     }
 }

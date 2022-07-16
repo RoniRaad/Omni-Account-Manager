@@ -1,8 +1,10 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
-using IPC.NamedPipe;
+using AccountManager.Infrastructure.Services;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 
 namespace AccountManager.Core.Services
 {
@@ -11,7 +13,7 @@ namespace AccountManager.Core.Services
         private readonly IAccountService _accountService;
         public RangeObservableCollection<Account> Accounts { get; set; }
         public bool IsInitialized { get; set; } = false;
-        public AppState(IAccountService accountService)
+        public AppState(IAccountService accountService, IIpcService ipcService)
         {
             _accountService = accountService;
             Accounts = new RangeObservableCollection<Account>();
@@ -20,28 +22,33 @@ namespace AccountManager.Core.Services
             _ = UpdateAccounts();
 
             StartUpdateTimer();
-            Node node = new Node("omni-account-manager", "omni-account-manager", "localhost", OnReceived);
-            node.Start();
-        }
 
-        private void OnReceived(PipeMessage recvMessage)
-        {
-            if (recvMessage.GetPayloadType() == PipeMessageType.PMTString)
+            ipcService.IpcReceived += (sender, args) =>
             {
-                var message = recvMessage.GetPayload().ToString();
-                var splitMessage = message.Split(":");
-                if (splitMessage.Length > 1)
+                if (args.MethodName == nameof(IpcLogin) && args?.Json is not null)
                 {
-                    var method = splitMessage[0];
-                    var args = splitMessage[1..];
-                    if (method == "startAccount")
+                    try
                     {
-                        var accountGuid = args.First();
-                        var account = Accounts.First((acc) => acc.Guid == new Guid(accountGuid));
-                        _accountService.Login(account);
+                        var param = JsonSerializer.Deserialize<IpcLoginParameter>(args.Json);
+
+                        if (param is not null)
+                            IpcLogin(param);
+                    }
+                    catch
+                    {
+                        // unable to deserialze IpcLogin attempt
                     }
                 }
-            }
+            };
+        }
+
+        public void IpcLogin(IpcLoginParameter loginParam)
+        {
+            var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
+
+            if (relevantAccount is not null)
+                _accountService.Login(relevantAccount);
+
         }
 
         public void StartUpdateTimer()
@@ -78,5 +85,9 @@ namespace AccountManager.Core.Services
             _accountService.WriteAllAccounts(Accounts.ToList());
         }
 
+        public class IpcLoginParameter
+        {
+            public Guid Guid { get; set; }
+        }
     }
 }
