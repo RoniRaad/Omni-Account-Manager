@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
@@ -33,6 +37,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
+using static AccountManager.Core.Services.AppState;
 
 namespace AccountManager.UI
 {
@@ -47,9 +52,47 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+			{
+				args = args[1..];
+				var parsedArgs = new Dictionary<string, string>();
+				for (int i = 0; i < args.Length; i++)
+				{
+					var arg = args[i];
+					if (arg.StartsWith("/"))
+					{
+						parsedArgs[arg[1..]] = "";
 
-			// This file acts as a flag to delete the cache file before initializing
-			if (File.Exists(@".\deletecache"))
+						if (args.Length != i - 1)
+						{
+                            parsedArgs[arg[1..]] = args[i+1];
+                        }
+					}
+				}
+
+				if (parsedArgs.ContainsKey("login"))
+				{
+					var processes = Process.GetProcessesByName("Multi-Account-Manager");
+					MessageBox.Show($"current processes {processes.Length}");
+                    if (processes.Length != 1)
+					{
+                        MessageBox.Show($"starting node");
+
+                        Node node = new("omni-account-manager", "omni-account-manager", "localhost", (arg) => { });
+                        node.Start();
+						var argument = JsonSerializer.Serialize(new IpcLoginParameter() { Guid = new Guid(parsedArgs["login"]) });
+						node.Send($"IpcLogin:{argument}");
+                        MessageBox.Show($"sent node");
+                    }
+                }
+
+				Environment.Exit(0);
+				return;
+			}
+
+            // This file acts as a flag to delete the cache file before initializing
+            if (File.Exists(@".\deletecache"))
             {
 				File.Delete(@".\cache.db");
 				File.Delete(@".\deletecache");
@@ -62,6 +105,7 @@ namespace AccountManager.UI
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
             serviceCollection.AddOptions();
+            serviceCollection.AddLogging();
 			serviceCollection.AddSqliteCache(options => {
 				options.CachePath = @".\cache.db";
 			});
@@ -240,6 +284,7 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ValorantGraphService>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
+            serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
@@ -251,6 +296,7 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
+			serviceCollection.AddSingleton<IIpcService, IpcService>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
