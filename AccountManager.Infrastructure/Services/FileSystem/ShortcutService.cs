@@ -9,7 +9,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             WindowsShortcut newShortcut = new()
             {
-                Path = $@"{Assembly.GetEntryAssembly()?.Location.Replace("dll", ".exe")}",
+                Path = $@"{Assembly.GetEntryAssembly()?.Location.Replace("dll", "exe")}",
                 Arguments = $"/login {accountGuid}",
                 IconLocation = iconPath
             };

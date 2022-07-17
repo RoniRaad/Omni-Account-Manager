@@ -46,6 +46,7 @@ namespace AccountManager.UI
 	/// </summary>
 	public partial class MainWindow : Window
     {
+		private readonly bool _closeOnStartUp = false;
 		public IConfigurationRoot Configuration { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
@@ -55,6 +56,7 @@ namespace AccountManager.UI
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
 			{
+				_closeOnStartUp = true;
 				args = args[1..];
 				var parsedArgs = new Dictionary<string, string>();
 				for (int i = 0; i < args.Length; i++)
@@ -74,16 +76,12 @@ namespace AccountManager.UI
 				if (parsedArgs.ContainsKey("login"))
 				{
 					var processes = Process.GetProcessesByName("Multi-Account-Manager");
-					MessageBox.Show($"current processes {processes.Length}");
                     if (processes.Length != 1)
 					{
-                        MessageBox.Show($"starting node");
-
                         Node node = new("omni-account-manager", "omni-account-manager", "localhost", (arg) => { });
                         node.Start();
 						var argument = JsonSerializer.Serialize(new IpcLoginParameter() { Guid = new Guid(parsedArgs["login"]) });
 						node.Send($"IpcLogin:{argument}");
-                        MessageBox.Show($"sent node");
                     }
                 }
 
@@ -204,7 +202,7 @@ namespace AccountManager.UI
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
-			serviceCollection.AddSingleton<AppState>();
+			serviceCollection.AddSingleton<IAppState, AppState>();
 			serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddAutoMapper((cfg) =>
 			{
