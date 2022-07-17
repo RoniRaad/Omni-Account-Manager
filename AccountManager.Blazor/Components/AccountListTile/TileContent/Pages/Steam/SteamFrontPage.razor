@@ -6,7 +6,7 @@
 @using AccountManager.Core.Static
 @using Blazorise.Charts
 @using Microsoft.Extensions.Caching.Distributed
-@inject AppState _state
+@inject IAppState _state
 @inject IDistributedCache _persistantCache
 @inject ISteamLibraryService _steamLibraryService
 @inject IUserSettingsService<UserSettings> _userSettings

@@ -1,7 +1,8 @@
-﻿@using AccountManager.Core.Models
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
 @using Blazorise.Charts
 @using AccountManager.Core.Services
-@inject AppState _state
+@inject IAppState _state
 
 @if (LineGraph is null)
 {

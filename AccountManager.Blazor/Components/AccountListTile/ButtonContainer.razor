@@ -1,15 +1,23 @@
 ﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Blazor.Components.Modals.ExportAccountModal
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
-@inject AppState _state
+@using AccountManager.Infrastructure.Services.FileSystem
+@inject IAppState _state
+@inject IShortcutService _shortcutService
 
 <div class="row">
 	<div class="col">
         <span @onclick=Delete class="oi oi-trash" title="Delete" ></span>
     </div>
 	<div class="col">
-		<span @onclick="Export" class="oi oi-share-boxed" title="Export"></span>
+		<div class="dropdown dropend">
+			<span class="oi oi-share-boxed" title="Export" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+			  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+				<a class="dropdown-item" @onclick="() => _shortcutService.CreateDesktopLoginShortcut(Account?.Id, Account.Guid, string.Empty)">Create desktop shortcut</a>
+			  </div>
+		</div>
 	</div>
 	<div class="col">
 		<span @onclick="OpenEditModal" class="oi oi-wrench" title="Edit"></span>
@@ -24,4 +32,7 @@
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
 }
 
-
+@if (showExportModal)
+{
+    <ExportAccountModal Account="Account"></ExportAccountModal>
+}

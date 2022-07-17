@@ -33,6 +33,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
         ConfirmationRequest? deleteAccountConfirmationRequest = null;
+        bool showExportModal = false;
         async Task Login()
         {
             if (loginDisabled)
@@ -63,7 +64,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         public void Export()
         {
-            
+            showExportModal = true;
         }
     }
 }
