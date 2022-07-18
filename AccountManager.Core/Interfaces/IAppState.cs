@@ -8,7 +8,7 @@ namespace AccountManager.Core.Interfaces
         RangeObservableCollection<Account> Accounts { get; set; }
         bool IsInitialized { get; set; }
 
-        void IpcLogin(AppState.IpcLoginParameter loginParam);
+        Task IpcLogin(AppState.IpcLoginParameter loginParam);
         void SaveAccounts();
         void StartUpdateTimer();
         Task UpdateAccounts();

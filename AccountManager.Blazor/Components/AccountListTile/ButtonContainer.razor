@@ -1,11 +1,16 @@
 ﻿@using AccountManager.Blazor.Components.Modals
 @using AccountManager.Blazor.Components.Modals.ExportAccountModal
+@using AccountManager.Core.Enums
+@using AccountManager.Core.Factories
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
 @using AccountManager.Infrastructure.Services.FileSystem
+@using Microsoft.Extensions.Caching.Memory
 @inject IAppState _state
 @inject IShortcutService _shortcutService
+@inject GenericFactory<AccountType, IPlatformService> _platformServiceFactory
+@inject AlertService _alertService
 
 <div class="row">
 	<div class="col">
@@ -15,7 +20,7 @@
 		<div class="dropdown dropend">
 			<span class="oi oi-share-boxed" title="Export" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
 			  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-				<a class="dropdown-item" @onclick="() => _shortcutService.CreateDesktopLoginShortcut(Account?.Id, Account.Guid, string.Empty)">Create desktop shortcut</a>
+				<a class="dropdown-item" @onclick="CreateShortcut">Create desktop shortcut</a>
 			  </div>
 		</div>
 	</div>
@@ -30,9 +35,4 @@
 @if (deleteAccountConfirmationRequest is not null)
 {
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
-}
-
-@if (showExportModal)
-{
-    <ExportAccountModal Account="Account"></ExportAccountModal>
 }

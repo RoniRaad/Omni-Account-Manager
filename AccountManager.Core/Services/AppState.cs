@@ -31,7 +31,7 @@ namespace AccountManager.Core.Services
                         var param = JsonSerializer.Deserialize<IpcLoginParameter>(args.Json);
 
                         if (param is not null)
-                            IpcLogin(param);
+                            Task.Run(() => IpcLogin(param));
                     }
                     catch
                     {
@@ -41,13 +41,12 @@ namespace AccountManager.Core.Services
             };
         }
 
-        public void IpcLogin(IpcLoginParameter loginParam)
+        public async Task IpcLogin(IpcLoginParameter loginParam)
         {
             var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
 
             if (relevantAccount is not null)
-                _accountService.Login(relevantAccount);
-
+                await _accountService.Login(relevantAccount);
         }
 
         public void StartUpdateTimer()
