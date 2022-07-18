@@ -14,6 +14,7 @@ using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Net.Http.Json;
+using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -28,7 +29,9 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
         private readonly IUserSettingsService<UserSettings> _settingsService;
-
+        public static string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
+        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+            ?? ".", "ShortcutIcons", "valorant-logo.ico");
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
             IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService, IValorantClient valorantClient)

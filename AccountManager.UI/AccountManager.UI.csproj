@@ -5,9 +5,9 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyName>Multi-Account-Manager</AssemblyName>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,13 +15,11 @@
     <None Remove="curl\curl.exe" />
     <None Remove="curl\libcurl.def" />
     <None Remove="curl\libcurl.dll" />
-    <None Remove="FileTemplates\riotClientAuthTemplate.yaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="FileTemplates\riotClientAuthTemplate.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Remove="icon.ico" />
+    <None Remove="ShortcutIcons\league-logo.ico" />
+    <None Remove="ShortcutIcons\steam-logo.ico" />
+    <None Remove="ShortcutIcons\tft-logo.ico" />
+    <None Remove="ShortcutIcons\valorant-logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,9 +38,6 @@
 
 
   <ItemGroup>
-    <None Update="icon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Resources\appicon.svg">
       <Color>#512BD4</Color>
       <ForegroundFile>Resources\appiconfg.svg</ForegroundFile>
@@ -80,6 +75,28 @@
     <Content Include="curl\libcurl.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShortcutIcons\league-logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShortcutIcons\steam-logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShortcutIcons\tft-logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShortcutIcons\valorant-logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Resource Include="icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 

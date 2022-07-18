@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using System.Reflection;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -62,9 +63,19 @@ namespace AccountManager.Blazor.Components.AccountListTile
             };
         }
 
-        public void Export()
+        public void CreateShortcut()
         {
-            showExportModal = true;
+            if (Account?.Id is null)
+                return;
+
+            var platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
+            var icoPath = platformService.GetType()?.GetField("IcoFilePath", BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString() ?? "";
+            var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Id, Account.Guid, icoPath);
+             
+            if (successful)
+                _alertService.AddInfoMessage("Shortcut created successfully!");
+            else
+                _alertService.AddErrorMessage("There was an error creating the desktop shortcut!");
         }
     }
 }

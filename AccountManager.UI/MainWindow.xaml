@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:AccountManager.Blazor;assembly=AccountManager.Blazor"
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         mc:Ignorable="d"
+        Icon="icon.ico"
         Title="Multi-Account-Manager" Height="660" Width="1200" WindowStyle="None" Background="#1d1d1d">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="20" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}" />

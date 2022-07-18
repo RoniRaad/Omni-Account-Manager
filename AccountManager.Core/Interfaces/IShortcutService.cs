@@ -2,6 +2,6 @@
 {
     public interface IShortcutService
     {
-        void CreateDesktopLoginShortcut(string name, Guid accountGuid, string iconPath);
+        bool TryCreateDesktopLoginShortcut(string name, Guid accountGuid, string iconPath);
     }
 }

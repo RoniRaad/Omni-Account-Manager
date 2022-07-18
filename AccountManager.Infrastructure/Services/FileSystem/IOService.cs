@@ -14,15 +14,15 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             ValidateData();
         }
 
-        private string _dataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
+        public static string DataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
-            if (!Directory.Exists(_dataPath))
+            if (!Directory.Exists(DataPath))
             {
-                Directory.CreateDirectory(_dataPath);
+                Directory.CreateDirectory(DataPath);
             }
-            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
+            if (!File.Exists($"{DataPath}\\{fileName}.dat"))
                 return false;
             else
                 return true;
@@ -65,13 +65,13 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var fileName = StringEncryption.Hash(name);
             var serializedData = JsonSerializer.Serialize(data);
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
-            File.WriteAllText($"{_dataPath}\\{fileName}.dat", encryptedData);
+            File.WriteAllText($"{DataPath}\\{fileName}.dat", encryptedData);
         }
 
         public void UpdateData<T>(T data)
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);
-            File.WriteAllText($"{_dataPath}\\{fileName}.dat", JsonSerializer.Serialize(data));
+            File.WriteAllText($"{DataPath}\\{fileName}.dat", JsonSerializer.Serialize(data));
         }
 
         public T ReadData<T>(string password) where T : new()
@@ -79,13 +79,13 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             string decryptedData;
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
-            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
+            if (!File.Exists($"{DataPath}\\{fileName}.dat"))
             {
-                File.WriteAllText($"{_dataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
+                File.WriteAllText($"{DataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
                 return new T();
             }
 
-            string encryptedData = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
+            string encryptedData = File.ReadAllText($"{DataPath}\\{fileName}.dat");
             try
             {
                 decryptedData = StringEncryption.DecryptString(password, encryptedData);
@@ -100,13 +100,13 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public T ReadData<T>() where T : new()
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);
-            if (!File.Exists($"{_dataPath}\\{fileName}.dat"))
+            if (!File.Exists($"{DataPath}\\{fileName}.dat"))
             {
-                File.WriteAllText($"{_dataPath}\\{fileName}.dat", JsonSerializer.Serialize(new T()));
+                File.WriteAllText($"{DataPath}\\{fileName}.dat", JsonSerializer.Serialize(new T()));
                 return new T();
             }
 
-            string data = File.ReadAllText($"{_dataPath}\\{fileName}.dat");
+            string data = File.ReadAllText($"{DataPath}\\{fileName}.dat");
             return JsonSerializer.Deserialize<T>(data) ?? new T();
         }
 
@@ -138,7 +138,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public void AddCacheDeleteFlag()
         {
-            File.Create(@".\deletecache");
+            File.Create(@$"{IOService.DataPath}\deletecache");
         }
     }
 }
