@@ -173,6 +173,14 @@
           }
         }
       },
+      "IPC.NamedPipe/0.9.3": {
+        "runtime": {
+          "lib/netstandard2.0/IPC.NamedPipe.dll": {
+            "assemblyVersion": "0.9.3.0",
+            "fileVersion": "0.9.3.0"
+          }
+        }
+      },
       "Lambda2Js/3.1.3": {
         "dependencies": {
           "NETStandard.Library": "1.6.1"
@@ -1530,6 +1538,7 @@
           "AccountManager.Core": "1.0.0",
           "CliWrap": "3.4.4",
           "CloudFlareUtilities": "1.3.0",
+          "IPC.NamedPipe": "0.9.3",
           "Microsoft.Extensions.Hosting.Abstractions": "7.0.0-preview.4.22229.4",
           "Microsoft.Extensions.Http": "7.0.0-preview.4.22229.4",
           "NeoSmart.Caching.Sqlite": "6.0.1",
@@ -1631,6 +1640,13 @@
       "sha512": "sha512-vGw/cRHSDZ/Rh/PDZ8GSMMlRki7ocqU3eh4TNr+Z/cqRpvtg3w0LOW5bn8J8u4AAOjUMSZtNAmYh2OsYHxFhbA==",
       "path": "gameloop.vdf.jsonconverter/0.2.1",
       "hashPath": "gameloop.vdf.jsonconverter.0.2.1.nupkg.sha512"
+    },
+    "IPC.NamedPipe/0.9.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HdQTKNG4CVcmd+zM/MsWmLAqDU8tOhj5qmQWuY8SjITqDUPOa3ClK4G4ujNPD8Si3Xc0qtTLoMZzxcDQvnfqjw==",
+      "path": "ipc.namedpipe/0.9.3",
+      "hashPath": "ipc.namedpipe.0.9.3.nupkg.sha512"
     },
     "Lambda2Js/3.1.3": {
       "type": "package",
