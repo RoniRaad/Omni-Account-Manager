@@ -1,5 +1,6 @@
 ﻿
 using AccountManager.Core.Interfaces;
+using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
@@ -54,7 +55,21 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         private async Task<string> GenerateYaml(string region, string tdid, string ssid, string sub, string csid)
         {
-            var yaml = await File.ReadAllTextAsync(@"FileTemplates\riotClientAuthTemplate.yaml");
+            string yaml;
+            var assembly = Assembly.GetExecutingAssembly();
+            var resources = assembly.GetManifestResourceNames();
+            string resourcePath = resources
+                    .Single(str => str.EndsWith("riotClientAuthTemplate.yaml"));
+
+            using (Stream? stream = assembly?.GetManifestResourceStream(resourcePath))
+            {
+                if (stream is null)
+                    return "";
+
+                using StreamReader reader = new(stream);
+                yaml = await reader.ReadToEndAsync();
+            }
+  
             yaml = yaml.Replace("{region}", region);
             yaml = yaml.Replace("{tdid}", tdid);
             yaml = yaml.Replace("{ssid}", ssid);

@@ -4,6 +4,7 @@ using CliWrap.Buffered;
 using CliWrap.Builders;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net;
+using System.Reflection;
 using System.Text.Json;
 using System.Web;
 
@@ -13,7 +14,7 @@ namespace AccountManager.Infrastructure.Clients
     {
         private string uri = "";
         private static readonly SemaphoreSlim _semaphoreSlim = new(1);
-        private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(".","curl","curl.exe"))
+        private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
             .WithWorkingDirectory(Directory.GetCurrentDirectory());
         private readonly CookieContainer _requestCookies = new();
         private readonly ArgumentsBuilder _argumentsBuilder = new();
