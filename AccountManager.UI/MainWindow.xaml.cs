@@ -31,6 +31,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
+using Squirrel;
 
 namespace AccountManager.UI
 {
@@ -298,6 +299,14 @@ namespace AccountManager.UI
 				}
 			});
 		}
+
+		private async Task CheckForUpdate()
+		{
+            using (var mgr = new UpdateManager("C:\\Projects\\MyApp\\Releases"))
+            {
+                await mgr.UpdateApp();
+            }
+        }
 
 		private void Close(object sender, RoutedEventArgs e)
         {
