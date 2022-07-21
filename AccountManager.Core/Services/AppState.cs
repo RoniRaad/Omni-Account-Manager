@@ -1,24 +1,52 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using AccountManager.Infrastructure.Services;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 
 namespace AccountManager.Core.Services
 {
-    public class AppState
+    public class AppState : IAppState
     {
         private readonly IAccountService _accountService;
         public RangeObservableCollection<Account> Accounts { get; set; }
         public bool IsInitialized { get; set; } = false;
-        public AppState(IAccountService accountService)
+        public AppState(IAccountService accountService, IIpcService ipcService)
         {
             _accountService = accountService;
             Accounts = new RangeObservableCollection<Account>();
             Accounts.AddRange(_accountService.GetAllAccountsMin());
-          
+
             _ = UpdateAccounts();
 
             StartUpdateTimer();
+
+            ipcService.IpcReceived += (sender, args) =>
+            {
+                if (args.MethodName == nameof(IpcLogin) && args?.Json is not null)
+                {
+                    try
+                    {
+                        var param = JsonSerializer.Deserialize<IpcLoginParameter>(args.Json);
+
+                        if (param is not null)
+                            Task.Run(() => IpcLogin(param));
+                    }
+                    catch
+                    {
+                        // unable to deserialze IpcLogin attempt
+                    }
+                }
+            };
+        }
+
+        public async Task IpcLogin(IpcLoginParameter loginParam)
+        {
+            var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
+
+            if (relevantAccount is not null)
+                await _accountService.Login(relevantAccount);
         }
 
         public void StartUpdateTimer()
@@ -36,7 +64,7 @@ namespace AccountManager.Core.Services
         {
             var minAccounts = _accountService.GetAllAccountsMin();
 
-            Accounts.RemoveAll(acc => 
+            Accounts.RemoveAll(acc =>
                 !minAccounts.Any(minAcc => minAcc.Guid == acc.Guid));
 
             minAccounts.RemoveAll(
@@ -55,5 +83,9 @@ namespace AccountManager.Core.Services
             _accountService.WriteAllAccounts(Accounts.ToList());
         }
 
+        public class IpcLoginParameter
+        {
+            public Guid Guid { get; set; }
+        }
     }
 }
