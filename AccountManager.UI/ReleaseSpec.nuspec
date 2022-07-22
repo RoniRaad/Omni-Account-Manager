@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>OmniAccountManager</id>
+    <version>0.0.0.0</version>
+    <title>Omni Account Manager</title>
+    <authors>Roni Raad</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <!-- <icon>icon.png</icon> -->
+    <projectUrl>https://github.com/RoniRaad/Omni-Account-Manager</projectUrl>
+    <description>Account manager that works for multiple gaming platforms</description>
+    <releaseNotes></releaseNotes>
+    <copyright></copyright>
+    <tags></tags>
+  </metadata>
+  <files>
+	<file src="bin\Release\net6.0-windows\**" target="lib\net45"/>
+  </files>
+</package>

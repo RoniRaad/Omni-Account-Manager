@@ -270,34 +270,49 @@ namespace AccountManager.UI
 				.AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
 				.AddImplementation<RiotTokenService>(AccountType.Valorant)
 				.Build();
-			Resources.Add("services", serviceCollection.BuildServiceProvider());
+
+			var builtServiceProvider = serviceCollection.BuildServiceProvider();
+
+            Resources.Add("services", builtServiceProvider);
 			InitializeComponent();
-			Task.Run(() =>
+
+			var updateUrl = builtServiceProvider.GetRequiredService<IOptions<AboutEndpoints>>().Value;
+			if (updateUrl?.Github is not null)
+				CheckForUpdate(updateUrl.Github);
+
+			TrySetVersionNumber();
+        }
+
+        private void TrySetVersionNumber()
+		{
+            try
+            {
+				var version = Assembly.GetExecutingAssembly().GetName()?.Version?.ToString();
+				this.Dispatcher.Invoke(() => {
+					versionNum.Text = $"v{version}";
+				});
+            }
+            catch
+            {
+                this.Dispatcher.Invoke(() => {
+                    versionNum.Text = "";
+                });
+            }
+        }
+
+		private async Task CheckForUpdate(string url)
+		{
+			try
 			{
-				try
-				{
-					if (File.Exists("Multi-Account-Manager.exe.manifest"))
-					{
-						var assembly = XElement.Load("Multi-Account-Manager.exe.manifest");
-						XNamespace ns = "urn:schemas-microsoft-com:asm.v1";
-						var remoteVersionString = assembly?.Element(ns + "assemblyIdentity")?.Attribute("version")?.Value;
-						if (remoteVersionString is not null)
-						{
-							var version = new Version(remoteVersionString);
-							this.Dispatcher.Invoke(() => {
-								versionNum.Text = $"v{version}";
-							});
-						}
-					}
-				}
-				catch
-				{
-					this.Dispatcher.Invoke(() => {
-						versionNum.Text = "";
-					});
-				}
-			});
-		}
+                using (var manager = await UpdateManager.GitHubUpdateManager(url))
+                {
+                    await manager.UpdateApp();
+                }
+            }
+			catch{
+
+			}
+        }
 
 		private void Close(object sender, RoutedEventArgs e)
         {
