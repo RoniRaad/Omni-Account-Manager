@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using System.Reflection;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -33,6 +34,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
         ConfirmationRequest? deleteAccountConfirmationRequest = null;
+        bool showExportModal = false;
         async Task Login()
         {
             if (loginDisabled)
@@ -42,7 +44,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
             loginDisabled = false;
         }
 
-        public void Delete() // TODO: Update list on delete
+        public void Delete()
         {
             deleteAccountConfirmationRequest = new ConfirmationRequest()
             {
@@ -59,6 +61,21 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 }, 
                 RequestMessage = "Are you sure you want to delete this account? This can NOT be undone."
             };
+        }
+
+        public void CreateShortcut()
+        {
+            if (Account?.Id is null)
+                return;
+
+            var platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
+            var icoPath = platformService.GetType()?.GetField("IcoFilePath", BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString() ?? "";
+            var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Id, Account.Guid, icoPath);
+             
+            if (successful)
+                _alertService.AddInfoMessage("Shortcut created successfully!");
+            else
+                _alertService.AddErrorMessage("There was an error creating the desktop shortcut!");
         }
     }
 }
