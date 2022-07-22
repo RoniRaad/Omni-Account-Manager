@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
@@ -25,12 +30,16 @@ using AccountManager.UI.Extensions;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using IPC.NamedPipe;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
+using static AccountManager.Core.Services.AppState;
+using Squirrel;
+using Microsoft.Extensions.Options;
 
 namespace AccountManager.UI
 {
@@ -45,11 +54,12 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
-			// This file acts as a flag to delete the cache file before initializing
-			if (File.Exists(@".\deletecache"))
+
+            // This file acts as a flag to delete the cache file before initializing
+            if (File.Exists(@$"{IOService.DataPath}\deletecache"))
             {
-				File.Delete(@".\cache.db");
-				File.Delete(@".\deletecache");
+				File.Delete(@$"{IOService.DataPath}\cache.db");
+				File.Delete(@$"{IOService.DataPath}\deletecache");
 			}
 			var builder = new ConfigurationBuilder()
 			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -59,184 +69,29 @@ namespace AccountManager.UI
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
             serviceCollection.AddOptions();
+            serviceCollection.AddLogging();
 			serviceCollection.AddSqliteCache(options => {
-				options.CachePath = @".\cache.db";
+				options.CachePath = @$"{IOService.DataPath}\cache.db";
 			});
 			serviceCollection.AddMemoryCache();
-			var riotApiUri = Configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
-			serviceCollection.AddHttpClient("RiotAuth", (httpClient) =>
-            {
-				httpClient.BaseAddress = new Uri(riotApiUri?.Auth ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false,
-				};
-			});
-			serviceCollection.AddHttpClient("RiotEntitlement", (httpClient) =>
-			{
-				httpClient.BaseAddress = new Uri(riotApiUri?.Entitlement ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false
-				};
-			});
-			serviceCollection.AddHttpClient("RiotSessionNA", (httpClient) =>
-			{
-				httpClient.BaseAddress = new Uri(riotApiUri?.LeagueSessionUS ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false
-				};
-			});
-			serviceCollection.AddHttpClient("LeagueNA", (httpClient) =>
-			{
-				httpClient.BaseAddress = new Uri(riotApiUri?.LeagueNA ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false
-				};
-			});
-			serviceCollection.AddHttpClient("Valorant", (httpClient) =>
-			{
-				httpClient.BaseAddress = new Uri(riotApiUri?.Valorant ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false
-				};
-			});
-			serviceCollection.AddHttpClient("ValorantNA", (httpClient) =>
-			{
-				httpClient.BaseAddress = new Uri(riotApiUri?.ValorantNA ?? "");
-				httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-				httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-				httpClient.DefaultRequestVersion = HttpVersion.Version20;
-			}).ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				x.PrimaryHandler = new HttpClientHandler
-				{
-					UseCookies = false
-				};
-			});
-			serviceCollection.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
-			{
-				var httpClientHandler = new HttpClientHandler();
-				httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
-				{
-					return true;
-				};
-
-				x.PrimaryHandler = httpClientHandler;
-			});
-
-			serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
+			serviceCollection.AddAutoMapperMappings();
+			serviceCollection.AddNamedClients(Configuration);
+            serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
-			serviceCollection.AddSingleton<AppState>();
-			serviceCollection.AddSingleton<AuthService>();
-			serviceCollection.AddAutoMapper((cfg) =>
-			{
-				cfg.CreateMap<int, ValorantRank>()
-				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => ValorantRank.RankMap[src / 3]))
-				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src != 0 ? new string('I', src % 3 + 1) : ""))
-				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => ValorantRank.RankedColorMap[ValorantRank.RankMap[src / 3].ToLower()]));
-
-				cfg.CreateMap<Rank, LeagueRank>()
-				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
-				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
-				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => LeagueRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
-
-				cfg.CreateMap<Rank, TeamFightTacticsRank>()
-				.ForMember(d => d.Tier, opt => opt.MapFrom((src) => src.Tier))
-				.ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
-				.ForMember(d => d.HexColor, opt => opt.MapFrom((src) => TeamFightTacticsRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
-
-				cfg.CreateMap<string, ValorantCharacter>()
-				.ForMember(d => d.Name, opt => opt.MapFrom((src) => ValorantCharacter.CharacterMapping.ContainsKey(src) ? ValorantCharacter.CharacterMapping[src] : "UNKNOWN CHARACTER"))
-				.ReverseMap();
-
-				cfg.CreateMap<MatchHistory, MatchHistoryResponse>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Json, MatchHistoryResponse.Json>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Metadata, MatchHistoryResponse.Metadata>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Ban, MatchHistoryResponse.Ban>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Team, MatchHistoryResponse.Team>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Objectives, MatchHistoryResponse.Objectives>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Baron, MatchHistoryResponse.Baron>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Challenges, MatchHistoryResponse.Challenges>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Champion, MatchHistoryResponse.Champion>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Dragon, MatchHistoryResponse.Dragon>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Game, MatchHistoryResponse.Game>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Inhibitor, MatchHistoryResponse.Inhibitor>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Json, MatchHistoryResponse.Json>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Metadata, MatchHistoryResponse.Metadata>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Participant, MatchHistoryResponse.Participant>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Perks, MatchHistoryResponse.Perks>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.RiftHerald, MatchHistoryResponse.RiftHerald>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Selection, MatchHistoryResponse.Selection>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.StatPerks, MatchHistoryResponse.StatPerks>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Style, MatchHistoryResponse.Style>()
-				.ReverseMap();
-				cfg.CreateMap<MatchHistory.Tower, MatchHistoryResponse.Tower>()
-				.ReverseMap();
-
-				cfg.AllowNullDestinationValues = true;
-			});
+			serviceCollection.AddState();
+            serviceCollection.AddSingleton<AuthService>();
 			serviceCollection.AddTransient<LeagueClient>();
 			serviceCollection.AddTransient<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
 			serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
+            serviceCollection.AddSingleton<IAppState, AppState>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
+            serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
@@ -248,6 +103,7 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
+			serviceCollection.AddSingleton<IIpcService, IpcService>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
