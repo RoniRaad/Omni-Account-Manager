@@ -39,6 +39,7 @@ using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
 using static AccountManager.Core.Services.AppState;
 using Squirrel;
+using Microsoft.Extensions.Options;
 
 namespace AccountManager.UI
 {
@@ -87,6 +88,7 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
+            serviceCollection.AddSingleton<IAppState, AppState>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
@@ -124,28 +126,27 @@ namespace AccountManager.UI
 				.AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
 				.AddImplementation<RiotTokenService>(AccountType.Valorant)
 				.Build();
-			Resources.Add("services", serviceCollection.BuildServiceProvider());
-			InitializeComponent();
-			Task.Run(TrySetVersionNumber);
-		}
 
-		private void TrySetVersionNumber()
+			var builtServiceProvider = serviceCollection.BuildServiceProvider();
+
+            Resources.Add("services", builtServiceProvider);
+			InitializeComponent();
+
+			var updateUrl = builtServiceProvider.GetRequiredService<IOptions<AboutEndpoints>>().Value;
+			if (updateUrl?.Github is not null)
+				Task.Run(async () => await CheckForUpdate(updateUrl.Github));
+
+			TrySetVersionNumber();
+        }
+
+        private void TrySetVersionNumber()
 		{
             try
             {
-                if (File.Exists("Multi-Account-Manager.exe.manifest"))
-                {
-                    var assembly = XElement.Load("Multi-Account-Manager.exe.manifest");
-                    XNamespace ns = "urn:schemas-microsoft-com:asm.v1";
-                    var remoteVersionString = assembly?.Element(ns + "assemblyIdentity")?.Attribute("version")?.Value;
-                    if (remoteVersionString is not null)
-                    {
-                        var version = new Version(remoteVersionString);
-                        this.Dispatcher.Invoke(() => {
-                            versionNum.Text = $"v{version}";
-                        });
-                    }
-                }
+				var version = Assembly.GetExecutingAssembly().GetName()?.Version?.ToString();
+				this.Dispatcher.Invoke(() => {
+					versionNum.Text = $"v{version}";
+				});
             }
             catch
             {
@@ -155,14 +156,11 @@ namespace AccountManager.UI
             }
         }
 
-        private void Close(object sender, RoutedEventArgs e)
-		private async Task CheckForUpdate()
+		private async Task CheckForUpdate(string url)
 		{
-            using (var mgr = new UpdateManager("C:\\Projects\\MyApp\\Releases"))
-            {
-                await mgr.UpdateApp();
-            }
-        }
+			var manager = await UpdateManager.GitHubUpdateManager(url);
+			await manager.UpdateApp();
+		}
 
 		private void Close(object sender, RoutedEventArgs e)
         {
