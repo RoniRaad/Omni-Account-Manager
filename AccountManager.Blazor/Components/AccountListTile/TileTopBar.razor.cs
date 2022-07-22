@@ -1,18 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
 using AccountManager.Core.Enums;
+using System.Reflection;
+using AccountManager.Core.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -29,5 +19,28 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         [Parameter]
         public EventCallback MouseExitDragLogo { get; set; }
+        private string logoUrl = "";
+
+        protected override void OnInitialized()
+        {
+            logoUrl = GetLogoUrl();
+            base.OnInitialized();
+        }
+
+        public string GetLogoUrl()
+        {
+            return _memoryCache?.GetOrCreate($"{nameof(GetLogoUrl)}.{AccountType}", (entry) =>
+            {
+                var platformService = _platformServiceFactory?.CreateImplementation(AccountType);
+
+                if (platformService is null)
+                {
+                    entry.AbsoluteExpiration = DateTimeOffset.Now;
+                    return null;
+                }
+
+                return platformService.GetType()?.GetField("WebIconFilePath", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString();
+            }) ?? "";
+       }
     }
 }
