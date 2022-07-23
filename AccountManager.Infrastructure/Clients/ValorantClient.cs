@@ -111,28 +111,36 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account)
         {
             var client = _httpClientFactory.CreateClient("ValorantNA");
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
+            var expectedVersion = await _riotClient.GetExpectedClientVersion();
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", expectedVersion);
             var bearerToken = await GetValorantToken(account);
             if (bearerToken is null)
-                return new List<ValorantMatch>();
+                return Enumerable.Empty<ValorantMatch>();
 
             var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var gameHistoryDataResponse = await client.GetAsync($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
-            var gameHistoryData = await gameHistoryDataResponse.Content.ReadFromJsonAsync<ValorantGameHistoryDataResponse>();
+            var gameHistoryData = await client.GetFromJsonAsync<ValorantGameHistoryDataResponse>($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
 
-            var valorantMatches = new List<ValorantMatch>();
+            if (gameHistoryData?.History is null)
+                return Enumerable.Empty<ValorantMatch>();
 
-            foreach (var game in gameHistoryData?.History ?? new())
+            var getValorantMatchesTasks = gameHistoryData.History.Select((game) =>
             {
-                var gameDataResponse = await client.GetAsync($"/match-details/v1/matches/{game.MatchID}");
-                var gameData = await gameDataResponse.Content.ReadFromJsonAsync<ValorantMatch>();
-                if (gameData is not null)
-                    valorantMatches.Add(gameData);
-            }
+                return client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
+            }).ToList();
+
+            await Task.WhenAll(getValorantMatchesTasks);
+
+            var valorantMatches = getValorantMatchesTasks.Select((gameDataResponseTask) =>
+            {
+                return gameDataResponseTask.Result ?? new();
+            });
+
+            if (valorantMatches is null)
+                return Enumerable.Empty<ValorantMatch>();
 
             return valorantMatches;
         }
