@@ -49,7 +49,17 @@ else if (_authService.AuthInitialized)
 			<div class="form-group">
 				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
 			</div>
-			<button type="submit" class="btn btn-dark" @onclick=Login>Login</button>
+
+			<div style="display: flex; flex-direction: row; align-items: center; align-self: self-start;">
+				<input style="margin-top:0px;" class="form-check-input" type="checkbox" value="rememberPasswordCheckbox">
+				<label style="font-size: 13px; font-family: Roboto;" class="form-check-label" for="rememberPasswordCheckbox">
+					Remember Password
+				</label>
+			</div>
+
+			<button style="padding: 3% 14%;" type="submit" class="btn btn-dark" @onclick=Login>
+				Login
+			</button>
 		</div>
 	</form>
 }
