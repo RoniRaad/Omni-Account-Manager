@@ -23,14 +23,24 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
         BarChart? rankedCsRateByChamp;
         protected override async Task OnInitializedAsync()
         {
+            List<Task> graphTasks;
+
             navigationTitle = Title;
             if (Account is null)
                 return;
-            rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account);
-            rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account);
-            rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account);
-            rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account);
-            rankedWinrateByChamp.Type = "percent";
+
+            graphTasks = new()
+            {
+                Task.Run(async () => rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account)),
+                Task.Run(async () => rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account)),
+                Task.Run(async () => rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account)),
+                Task.Run(async () => rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account))
+            };
+
+            await Task.WhenAll(graphTasks);
+
+            if (rankedWinrateByChamp is not null)
+                rankedWinrateByChamp.Type = "percent";
         }
     }
 }

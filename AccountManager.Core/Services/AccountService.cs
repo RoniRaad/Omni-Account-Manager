@@ -49,8 +49,9 @@ namespace AccountManager.Core.Services
         {
             if (_memoryCache.TryGetValue<List<Account>>(accountCacheKey, out var accounts) && accounts is not null)
                 return accounts;
-                
-           accounts = GetAllAccountsMin();
+
+            List<Task> accountTasks;
+            accounts = GetAllAccountsMin();
 
             var accountsCount = accounts.Count;
             for (int i = 0; i < accountsCount; i++)
