@@ -43,10 +43,12 @@ namespace AccountManager.Infrastructure.Clients
             if (riotAuthResponse is null || riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
                 return null;
 
-            var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
-                    @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+            var responseUri = new Uri(riotAuthResponse.Content.Response.Parameters.Uri);
 
-            var token = matches[0].Groups[1].Value;
+            var queryString = responseUri.Fragment[1..];
+            var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
+
+            var token = queryDictionary["access_token"];
 
             return token;
         }
@@ -106,7 +108,7 @@ namespace AccountManager.Infrastructure.Clients
             tasks.AddRange(getSkinTasks);
             tasks.Add(allOffersTask);
 
-            await Task.WhenAll(getSkinTasks);
+            await Task.WhenAll(tasks);
 
             var allOffers = allOffersTask.Result;
 

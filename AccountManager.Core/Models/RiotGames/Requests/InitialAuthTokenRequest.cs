@@ -17,7 +17,7 @@ namespace AccountManager.Core.Models.RiotGames.Requests
         public string? Scope { get; set; }
         public string GetHashId()
         {
-            return StringEncryption.Hash($"{Id}.{ResponseType}.{Scope}");
+            return StringEncryption.Hash($"{Id}.{Nonce}.{RedirectUri}.{ResponseType}.{Scope}");
         }
     }
 }

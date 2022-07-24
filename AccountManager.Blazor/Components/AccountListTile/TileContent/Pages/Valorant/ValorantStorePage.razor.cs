@@ -15,23 +15,31 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         private Account _account = new();
 
         List<ValorantSkinLevelResponse>? storeFrontSkins;
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             if (Account is null)
                 return;
 
             _account = Account;
 
-            storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+            Task.Run(async () =>
+            {
+                storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                await InvokeAsync(() => StateHasChanged());
+            });
         }
 
-        protected override async Task OnParametersSetAsync()
+        protected override void OnParametersSet()
         {
             if (_account != Account)
             {
                 _account = Account;
 
-                storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                Task.Run(async () =>
+                {
+                    storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                    await InvokeAsync(() => StateHasChanged());
+                });
             }
         }
     }
