@@ -71,7 +71,6 @@ namespace AccountManager.Core.Services
                 });
 
                 accountTasks.Add(updateRankTask);
-
             }
 
             await Task.WhenAll(accountTasks);

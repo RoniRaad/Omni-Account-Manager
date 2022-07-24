@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Infrastructure.Clients
 {
-    public interface ICurlRequestBuilder
+    public interface IHttpRequestBuilder
     {
         IHttpRequestBuilderInitialize CreateBuilder();
         IHttpRequestBuilderReadyToExecute CreateBuilder(string uri);

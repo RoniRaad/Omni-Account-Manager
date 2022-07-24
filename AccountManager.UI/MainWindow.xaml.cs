@@ -1,22 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Net.Sockets;
+﻿using System.IO;
 using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Linq;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
-using AccountManager.Core.Models.RiotGames.League;
-using AccountManager.Core.Models.RiotGames.League.Requests;
-using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Services;
 using AccountManager.Core.Services.GraphServices;
 using AccountManager.Core.Services.GraphServices.Cached;
@@ -30,14 +19,12 @@ using AccountManager.UI.Extensions;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
-using IPC.NamedPipe;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
-using static AccountManager.Core.Services.AppState;
 using Squirrel;
 using Microsoft.Extensions.Options;
 
@@ -49,12 +36,12 @@ namespace AccountManager.UI
 	public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
+		private bool updateAvailable = false;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
-
             // This file acts as a flag to delete the cache file before initializing
             if (File.Exists(@$"{IOService.DataPath}\deletecache"))
             {
@@ -100,12 +87,12 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
 			serviceCollection.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
-            serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
+            serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
 			serviceCollection.AddSingleton<IIpcService, IpcService>();
-			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<ICurlRequestBuilder, CurlRequestBuilder>();
+			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
+			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<LeagueTokenService>();
 			serviceCollection.AddBlazorise(options =>
 			{
@@ -134,7 +121,7 @@ namespace AccountManager.UI
 
 			var updateUrl = builtServiceProvider.GetRequiredService<IOptions<AboutEndpoints>>().Value;
 			if (updateUrl?.Github is not null)
-				CheckForUpdate(updateUrl.Github);
+				Task.Run(() => CheckForUpdate(updateUrl.Github));
 
 			TrySetVersionNumber();
         }
@@ -162,10 +149,16 @@ namespace AccountManager.UI
 			{
                 using (var manager = await UpdateManager.GitHubUpdateManager(url))
                 {
-                    await manager.UpdateApp();
+					var updateInfo = await manager.CheckForUpdate();
+					if (updateInfo.ReleasesToApply.Count > 0)
+					{
+						updateAvailable = true;
+                        var value = await manager.UpdateApp();
+                    }
                 }
             }
-			catch{
+			catch
+			{
 
 			}
         }
@@ -179,6 +172,7 @@ namespace AccountManager.UI
         {
 			SystemCommands.MinimizeWindow(this);
 		}
+
         private void Maximize(object sender, RoutedEventArgs e)
         {
 			if (this.WindowState != WindowState.Maximized)

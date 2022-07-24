@@ -23,14 +23,14 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<string> GetLeagueSessionToken(Account account)
         {
             var cacheKey = nameof(GetLeagueSessionToken);
+            if (_memoryCache.TryGetValue(cacheKey, out string? sessionToken)
+             && sessionToken is not null
+             && await TestLeagueToken(sessionToken))
+                return sessionToken;
+
             await semaphore.WaitAsync();
             try
             {
-                if (_memoryCache.TryGetValue(cacheKey, out string? sessionToken)
-                && sessionToken is not null
-                && await TestLeagueToken(sessionToken))
-                            return sessionToken;
-
                 sessionToken = await _tokenClient.GetLeagueSessionToken(account);
 
                 if (!string.IsNullOrEmpty(sessionToken))
