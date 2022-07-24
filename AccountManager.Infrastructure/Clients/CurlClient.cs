@@ -10,10 +10,9 @@ using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class CurlRequestBuilder : ICurlRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
+    public class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
     {
         private string uri = "";
-        private static readonly SemaphoreSlim _semaphoreSlim = new(1);
         private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
             .WithWorkingDirectory(Directory.GetCurrentDirectory());
         private readonly CookieContainer _requestCookies = new();
@@ -121,8 +120,6 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<CurlResponse<string>> ExecuteAsync()
         {
-            await _semaphoreSlim.WaitAsync();
-
             try
             {
                 var tdidCacheKey = $"riot.auth.tdid";
@@ -187,10 +184,6 @@ namespace AccountManager.Infrastructure.Clients
                     Cookies = null,
                     Location = null
                 };
-            }
-            finally
-            {
-                _semaphoreSlim.Release(1);
             }
         }
 

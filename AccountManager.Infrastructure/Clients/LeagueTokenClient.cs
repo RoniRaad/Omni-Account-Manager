@@ -20,10 +20,10 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRiotClient _riotClient;
         private readonly RiotApiUri _riotApiUri;
-        private readonly ICurlRequestBuilder _curlRequestBuilder;
+        private readonly IHttpRequestBuilder _curlRequestBuilder;
         public LeagueTokenClient(IHttpClientFactory httpClientFactory,
             IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions,
-            ICurlRequestBuilder curlRequestBuilder, GenericFactory<AccountType, ITokenService> leagueTokenServiceFactory)
+            IHttpRequestBuilder curlRequestBuilder, GenericFactory<AccountType, ITokenService> leagueTokenServiceFactory)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;

@@ -43,10 +43,12 @@ namespace AccountManager.Infrastructure.Clients
             if (riotAuthResponse is null || riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
                 return null;
 
-            var matches = Regex.Matches(riotAuthResponse.Content.Response.Parameters.Uri,
-                    @"access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)");
+            var responseUri = new Uri(riotAuthResponse.Content.Response.Parameters.Uri);
 
-            var token = matches[0].Groups[1].Value;
+            var queryString = responseUri.Fragment[1..];
+            var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
+
+            var token = queryDictionary["access_token"];
 
             return token;
         }
@@ -78,7 +80,6 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
         {
-            var offers = new List<ValorantSkinLevelResponse>();
 
             var valClient = _httpClientFactory.CreateClient("ValorantNA");
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
@@ -91,19 +92,33 @@ namespace AccountManager.Infrastructure.Clients
             valClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var responseObj = await valClient.GetAsync($"/store/v2/storefront/{account.PlatformId}");
-            var response = await responseObj.Content.ReadFromJsonAsync<ValorantShopOffers>();
-            var allOffers = await GetAllShopOffers(account);
-            foreach (var offer in response?.SkinsPanelLayout?.SingleItemOffers ?? new())
-            {
-                var skin = await GetSkinFromUuid(offer);
-                offers.Add(skin);
-                skin.Data.Price = allOffers?.Offers?.FirstOrDefault(allOffer => allOffer?.OfferID == offer)?.Cost._85ad13f73d1b51289eb27cd8ee0b5741 ?? 0;
-            }
+            var response = await valClient.GetFromJsonAsync<ValorantShopOffers>($"/store/v2/storefront/{account.PlatformId}");
 
-            var referenceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US Eastern Standard Time");
-            var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, referenceTimeZone);
-            var wantedDateTime = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day);
+            if (response?.SkinsPanelLayout?.SingleItemOffers is null)
+                return new();
+
+            var getSkinTasks = response.SkinsPanelLayout.SingleItemOffers.Select((offer) =>
+            {
+                return GetSkinFromUuid(offer);
+            }).ToList();
+
+            var tasks = new List<Task>();
+            var allOffersTask = GetAllShopOffers(account);
+
+            tasks.AddRange(getSkinTasks);
+            tasks.Add(allOffersTask);
+
+            await Task.WhenAll(tasks);
+
+            var allOffers = allOffersTask.Result;
+
+            var offers = getSkinTasks.Select((task) =>
+            {
+                var offer = task.Result;
+                offer.Data.Price = allOffers?.Offers?.FirstOrDefault(allOffer => allOffer?.OfferID == offer.Data.Uuid)?.Cost._85ad13f73d1b51289eb27cd8ee0b5741 ?? 0;
+
+                return offer;
+            }).ToList();
 
             return offers;
         }
@@ -111,28 +126,36 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account)
         {
             var client = _httpClientFactory.CreateClient("ValorantNA");
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
+            var expectedVersion = await _riotClient.GetExpectedClientVersion();
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", expectedVersion);
             var bearerToken = await GetValorantToken(account);
             if (bearerToken is null)
-                return new List<ValorantMatch>();
+                return Enumerable.Empty<ValorantMatch>();
 
             var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var gameHistoryDataResponse = await client.GetAsync($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
-            var gameHistoryData = await gameHistoryDataResponse.Content.ReadFromJsonAsync<ValorantGameHistoryDataResponse>();
+            var gameHistoryData = await client.GetFromJsonAsync<ValorantGameHistoryDataResponse>($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
 
-            var valorantMatches = new List<ValorantMatch>();
+            if (gameHistoryData?.History is null)
+                return Enumerable.Empty<ValorantMatch>();
 
-            foreach (var game in gameHistoryData?.History ?? new())
+            var getValorantMatchesTasks = gameHistoryData.History.Select((game) =>
             {
-                var gameDataResponse = await client.GetAsync($"/match-details/v1/matches/{game.MatchID}");
-                var gameData = await gameDataResponse.Content.ReadFromJsonAsync<ValorantMatch>();
-                if (gameData is not null)
-                    valorantMatches.Add(gameData);
-            }
+                return client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
+            }).ToList();
+
+            await Task.WhenAll(getValorantMatchesTasks);
+
+            var valorantMatches = getValorantMatchesTasks.Select((gameDataResponseTask) =>
+            {
+                return gameDataResponseTask.Result ?? new();
+            });
+
+            if (valorantMatches is null)
+                return Enumerable.Empty<ValorantMatch>();
 
             return valorantMatches;
         }
@@ -166,8 +189,7 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetAsync($"/store/v1/offers/");
-            var offers = await response.Content.ReadFromJsonAsync<ValorantStoreTotalOffers>();
+            var offers = await client.GetFromJsonAsync<ValorantStoreTotalOffers>($"/store/v1/offers/");
 
             return offers;
         }
