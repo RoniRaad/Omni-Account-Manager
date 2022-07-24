@@ -49,8 +49,9 @@ namespace AccountManager.Core.Services
         {
             if (_memoryCache.TryGetValue<List<Account>>(accountCacheKey, out var accounts) && accounts is not null)
                 return accounts;
-                
-           accounts = GetAllAccountsMin();
+
+            List<Task> accountTasks = new();
+            accounts = GetAllAccountsMin();
 
             var accountsCount = accounts.Count;
             for (int i = 0; i < accountsCount; i++)
@@ -59,12 +60,20 @@ namespace AccountManager.Core.Services
                 var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
                 if (string.IsNullOrEmpty(account.PlatformId))
                 {
-                    account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                    accountTasks.Add(Task.Run(async () => account.PlatformId = (await platformService.TryFetchId(account)).Item2));
                 }
-                var rank = (await platformService.TryFetchRank(account)).Item2;
-                if (!string.IsNullOrEmpty(rank.Tier))
-                    account.Rank = rank;
+
+                var updateRankTask = Task.Run(async () =>
+                {
+                    var rank = (await platformService.TryFetchRank(account)).Item2;
+                    if (!string.IsNullOrEmpty(rank.Tier))
+                        account.Rank = rank;
+                });
+
+                accountTasks.Add(updateRankTask);
             }
+
+            await Task.WhenAll(accountTasks);
 
             WriteAllAccounts(accounts);
             _memoryCache.Set(accountCacheKey, accounts);

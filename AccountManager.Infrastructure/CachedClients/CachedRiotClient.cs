@@ -54,9 +54,36 @@ namespace AccountManager.Infrastructure.CachedClients
                 });
         }
 
-        public Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
+        public async Task<RiotAuthResponse?> RiotAuthenticate(RiotSessionRequest request, Account account)
         {
-            return _riotClient.RiotAuthenticate(request, account);
+            var cacheKey = $"{account.Username}.{request.GetHashId()}.{nameof(RiotAuthenticate)}";
+
+            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            async (entry) =>
+            {
+                var riotAuthResponse = await _riotClient.RiotAuthenticate(request, account);
+
+                if (riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
+                {
+                    entry.AbsoluteExpiration = DateTimeOffset.Now;
+                    return null;
+                }
+
+                if (request.Id == "riot-client")
+                    entry.AbsoluteExpiration = DateTimeOffset.Now;
+
+                var responseUri = new Uri(riotAuthResponse.Content.Response.Parameters.Uri);
+
+                var queryString = responseUri.Fragment[1..];
+                var queryDictionary = HttpUtility.ParseQueryString(queryString);
+
+                var expiryString = queryDictionary["expires_in"];
+                int.TryParse(expiryString, out var expiryValue);
+
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(expiryValue - 60);
+
+                return riotAuthResponse;
+            });
         }
 
         public Task<string?> GetExpectedClientVersion()
