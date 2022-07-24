@@ -78,7 +78,6 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
         {
-            var offers = new List<ValorantSkinLevelResponse>();
 
             var valClient = _httpClientFactory.CreateClient("ValorantNA");
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
@@ -91,19 +90,33 @@ namespace AccountManager.Infrastructure.Clients
             valClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var responseObj = await valClient.GetAsync($"/store/v2/storefront/{account.PlatformId}");
-            var response = await responseObj.Content.ReadFromJsonAsync<ValorantShopOffers>();
-            var allOffers = await GetAllShopOffers(account);
-            foreach (var offer in response?.SkinsPanelLayout?.SingleItemOffers ?? new())
-            {
-                var skin = await GetSkinFromUuid(offer);
-                offers.Add(skin);
-                skin.Data.Price = allOffers?.Offers?.FirstOrDefault(allOffer => allOffer?.OfferID == offer)?.Cost._85ad13f73d1b51289eb27cd8ee0b5741 ?? 0;
-            }
+            var response = await valClient.GetFromJsonAsync<ValorantShopOffers>($"/store/v2/storefront/{account.PlatformId}");
 
-            var referenceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US Eastern Standard Time");
-            var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, referenceTimeZone);
-            var wantedDateTime = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day);
+            if (response?.SkinsPanelLayout?.SingleItemOffers is null)
+                return new();
+
+            var getSkinTasks = response.SkinsPanelLayout.SingleItemOffers.Select((offer) =>
+            {
+                return GetSkinFromUuid(offer);
+            }).ToList();
+
+            var tasks = new List<Task>();
+            var allOffersTask = GetAllShopOffers(account);
+
+            tasks.AddRange(getSkinTasks);
+            tasks.Add(allOffersTask);
+
+            await Task.WhenAll(getSkinTasks);
+
+            var allOffers = allOffersTask.Result;
+
+            var offers = getSkinTasks.Select((task) =>
+            {
+                var offer = task.Result;
+                offer.Data.Price = allOffers?.Offers?.FirstOrDefault(allOffer => allOffer?.OfferID == offer.Data.Uuid)?.Cost._85ad13f73d1b51289eb27cd8ee0b5741 ?? 0;
+
+                return offer;
+            }).ToList();
 
             return offers;
         }
@@ -174,8 +187,7 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetAsync($"/store/v1/offers/");
-            var offers = await response.Content.ReadFromJsonAsync<ValorantStoreTotalOffers>();
+            var offers = await client.GetFromJsonAsync<ValorantStoreTotalOffers>($"/store/v1/offers/");
 
             return offers;
         }

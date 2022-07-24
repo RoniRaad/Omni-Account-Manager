@@ -21,12 +21,20 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
         BarChart? averageACS;
         protected override async Task OnInitializedAsync()
         {
+            List<Task> graphTasks;
+
             if (Account is null)
                 return;
-            rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account);
-            recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
-            rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account);
-            averageACS = await _graphService.GetRankedACS(Account);
+
+            graphTasks = new()
+            {
+                Task.Run(async () => rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account)),
+                Task.Run(async () => recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account)),
+                Task.Run(async () => rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account)),
+                Task.Run(async () => averageACS = await _graphService.GetRankedACS(Account))
+            };
+
+            await Task.WhenAll(graphTasks);
         }
     }
 }

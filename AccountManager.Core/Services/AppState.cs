@@ -18,7 +18,7 @@ namespace AccountManager.Core.Services
             Accounts = new RangeObservableCollection<Account>();
             Accounts.AddRange(_accountService.GetAllAccountsMin());
 
-            _ = UpdateAccounts();
+            Task.Run(UpdateAccounts);
 
             StartUpdateTimer();
 
