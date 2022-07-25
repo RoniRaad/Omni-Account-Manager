@@ -1,11 +1,13 @@
 ﻿@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.RiotGames.Valorant.Responses
+@using AccountManager.Core.Models.UserSettings
 @using AccountManager.Infrastructure.CachedClients
 @using AccountManager.Infrastructure.Clients
 @using Microsoft.Extensions.Caching.Distributed
 @inject ISteamLibraryService _steamLibraryService
-@inject IUserSettingsService<UserSettings> _userSettings
+@inject IUserSettingsService<GeneralSettings> _generalSettings
+@inject IUserSettingsService<SteamSettings> _steamSettings
 @inject IDistributedCache _persistantCache
 
 <div class="container" style="">

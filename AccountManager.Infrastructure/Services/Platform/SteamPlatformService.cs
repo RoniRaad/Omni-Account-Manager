@@ -1,6 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Static;
+using AccountManager.Core.Models.UserSettings;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Diagnostics;
 using System.Reflection;
@@ -10,12 +10,12 @@ namespace AccountManager.Infrastructure.Services.Platform
     public class SteamPlatformService : IPlatformService
     {
         private readonly IDistributedCache _persistantCache;
-        private readonly IUserSettingsService<UserSettings> _userSettings;
+        private readonly IUserSettingsService<GeneralSettings> _userSettings;
         private readonly ISteamLibraryService _steamLibraryService;
         public static string WebIconFilePath = Path.Combine("logos", "steam-logo.svg");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "steam-logo.ico");
-        public SteamPlatformService(IDistributedCache persistantCache, IUserSettingsService<UserSettings> userSettings, ISteamLibraryService steamLibraryService)
+        public SteamPlatformService(IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> userSettings, ISteamLibraryService steamLibraryService)
         {
             _persistantCache = persistantCache;
             _userSettings = userSettings;

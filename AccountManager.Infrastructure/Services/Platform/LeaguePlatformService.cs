@@ -10,6 +10,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Exceptions;
 using System.Reflection;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -22,13 +23,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly AlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly RiotFileSystemService _riotFileSystemService;
-        private readonly IUserSettingsService<UserSettings> _settingsService;
+        private readonly IUserSettingsService<GeneralSettings> _settingsService;
         public static string WebIconFilePath = Path.Combine("logos", "league-logo.png");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "league-logo.ico");
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, 
             ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService,
-            AlertService alertService, IMemoryCache memoryCache, IUserSettingsService<UserSettings> settingsService)
+            AlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;

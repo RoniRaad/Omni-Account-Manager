@@ -47,7 +47,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
             Games.Clear();
 
             SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
-            if (!File.Exists(Path.Combine(_userSettings.Settings.SteamInstallDirectory, "steam.exe")))
+            if (!File.Exists(Path.Combine(_generalSettings.Settings.SteamInstallDirectory, "steam.exe")))
             {
                 steamInstallNotFound = true;
             }
@@ -57,7 +57,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
                 Games.AddRange(gameManifests);
             }
 
-            Games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _userSettings.Settings.OnlyShowOwnedSteamGames));
+            Games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _steamSettings.Settings.OnlyShowOwnedSteamGames));
         }
 
         protected async override Task OnAfterRenderAsync(bool first)
