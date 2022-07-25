@@ -27,6 +27,7 @@ using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
 using Squirrel;
 using Microsoft.Extensions.Options;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.UI
 {
@@ -101,7 +102,9 @@ namespace AccountManager.UI
 			.AddBootstrapProviders()
 			.AddFontAwesomeIcons();
 			serviceCollection.AddSingleton<IAccountService, AccountService>();
-			serviceCollection.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)
@@ -147,7 +150,8 @@ namespace AccountManager.UI
 		{
 			try
 			{
-                using (var manager = await UpdateManager.GitHubUpdateManager(url))
+                using (
+					var manager = await UpdateManager.GitHubUpdateManager(url))
                 {
 					var updateInfo = await manager.CheckForUpdate();
 					if (updateInfo.ReleasesToApply.Count > 0)

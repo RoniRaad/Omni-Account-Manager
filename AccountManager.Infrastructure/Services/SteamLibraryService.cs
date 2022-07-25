@@ -1,6 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.Steam;
+using AccountManager.Core.Models.UserSettings;
 using Gameloop.Vdf;
 using Gameloop.Vdf.JsonConverter;
 using System.Text.Json;
@@ -9,8 +10,8 @@ namespace AccountManager.Infrastructure.Services
 {
     public class SteamLibraryService : ISteamLibraryService
     {
-        private readonly IUserSettingsService<UserSettings> _userSettings;
-        public SteamLibraryService(IUserSettingsService<UserSettings> userSettings)
+        private readonly IUserSettingsService<GeneralSettings> _userSettings;
+        public SteamLibraryService(IUserSettingsService<GeneralSettings> userSettings)
         {
             _userSettings = userSettings;
         }

@@ -11,6 +11,7 @@ using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Options;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Factories;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -21,9 +22,12 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IRiotClient _riotClient;
         private readonly RiotApiUri _riotApiUri;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
+        private readonly IUserSettingsService<LeagueSettings> _leagueSettings;
+        private readonly IAppState _state;
         public LeagueTokenClient(IHttpClientFactory httpClientFactory,
             IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions,
-            IHttpRequestBuilder curlRequestBuilder, GenericFactory<AccountType, ITokenService> leagueTokenServiceFactory)
+            IHttpRequestBuilder curlRequestBuilder, GenericFactory<AccountType, ITokenService> leagueTokenServiceFactory,
+            IUserSettingsService<LeagueSettings> leagueSettings, IAppState state)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;
@@ -31,6 +35,8 @@ namespace AccountManager.Infrastructure.Clients
             _riotApiUri = riotApiOptions.Value;
             _curlRequestBuilder = curlRequestBuilder;
             _leagueTokenService = leagueTokenServiceFactory.CreateImplementation(AccountType.League);
+            _leagueSettings = leagueSettings;
+            _state = state;
         }
 
         public async Task<string> GetLocalSessionToken()
@@ -47,13 +53,13 @@ namespace AccountManager.Infrastructure.Clients
             return rankResponse;
         }
 
-        public async Task<string> GetLeagueSessionToken(Account account)
+        public async Task<string> GetLeagueSessionToken()
         {
             try
             {
                 var sessionToken = await GetLocalSessionToken();
                 if (string.IsNullOrEmpty(sessionToken) || !await TestLeagueToken(sessionToken))
-                    sessionToken = await CreateLeagueSession(account);
+                    sessionToken = await CreateLeagueSession();
 
                 return sessionToken;
             }
@@ -72,13 +78,23 @@ namespace AccountManager.Infrastructure.Clients
             return rankResponse.IsSuccessStatusCode;
         }
 
-        public async Task<string> CreateLeagueSession(Account account)
+        public async Task<string> CreateLeagueSession()
         {
             string sessionToken;
+            Account? account;
+            if (_leagueSettings?.Settings?.AccountToUseCredentials is null)
+            {
+                account = _state.Accounts.FirstOrDefault((acc) => acc.AccountType == AccountType.League);
+            }
+            else
+            {
+                account = _state.Accounts.FirstOrDefault((acc) => acc.Guid == _leagueSettings.Settings.AccountToUseCredentials);
+            }
+
+            if (account is null || account?.PlatformId is null)
+                return string.Empty;
 
             var puuId = account.PlatformId;
-            if (puuId is null)
-                return string.Empty;
 
             var leagueToken = await GetLeagueLoginToken(account);
             if (string.IsNullOrEmpty(leagueToken))

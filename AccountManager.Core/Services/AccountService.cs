@@ -58,10 +58,9 @@ namespace AccountManager.Core.Services
             {
                 var account = accounts[i];
                 var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
+
                 if (string.IsNullOrEmpty(account.PlatformId))
-                {
                     accountTasks.Add(Task.Run(async () => account.PlatformId = (await platformService.TryFetchId(account)).Item2));
-                }
 
                 var updateRankTask = Task.Run(async () =>
                 {

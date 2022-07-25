@@ -1,10 +1,26 @@
+using AccountManager.Core.Static;
+using Microsoft.AspNetCore.Components;
+
 namespace AccountManager.Blazor.Shared
 {
     public partial class MainLayout
     {
         public string Password { get; set; } = string.Empty;
+        public bool RememberMe { get; set; } = false;
+        public static string RememberMeCacheKey = "rememberPassword";
+        public static string PasswordCacheKey = "masterPassword";
 
-        protected override void OnInitialized() => _alertService.Notify += () => InvokeAsync(() => StateHasChanged());
+        protected override async Task OnInitializedAsync()
+        {
+            _alertService.Notify += () => InvokeAsync(() => StateHasChanged());
+
+            if (await _persistantCache.GetAsync<bool>(RememberMeCacheKey))
+            {
+                Password = await _persistantCache.GetAsync<string>(PasswordCacheKey) ?? "";
+                RememberMe = true;
+            }
+        }
+
         public async Task Login()
         {
             _authService.Login(Password);
@@ -16,5 +32,12 @@ namespace AccountManager.Blazor.Shared
             _authService.Register(Password);
             await InvokeAsync(() => StateHasChanged());
         }
+
+        public async Task RememberMeChanged(ChangeEventArgs e)
+        {
+            var isChecked = (bool)(e?.Value ?? false);
+            await _persistantCache.SetAsync(RememberMeCacheKey, isChecked);
+            RememberMe = isChecked;
+        } 
     }
 }

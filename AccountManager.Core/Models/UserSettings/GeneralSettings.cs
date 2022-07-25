@@ -1,8 +1,8 @@
-﻿namespace AccountManager.Core.Models
+﻿namespace AccountManager.Core.Models.UserSettings
 {
-    public class UserSettings
+    public class GeneralSettings
     {
-        public UserSettings()
+        public GeneralSettings()
         {
             SteamInstallDirectory = "";
             
@@ -20,9 +20,7 @@
                     "Program Files (x86)", "Steam");
         }
 
-        public bool UseAccountCredentials { get; set; } = true;
         public string RiotInstallDirectory { get; set; }
         public string SteamInstallDirectory { get; set; }
-        public bool OnlyShowOwnedSteamGames { get; set; } = true;
     }
 }
