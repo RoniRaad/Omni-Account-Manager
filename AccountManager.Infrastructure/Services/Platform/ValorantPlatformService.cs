@@ -4,10 +4,8 @@ using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Requests;
-using AccountManager.Core.Models.RiotGames.Valorant;
-using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Services;
-using AccountManager.Infrastructure.CachedClients;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services.FileSystem;
 using AutoMapper;
@@ -28,13 +26,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
-        private readonly IUserSettingsService<UserSettings> _settingsService;
+        private readonly IUserSettingsService<GeneralSettings> _settingsService;
         public static string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "valorant-logo.ico");
         public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
-            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<UserSettings> settingsService, IValorantClient valorantClient)
+            IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);

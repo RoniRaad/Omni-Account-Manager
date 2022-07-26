@@ -55,3 +55,13 @@ table {
 .text-input{
     width:400px;
 }
+
+.nav-link {
+    color: white;
+    cursor: pointer;
+}
+
+.nav-tabs {
+    border-color: #979797;
+    margin-bottom: 10px;
+}

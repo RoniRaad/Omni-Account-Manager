@@ -18,6 +18,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public bool ValidateData()
         {
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
             if (!Directory.Exists(DataPath))
             {
                 Directory.CreateDirectory(DataPath);
@@ -63,6 +65,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
             var serializedData = JsonSerializer.Serialize(data);
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
             File.WriteAllText($"{DataPath}\\{fileName}.dat", encryptedData);
@@ -71,6 +75,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public void UpdateData<T>(T data)
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
             File.WriteAllText($"{DataPath}\\{fileName}.dat", JsonSerializer.Serialize(data));
         }
 
@@ -79,6 +85,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             string decryptedData;
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
             if (!File.Exists($"{DataPath}\\{fileName}.dat"))
             {
                 File.WriteAllText($"{DataPath}\\{fileName}.dat", StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
@@ -100,6 +108,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public T ReadData<T>() where T : new()
         {
             var fileName = StringEncryption.Hash(typeof(T).Name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
             if (!File.Exists($"{DataPath}\\{fileName}.dat"))
             {
                 File.WriteAllText($"{DataPath}\\{fileName}.dat", JsonSerializer.Serialize(new T()));
@@ -108,32 +118,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             string data = File.ReadAllText($"{DataPath}\\{fileName}.dat");
             return JsonSerializer.Deserialize<T>(data) ?? new T();
-        }
-
-        public DriveInfo FindSteamDrive()
-        {
-            var drives = DriveInfo.GetDrives();
-            return drives
-                .Where((drive) => Directory.Exists($"{drive.RootDirectory}\\Program Files (x86)\\Steam"))
-                .FirstOrDefault(drives.First());
-        }
-
-        public List<string[]> GetInstalledGamesManifest()
-        {
-            string[] steamAppFiles = Directory.GetFiles($"{FindSteamDrive()}\\Program Files (x86)\\Steam\\steamapps");
-            List<string[]> steamGames = new List<string[]>();
-
-
-            steamAppFiles.ToList().ForEach((file) =>
-                {
-                    if (file.Contains("appmanifest"))
-                    {
-                        string[] fileContents = File.ReadAllLines(file);
-                        steamGames.Add(fileContents);
-                    }
-                });
-
-            return steamGames;
         }
 
         public void AddCacheDeleteFlag()

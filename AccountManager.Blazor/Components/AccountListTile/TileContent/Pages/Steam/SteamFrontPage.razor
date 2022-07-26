@@ -2,6 +2,7 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.Steam
+@using AccountManager.Core.Models.UserSettings
 @using AccountManager.Core.Services
 @using AccountManager.Core.Static
 @using Blazorise.Charts
@@ -9,7 +10,8 @@
 @inject IAppState _state
 @inject IDistributedCache _persistantCache
 @inject ISteamLibraryService _steamLibraryService
-@inject IUserSettingsService<UserSettings> _userSettings
+@inject IUserSettingsService<SteamSettings> _steamSettings
+@inject IUserSettingsService<GeneralSettings> _generalSettings
 @implements IDefaultPage
 
 @if (steamInstallNotFound){

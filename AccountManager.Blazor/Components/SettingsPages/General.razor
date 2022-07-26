@@ -1,0 +1,69 @@
+﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Models.UserSettings
+@inject IAppState _authService
+@inject IUserSettingsService<GeneralSettings> _settings
+
+<EditForm Model="@_settings.Settings">
+    <table>
+        <tbody>
+            <tr>
+                <th scope="row">
+                    <p>Change your account manager password</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick="() => ShowChangePasswordPrompt=true">Change Password</button>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Clear local cache</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Riot games install location</p>
+                </th>
+                <td>
+                    <div class="input-group">
+                        <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Riot Games\" @bind-Value="_settings.Settings.RiotInstallDirectory"></InputText>
+                        <div class="input-group-append">
+                            <span @onclick="() => ShowRiotFolderPicker = true" class="btn oi-folder" type="button"></span>
+                        </div>
+                    </div>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Steam client install location</p>
+                </th>
+                <td>
+                    <div class="input-group">
+                        <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam" @bind-Value="_settings.Settings.SteamInstallDirectory"></InputText>
+                    </div>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</EditForm>
+
+@if (ShowChangePasswordPrompt)
+{
+    <ChangePasswordModal SettingsService="_settings" Close="() => {ShowChangePasswordPrompt=false; InvokeAsync(()=>StateHasChanged());}"></ChangePasswordModal>
+}
+@if (ShowRiotFolderPicker)
+{
+    <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
+}
+
+@code
+{
+    public bool ShowChangePasswordPrompt { get; set; } = false;
+    public bool ShowRiotFolderPicker { get; set; } = false;
+}

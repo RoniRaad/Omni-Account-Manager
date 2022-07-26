@@ -27,6 +27,7 @@ using NeoSmart.Caching.Sqlite;
 using Plk.Blazor.DragDrop;
 using Squirrel;
 using Microsoft.Extensions.Options;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.UI
 {
@@ -68,14 +69,13 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddState();
-            serviceCollection.AddSingleton<AuthService>();
-			serviceCollection.AddTransient<LeagueClient>();
+			serviceCollection.AddAuth();
+            serviceCollection.AddTransient<LeagueClient>();
 			serviceCollection.AddTransient<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
 			serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
-            serviceCollection.AddSingleton<IAppState, AppState>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
@@ -101,7 +101,9 @@ namespace AccountManager.UI
 			.AddBootstrapProviders()
 			.AddFontAwesomeIcons();
 			serviceCollection.AddSingleton<IAccountService, AccountService>();
-			serviceCollection.AddSingleton<IUserSettingsService<UserSettings>, UserSettingsService<UserSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)

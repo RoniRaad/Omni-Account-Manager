@@ -1,0 +1,72 @@
+﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Models.UserSettings
+@using AccountManager.Core.Services
+@using AccountManager.Blazor.Components
+@using Microsoft.Extensions.Options
+@inject IAppState _authService
+@inject IUserSettingsService<LeagueSettings> _settings
+@inject IAppState _state
+
+<div class="container main">
+    <EditForm Model="@_settings.Settings">
+        <table>
+            <tbody>
+                <tr>
+                    <th scope="row">
+                        <p >Use account credentials to get current ranking</p>
+                    </th>
+                    <td>
+                        <div class="form-check">
+                            <input type="checkbox" @onchange="(ChangeEventArgs e) => {
+                                _settings.Settings.UseAccountCredentials = (bool)(e?.Value ?? true); 
+                                _settings.Save();
+                            }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
+                            <label class="form-check-label" for="credentialsCheckBox">
+                                Use credentials
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Account credentials to use for data retrieval</p>
+                    </th>
+                    <td>
+                        <label>
+                            <select class="form-select" @onchange="AccountCredentialsChanged">
+                                @foreach (var acc in _state.Accounts.Where((acc) => acc.AccountType == Core.Enums.AccountType.League))
+                                {
+                                    <option value="@acc.Guid" selected="@(_settings.Settings.AccountToUseCredentials == acc.Guid)" >@acc.Id</option>
+                                }
+                            </select>
+                        </label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </EditForm>
+</div>
+
+@code {
+    protected override Task OnInitializedAsync()
+    {
+        if (_settings.Settings.AccountToUseCredentials is null)
+        {
+            _settings.Settings.AccountToUseCredentials = _state?.Accounts?.FirstOrDefault((acc) => acc.AccountType == Core.Enums.AccountType.League)?.Guid;
+        }
+
+        return base.OnInitializedAsync();
+    }
+
+    public void AccountCredentialsChanged(ChangeEventArgs args)
+    {
+        if (args.Value is string)
+            if (Guid.TryParse(args.Value as string, out Guid selectedGuid))
+                _settings.Settings.AccountToUseCredentials = selectedGuid;
+
+        _settings.Save();
+    }
+}

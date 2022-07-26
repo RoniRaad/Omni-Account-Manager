@@ -1,6 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace AccountManager.Core.Services
 {
@@ -8,14 +9,16 @@ namespace AccountManager.Core.Services
     {
         private readonly IIOService _iOService;
         private readonly AlertService _alertService;
+        private readonly IDistributedCache _persistantCache;
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
-        public AuthService(IIOService iOService, AlertService alertService)
+        public AuthService(IIOService iOService, AlertService alertService, IDistributedCache persistantCache)
         {
             _iOService = iOService;
             AuthInitialized = _iOService.ValidateData();
             _alertService = alertService;
+            _persistantCache = persistantCache;
         }
 
         public void Login(string password)
@@ -26,6 +29,13 @@ namespace AccountManager.Core.Services
             {
                 _alertService.AddErrorMessage("Error incorrect password!");
             }
+
+            Task.Run(async () =>
+            {
+                if (await _persistantCache.GetAsync<bool>("rememberPassword"))
+                    await _persistantCache.SetAsync("masterPassword", password);
+            });
+
         }
 
         public void Register(string password)
