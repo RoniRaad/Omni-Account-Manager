@@ -15,12 +15,12 @@ namespace AccountManager.Infrastructure.CachedClients
             _tokenClient = tokenClient;
         }
 
-        public async Task<string> CreateLeagueSession(Account account)
+        public async Task<string> CreateLeagueSession()
         {
-            return await _tokenClient.CreateLeagueSession(account);
+            return await _tokenClient.CreateLeagueSession();
         }
 
-        public async Task<string> GetLeagueSessionToken(Account account)
+        public async Task<string> GetLeagueSessionToken()
         {
             var cacheKey = nameof(GetLeagueSessionToken);
             if (_memoryCache.TryGetValue(cacheKey, out string? sessionToken)
@@ -31,7 +31,7 @@ namespace AccountManager.Infrastructure.CachedClients
             await semaphore.WaitAsync();
             try
             {
-                sessionToken = await _tokenClient.GetLeagueSessionToken(account);
+                sessionToken = await _tokenClient.GetLeagueSessionToken();
 
                 if (!string.IsNullOrEmpty(sessionToken))
                     _memoryCache.Set(cacheKey, sessionToken);

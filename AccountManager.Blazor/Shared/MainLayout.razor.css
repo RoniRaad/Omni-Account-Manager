@@ -8,6 +8,14 @@ main {
 	flex: 1;
 }
 
+.checkbox-container {
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	align-self: self-start !important;
+}
+
+
 .login-form {
 	padding: 50px;
 	background-color: var(--primary-light);
@@ -140,4 +148,13 @@ a {
 	background-color: #1a1a1a;
 	filter: blur(1px);
 	z-index: 100;
+}
+
+label {
+	font-size: 13px;
+	font-family: Roboto;
+}
+
+button {
+	padding: 3% 14%;
 }

@@ -1,100 +1,32 @@
 ﻿@page "/settings"
 @using AccountManager.Blazor.Components.Modals
+@using AccountManager.Blazor.Components.SettingsPages
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Models.UserSettings
 @using AccountManager.Core.Services
 @using AccountManager.Blazor.Components
 @using Microsoft.Extensions.Options
 @inject IAppState _authService
-@inject IUserSettingsService<UserSettings> _settings
+@inject IUserSettingsService<GeneralSettings> _settings
+
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link @(currentPage == typeof(General) ? "active" : "")" @onclick="() => currentPage = typeof(General)">General</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentPage == typeof(League) ? "active" : "")" @onclick="() => currentPage = typeof(League)">League</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentPage == typeof(Steam) ? "active" : "")" @onclick="() => currentPage = typeof(Steam)">Steam</a>
+    </li>
+</ul>
 
 <div class="container main">
-    <EditForm Model="@_settings.Settings">
-        <table>
-            <tbody>
-                <tr>
-                    <th scope="row">
-                        <p >Use account credentials to get current ranking</p>
-                    </th>
-                    <td>
-                        <div class="form-check">
-                            <input type="checkbox" @onchange="(ChangeEventArgs e) => {
-                                _settings.Settings.UseAccountCredentials = (bool)(e?.Value ?? true); 
-                                _settings.Save();
-                            }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
-                            <label class="form-check-label" for="credentialsCheckBox">
-                                Use credentials
-                            </label>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Change your account manager password</p>
-                    </th>
-                    <td>
-                        <button class="btn btn-dark" @onclick="() => ShowChangePasswordPrompt=true">Change Password</button>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Clear local cache</p>
-                    </th>
-                    <td>
-                        <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Riot games install location</p>
-                    </th>
-                    <td>
-                        <div class="input-group">
-                            <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Riot Games\" @bind-Value="_settings.Settings.RiotInstallDirectory"></InputText>
-                            <div class="input-group-append">
-                                <span @onclick="() => ShowRiotFolderPicker = true" class="btn oi-folder" type="button"></span>
-                            </div>
-                        </div>
-                        <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Steam client install location</p>
-                    </th>
-                    <td>
-                        <div class="input-group">
-                            <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam" @bind-Value="_settings.Settings.SteamInstallDirectory"></InputText>
-                        </div>
-                        <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <p>Only show steam games owned by the account</p>
-                    </th>
-                    <td>
-                        <div class="form-check">
-                            <input type="checkbox" @onchange="(ChangeEventArgs e) => {
-                                _settings.Settings.OnlyShowOwnedSteamGames = (bool)(e?.Value ?? true); 
-                                _settings.Save();
-                            }" id="steamGamesCheckbox" checked="@_settings.Settings.OnlyShowOwnedSteamGames"></input>
-                            <label class="form-check-label" for="steamGamesCheckbox">
-                            </label>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </EditForm>
+    <DynamicComponent Type="currentPage"></DynamicComponent>
 </div>
 
-@if (ShowChangePasswordPrompt)
-{
-    <ChangePasswordModal SettingsService="_settings" Close="() => {ShowChangePasswordPrompt=false; InvokeAsync(()=>StateHasChanged());}"></ChangePasswordModal>
-}
-@if (ShowRiotFolderPicker)
-{
-    <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
+@code{
+    Type currentPage = typeof(General);
 }

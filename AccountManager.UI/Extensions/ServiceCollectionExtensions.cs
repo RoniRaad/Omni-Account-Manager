@@ -11,8 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using static AccountManager.Core.Services.AppState;
@@ -20,6 +18,9 @@ using AccountManager.Core.Models.AppSettings;
 using System.Net.Http;
 using System.Net;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Distributed;
+using AccountManager.Core.Static;
+using System.Linq;
 
 namespace AccountManager.UI.Extensions
 {
@@ -30,36 +31,61 @@ namespace AccountManager.UI.Extensions
             return new GenericFactoryBuilder<TKey, TInterface>(services);
         }
 
+        public static IServiceCollection AddAuth(this ServiceCollection services)
+        {
+            var args = Environment.GetCommandLineArgs();
+
+            if (args.Length > 1 & Array.Exists(args, element => element == "/login"))
+            {
+                var parsedArgs = ParseCommandLineArgs(args);
+
+                services.AddSingleton((services) =>
+                {
+                    var persistantCache = services.GetRequiredService<IDistributedCache>();
+                    var authService = new AuthService(services.GetRequiredService<IIOService>(), services.GetRequiredService<AlertService>(), persistantCache);
+
+                    Task.Run(async () =>
+                    {
+                        if (await persistantCache.GetAsync<bool>("rememberPassword"))
+                        {
+                            var password = await persistantCache.GetAsync<string>("masterPassword");
+                            if (!string.IsNullOrEmpty(password))
+                            {
+                                authService.Login(password);
+                                var accountService = services.GetRequiredService<IAccountService>();
+                                var accounts = accountService.GetAllAccountsMin();
+                                await accountService.Login(accounts.FirstOrDefault((acc) => acc?.Guid.ToString() == parsedArgs["login"]) ?? new());
+                                Environment.Exit(0);
+                            }
+                        }
+                    });
+
+                    return authService;
+                });
+            }
+            else
+                services.AddSingleton<AuthService>();
+
+            return services;
+        }
+
         public static IServiceCollection AddState(this ServiceCollection services)
         {
+            string LoginCommand = "login";
             var args = Environment.GetCommandLineArgs();
 
             if (args.Length > 1)
             {
-                args = args[1..];
-                var parsedArgs = new Dictionary<string, string>();
-                for (int i = 0; i < args.Length; i++)
+                var parsedArgs = ParseCommandLineArgs(args);
+         
+                if (parsedArgs.ContainsKey(LoginCommand))
                 {
-                    var arg = args[i];
-                    if (arg.StartsWith("/"))
-                    {
-                        parsedArgs[arg[1..]] = "";
-
-                        if (args.Length != i - 1)
-                        {
-                            parsedArgs[arg[1..]] = args[i + 1];
-                        }
-                    }
-                }
-
-                if (parsedArgs.ContainsKey("login"))
-                {
-                    var processes = Process.GetProcessesByName("Multi-Account-Manager");
-                    if (processes.Length != 1)
+                    var processes = Process.GetProcessesByName("OmniAccountManager");
+                    if (processes.Length > 1)
                     {
                         Node node = new("omni-account-manager", "omni-account-manager", "localhost", (arg) => { });
                         node.Start();
-                        var argument = JsonSerializer.Serialize(new IpcLoginParameter() { Guid = new Guid(parsedArgs["login"]) });
+                        var argument = JsonSerializer.Serialize(new IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
                         node.Send($"IpcLogin:{argument}");
                         Environment.Exit(0);
                     }
@@ -70,9 +96,10 @@ namespace AccountManager.UI.Extensions
                             var appState = new AppState(services.GetRequiredService<IAccountService>(), services.GetRequiredService<IIpcService>());
                             Task.Run(async () =>
                             {
-                                await appState.IpcLogin(new IpcLoginParameter() { Guid = new Guid(parsedArgs["login"]) });
+                                await appState.IpcLogin(new IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
                                 Environment.Exit(0);
                             });
+
                             return appState;
                         });
                     }
@@ -256,6 +283,27 @@ namespace AccountManager.UI.Extensions
             });
 
             return services;
+        }
+
+        private static Dictionary<string, string> ParseCommandLineArgs(string[] args)
+        {
+            args = args[1..];
+            var parsedArgs = new Dictionary<string, string>();
+            for (int i = 0; i < args.Length; i++)
+            {
+                var arg = args[i];
+                if (arg.StartsWith("/"))
+                {
+                    parsedArgs[arg[1..]] = "";
+
+                    if (args.Length != i - 1)
+                    {
+                        parsedArgs[arg[1..]] = args[i + 1];
+                    }
+                }
+            }
+
+            return parsedArgs;
         }
     }
 }

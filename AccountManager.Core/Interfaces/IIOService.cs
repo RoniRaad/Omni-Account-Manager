@@ -2,8 +2,6 @@
 {
     public interface IIOService
     {
-        DriveInfo FindSteamDrive();
-        List<string[]> GetInstalledGamesManifest();
         bool IsFileLocked(string filePath);
         T ReadData<T>(string password) where T : new();
         T ReadData<T>() where T : new();

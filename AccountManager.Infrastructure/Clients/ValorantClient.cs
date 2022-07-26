@@ -3,6 +3,7 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Models.UserSettings;
 using AutoMapper;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -13,12 +14,12 @@ namespace AccountManager.Infrastructure.Clients
     public class ValorantClient : IValorantClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IUserSettingsService<UserSettings> _settings;
+        private readonly IUserSettingsService<GeneralSettings> _settings;
         private readonly IRiotClient _riotClient;
         private readonly IMapper _autoMapper;
         private const int historyLength = 15;
         public ValorantClient(IHttpClientFactory httpClientFactory,
-            IUserSettingsService<UserSettings> settings,
+            IUserSettingsService<GeneralSettings> settings,
             IRiotClient riotClient, IMapper autoMapper)
         {
             _httpClientFactory = httpClientFactory;
