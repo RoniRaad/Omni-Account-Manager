@@ -38,6 +38,9 @@ namespace AccountManager.Blazor.Shared
             var isChecked = (bool)(e?.Value ?? false);
             await _persistantCache.SetAsync(RememberMeCacheKey, isChecked);
             RememberMe = isChecked;
+
+            if (!isChecked)
+                await _persistantCache.RemoveAsync(PasswordCacheKey);
         } 
     }
 }
