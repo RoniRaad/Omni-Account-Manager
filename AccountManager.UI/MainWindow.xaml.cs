@@ -69,14 +69,13 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddState();
-            serviceCollection.AddSingleton<AuthService>();
-			serviceCollection.AddTransient<LeagueClient>();
+			serviceCollection.AddAuth();
+            serviceCollection.AddTransient<LeagueClient>();
 			serviceCollection.AddTransient<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
 			serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
             serviceCollection.AddSingleton<ValorantGraphService>();
-            serviceCollection.AddSingleton<IAppState, AppState>();
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
@@ -150,8 +149,7 @@ namespace AccountManager.UI
 		{
 			try
 			{
-                using (
-					var manager = await UpdateManager.GitHubUpdateManager(url))
+                using (var manager = await UpdateManager.GitHubUpdateManager(url))
                 {
 					var updateInfo = await manager.CheckForUpdate();
 					if (updateInfo.ReleasesToApply.Count > 0)
