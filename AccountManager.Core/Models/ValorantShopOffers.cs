@@ -68,10 +68,10 @@ namespace AccountManager.Core.Models
         public string CurrencyID { get; set; } = string.Empty;
 
         [JsonPropertyName("DiscountPercent")]
-        public int DiscountPercent { get; set; } = 0;
+        public double DiscountPercent { get; set; } = 0;
 
         [JsonPropertyName("DiscountedPrice")]
-        public int DiscountedPrice { get; set; } = 0;
+        public double DiscountedPrice { get; set; } = 0;
 
         [JsonPropertyName("IsPromoItem")]
         public bool IsPromoItem { get; set; } = false;
