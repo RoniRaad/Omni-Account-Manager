@@ -47,7 +47,7 @@ jobs:
         id: get-project-version
         
       - name: Clear deployments folder
-        run: Remove-Item -Recurse -Force deployment\Releases 
+        run: Remove-Item -Force Deployment\Releases\*
         
       - name: Publish UI project
         run: dotnet publish 
