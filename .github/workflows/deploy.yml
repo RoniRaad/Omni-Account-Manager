@@ -1,0 +1,69 @@
+name: Deploy Release
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events
+  pull_request:
+    types: [closed]
+    branches: 
+      - 'master'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with: 
+          dotnet-version: 6.0.x
+          
+      - name: Install dotnet version tool
+        run: dotnet tool install -g dotnet-version-cli
+        
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Bump version number minor
+        if: ${{ startsWith( github.head_ref, 'feature' )}}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+      
+      - name: Bump version number patch
+        if: ${{ startsWith( github.head_ref, 'hotfix' )}}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+      
+      - name: Get version number
+        run: dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Substring($_.Length - 5) } | foreach-object { Write-Output "::set-output name=versionNum::$_" }
+        id: get-project-version
+        
+      - name: Clear deployments folder
+        run: Remove-Item -Force Deployment\Releases\*
+        
+      - name: Build solution
+        run: dotnet build
+        
+      - name: Publish solution
+        run: dotnet publish
+      
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          automatic_release_tag: v${{ steps.get-project-version.outputs.versionNum }}
+          title: Release v${{ steps.get-project-version.outputs.versionNum }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            deployment\Releases\*
+            
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Published last commit and deployed release.
