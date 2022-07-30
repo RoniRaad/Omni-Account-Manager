@@ -47,9 +47,7 @@ jobs:
         id: get-project-version
         
       - name: Publish UI project
-        run: |
-          cd AccountManager.UI
-          dotnet publish
+        run: dotnet publish
       
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
