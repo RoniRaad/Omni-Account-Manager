@@ -6,6 +6,8 @@ namespace AccountManager.Core.Interfaces
     {
         T Settings { get; set; }
 
+        event Action OnSettingsSaved;
+
         bool ChangePassword(PasswordChangeRequest changeRequest);
         void ClearCookies();
         void Save();

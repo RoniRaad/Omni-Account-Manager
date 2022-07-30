@@ -2,11 +2,15 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using System.Reflection;
+using AccountManager.Core.Models.UserSettings;
+using AccountManager.Blazor.Pages;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
     public partial class ButtonContainer
     {
+        [CascadingParameter, EditorRequired]
+        public AccountListItemSettings Settings { get; set; } = new();
         [Parameter, EditorRequired]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -34,7 +38,6 @@ namespace AccountManager.Blazor.Components.AccountListTile
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
         ConfirmationRequest? deleteAccountConfirmationRequest = null;
-        bool showExportModal = false;
         async Task Login()
         {
             if (loginDisabled)
@@ -76,6 +79,12 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 _alertService.AddInfoMessage("Shortcut created successfully!");
             else
                 _alertService.AddErrorMessage("There was an error creating the desktop shortcut!");
+        }
+
+        public void ToggleContentView()
+        {
+            Settings.ShowAccountDetails = !Settings.ShowAccountDetails;
+            _accountItemSettings.Save();
         }
     }
 }
