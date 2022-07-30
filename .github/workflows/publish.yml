@@ -3,37 +3,16 @@ name: Publish ClickOnce
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events
-  push:
+  pull_request:
     branches: 
       - 'master'
-      - 'experimental'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-
-  check:
-    runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.check_step.outputs.branch }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Get current branch
-        id: check_step
-        run: |
-          raw=$(git branch -r --contains ${{ github.ref }})
-          branch=${raw##*/}
-          echo "::set-output name=branch::$branch"
-          echo "Branch is $branch."
-          
-  build:
-    needs: check 
+  deploy:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -47,19 +26,38 @@ jobs:
         with: 
           dotnet-version: 6.0.x
           
-      - name: setup-msbuild
-        uses: microsoft/setup-msbuild@v1.1
-          
+      - name: Install dotnet version tool
+        run: dotnet tool install -g dotnet-version-cli
+        
       - name: Restore dependencies
         run: dotnet restore
-
-      - name: Enter UI Directory
-        run: cd AccountManager.UI
+      
+      - name: Bump version number minor
+        if: ${{ startsWith( github.head_ref, "feature" )}}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+      
+      - name: Bump version number patch
+        if: ${{ startsWith( github.head_ref, "hotfix" )}}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+      
+      - name: Get version number
+        run: dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Substring($_.Length - 5) } | foreach-object { Write-Output "::set-output name=versionNum::$_" }
+        id: get-project-version
         
-        # Runs a single command using the runners shell
-      - name: Publish
-        run: msbuild /t:publish /p:PublishProfile=Properties\PublishProfiles\ClickOnceProfile.pubxml /p:PublishDir=../publish /p:PublishUrl=../publish /p:InstallUrl=https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/${{needs.check.outputs.branch}}/publish/ /p:UpdateUrl=https://raw.githubusercontent.com/RoniRaad/Multi-Game-Account-Manager/${{needs.check.outputs.branch}}/publish/
-        
+      - name: Publish UI project
+        run: |
+          cd AccountManager.UI
+          dotnet publish
+      
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          automatic_release_tag: v${{ steps.get-project-version.outputs.versionNum }}
+          title: Release v${{ steps.get-project-version.outputs.versionNum }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            deployment\Releases\*
+            
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Published last commit.
+          commit_message: Published last commit and deployed release.
