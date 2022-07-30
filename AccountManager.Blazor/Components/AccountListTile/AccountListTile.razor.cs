@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Enums;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
     public partial class AccountListTile
     {
+        private AccountListItemSettings _settings { get; set; } = new AccountListItemSettings();
         [Parameter, EditorRequired]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Account Account { get; set; }
@@ -49,5 +51,17 @@ namespace AccountManager.Blazor.Components.AccountListTile
         }
 
         private bool showFullTile = false;
+
+        protected override void OnInitialized()
+        {
+            if (!_accountItemSettings.Settings.TryGetValue(Account.Guid, out var settings))
+            {
+                settings = new() { AccountGuid = Account.Guid };
+            }
+            _accountItemSettings.Settings[Account.Guid] = settings;
+            _settings = settings;
+
+            base.OnInitialized();
+        }
     }
 }

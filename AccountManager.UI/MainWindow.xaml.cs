@@ -28,6 +28,8 @@ using Plk.Blazor.DragDrop;
 using Squirrel;
 using Microsoft.Extensions.Options;
 using AccountManager.Core.Models.UserSettings;
+using System.Collections.Generic;
+using System;
 
 namespace AccountManager.UI
 {
@@ -104,6 +106,7 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
 			serviceCollection.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
 			serviceCollection.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();
+			serviceCollection.AddSingleton<IUserSettingsService<Dictionary<Guid, AccountListItemSettings>>, UserSettingsService<Dictionary<Guid, AccountListItemSettings>>>();
 			serviceCollection.AddFactory<AccountType, IPlatformService>()
 				.AddImplementation<SteamPlatformService>(AccountType.Steam)
 				.AddImplementation<LeaguePlatformService>(AccountType.League)

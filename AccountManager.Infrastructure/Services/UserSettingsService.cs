@@ -3,14 +3,13 @@ using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using AccountManager.Core.Static;
-using AccountManager.Infrastructure.Services.FileSystem;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace AccountManager.Infrastructure.Services
 {
     public class UserSettingsService<T> : IUserSettingsService<T> where T : new()
     {
         public T Settings { get; set; }
+        public event Action OnSettingsSaved = delegate { };
         private readonly IIOService _iOService;
         private readonly AuthService _authService;
         private readonly AlertService _alertService;
@@ -22,7 +21,10 @@ namespace AccountManager.Infrastructure.Services
             _alertService = alertService;
         }
 
-        public void Save() => _iOService.UpdateData(Settings);
+        public void Save() {
+            _iOService.UpdateData(Settings);
+            OnSettingsSaved.Invoke();
+        }
 
         public bool ChangePassword(PasswordChangeRequest changeRequest)
         {

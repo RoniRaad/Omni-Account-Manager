@@ -63,7 +63,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public void UpdateData<T>(T data, string password)
         {
-            var name = typeof(T).Name;
+            var type = typeof(T);
+            var name = type.Name;
+            name += string.Join("-",type.GetGenericArguments().Select(x => x.Name));
+
             var fileName = StringEncryption.Hash(name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
 
@@ -74,7 +77,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public void UpdateData<T>(T data)
         {
-            var fileName = StringEncryption.Hash(typeof(T).Name);
+            var type = typeof(T);
+            var name = type.Name;
+            name += string.Join("-", type.GetGenericArguments().Select(x => x.Name));
+
+            var fileName = StringEncryption.Hash(name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
 
             File.WriteAllText($"{DataPath}\\{fileName}.dat", JsonSerializer.Serialize(data));
@@ -107,7 +114,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public T ReadData<T>() where T : new()
         {
-            var fileName = StringEncryption.Hash(typeof(T).Name);
+            var type = typeof(T);
+            var name = type.Name;
+            name += string.Join("-", type.GetGenericArguments().Select(x => x.Name));
+
+            var fileName = StringEncryption.Hash(name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
 
             if (!File.Exists($"{DataPath}\\{fileName}.dat"))

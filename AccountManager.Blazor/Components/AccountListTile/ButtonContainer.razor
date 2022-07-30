@@ -4,13 +4,17 @@
 @using AccountManager.Core.Factories
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Models.UserSettings
 @using AccountManager.Core.Services
 @using AccountManager.Infrastructure.Services.FileSystem
+@using Microsoft.Extensions.Caching.Distributed
 @using Microsoft.Extensions.Caching.Memory
 @inject IAppState _state
+@inject IDistributedCache _persistantCache
 @inject IShortcutService _shortcutService
 @inject GenericFactory<AccountType, IPlatformService> _platformServiceFactory
 @inject AlertService _alertService
+@inject IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings
 
 <div class="row">
 	<div class="col">
@@ -25,7 +29,13 @@
 		</div>
 	</div>
 	<div class="col">
-		<span @onclick="OpenEditModal" class="oi oi-wrench" title="Edit"></span>
+		<div class="dropdown dropend">
+			<span class="oi oi-wrench" title="Configure" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+			<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+				<a class="dropdown-item" @onclick="OpenEditModal">Edit account details</a>
+				<a class="dropdown-item" @onclick="ToggleContentView">Toggle content view</a>
+			</div>
+		</div>
 	</div>
 	<div class="col">
 		<span @onclick="Login" class="oi oi-media-play" title="Login" style="@loginBtnStyle"></span>
