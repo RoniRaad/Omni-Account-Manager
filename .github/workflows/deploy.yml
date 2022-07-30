@@ -35,11 +35,11 @@ jobs:
         run: dotnet restore
       
       - name: Bump version number minor
-        if: ${{ startsWith( github.head_ref, "feature" )}}
+        if: ${{ startsWith( github.head_ref, 'feature' )}}
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
       
       - name: Bump version number patch
-        if: ${{ startsWith( github.head_ref, "hotfix" )}}
+        if: ${{ startsWith( github.head_ref, 'hotfix' )}}
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
       
       - name: Get version number
