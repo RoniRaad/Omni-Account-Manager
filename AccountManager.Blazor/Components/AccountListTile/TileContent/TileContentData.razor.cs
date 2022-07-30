@@ -6,6 +6,8 @@ using AccountManager.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using System.Reflection;
 using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.TeamFightTactics;
+using AccountManager.Core.Static;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -13,10 +15,18 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
     {
         [Parameter]
         public Account Account { get; set; } = new();
+        [CascadingParameter, EditorRequired]
+        public AccountListItemSettings Settings { get; set; } = new();
 
         private List<Type> pages = new();
         private Dictionary<string, object> pageParams = new();
         private int activePage = 0;
+
+        protected override void OnInitialized()
+        {
+            _accountItemSettings.OnSettingsSaved += () => InvokeAsync(() => StateHasChanged());
+        }
+
         protected override void OnParametersSet()
         {
             pageParams["Account"] = Account;
@@ -48,32 +58,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
                 activePage = 0;
         }
 
-        protected override void OnInitialized()
-        {
-        }
 
-        private string getPageButtonClass(int pageNum)
+        private string GetPageButtonClass(int pageNum)
         {
             if (activePage == pageNum)
                 return "active";
             return "";
         }
 
-        private void incrementPage()
+        private void IncrementPage()
         {
             activePage++;
             if (activePage >= pages?.Count)
                 activePage = 0;
         }
 
-        private void decrementPage()
+        private void DecrementPage()
         {
             activePage--;
             if (activePage < 0)
                 activePage = pages.Count - 1;
         }
 
-        private void setPage(int pageNum)
+        private void SetPage(int pageNum)
         {
             activePage = pageNum;
         }

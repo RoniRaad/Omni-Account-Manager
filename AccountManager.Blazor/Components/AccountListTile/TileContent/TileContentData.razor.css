@@ -41,3 +41,15 @@ span {
 span:active {
     color: darkgrey
 }
+
+.hidden-logo {
+    width: 35%;
+    margin-bottom: 2vh;
+    cursor: pointer;
+    fill: var(--primary-dark);
+}
+
+.hidden-logo:hover {
+    fill: var(--secondary-dark);
+}
+

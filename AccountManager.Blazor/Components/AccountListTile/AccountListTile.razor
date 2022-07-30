@@ -5,6 +5,7 @@
 @using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@using AccountManager.Core.Models.UserSettings
 @using AccountManager.Core.Services
 @using AccountManager.Core.Static
 @using Blazorise
@@ -15,20 +16,22 @@
 @inject ILeagueGraphService _leagueGraphService
 @inject IValorantGraphService _valorantGraphService
 @inject ITeamFightTacticsGraphService _tftGraphService
+@inject IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings
 @inherits LayoutComponentBase
 
-<div class="card" style="@cardStyle">
-    <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
-        <TileTopBar Title="@Account?.Id" AccountType="@(Account?.AccountType ?? 0)" MouseEnterDragLogo="() => dragSymbolIsHovered = true" MouseExitDragLogo="() => dragSymbolIsHovered = false" ></TileTopBar>
+<CascadingValue Value="_settings">
+    <div class="card" style="@cardStyle">
+        <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
+            <TileTopBar Title="@Account?.Id" AccountType="@(Account?.AccountType ?? 0)" MouseEnterDragLogo="() => dragSymbolIsHovered = true" MouseExitDragLogo="() => dragSymbolIsHovered = false" ></TileTopBar>
+        </div>
+	    <ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
+		    <TileContent Account="Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
+	    </ul>
+	    <div class="container account-btn-container">
+            <ButtonContainer Account="Account" AccountService="AccountService" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
+	    </div>
     </div>
-	<ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
-		<TileContent Account="Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
-	</ul>
-	<div class="container account-btn-container">
-        <ButtonContainer Account="Account" AccountService="AccountService" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
-	</div>
-</div>
-
+</CascadingValue>
 
 
 @if (showFullTile)
