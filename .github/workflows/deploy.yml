@@ -49,8 +49,11 @@ jobs:
       - name: Clear deployments folder
         run: Remove-Item -Force Deployment\Releases\*
         
-      - name: Publish UI project
-        run: dotnet publish 
+      - name: Build solution
+        run: dotnet build
+        
+      - name: Publish solution
+        run: dotnet publish
       
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
