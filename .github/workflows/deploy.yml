@@ -52,6 +52,9 @@ jobs:
       - name: Publish solution
         run: dotnet publish -c Release
       
+      - name: Remove Deployment Directory
+        run: Remove-Item -LiteralPath "Deployment\Releases" -Force -Recurse
+      
       - name: Ensure directories exist
         run: |
           New-Item -ItemType Directory -Force -Path Deployment/GeneratedNugets/
