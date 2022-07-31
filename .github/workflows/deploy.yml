@@ -40,7 +40,7 @@ jobs:
       
       - name: Bump version number patch
         if: ${{ startsWith( github.head_ref, 'hotfix' )}}
-        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch
       
       - name: Get version number
         run: dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Substring($_.Length - 5) } | foreach-object { Write-Output "::set-output name=versionNum::$_" }
@@ -53,7 +53,7 @@ jobs:
         run: dotnet publish -c Release
       
       - name: Remove Deployment Directory
-        run: Remove-Item -LiteralPath "Deployment\Releases" -Force -Recurse
+        run: Remove-Item -Force Deployment\Releases\* -ErrorAction Ignore
       
       - name: Ensure directories exist
         run: |
@@ -65,6 +65,9 @@ jobs:
  
       - name: Squirrelify
         run: Invoke-Expression "$env:USERPROFILE\.nuget\packages\squirrel.windows\1.9.0\tools\Squirrel.exe --releasify Deployment/GeneratedNugets/OmniAccountManager.${{ steps.get-project-version.outputs.versionNum }}.nupkg --releaseDir=Deployment/Releases"
+      
+      - name: Wait
+        run: Start-Sleep -Seconds 10
       
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
