@@ -2,25 +2,36 @@
 @using AccountManager.Core.Services
 @using AccountManager.Blazor.Components
 @using AccountManager.Core.Static
+@using AccountManager.Infrastructure.Services
 @using Microsoft.Extensions.Caching.Distributed
 @inherits LayoutComponentBase
 @inject AuthService _authService; 
 @inject AlertService _alertService; 
 @inject IDistributedCache _persistantCache
 @inject IJSRuntime _jsRuntime
+@inject IAppUpdateService _appUpdateService
 
 <div class = "notification">
+	@if (updateAvailable)
+	{
+		<div class="alert alert-info" style="animation: inherit;" role="alert">
+			<a @onclick="() => updateAvailable = !updateAvailable" class="close">X</a>
+			There is an update available. Click restart to open the new version.
+			<a style="margin-left: 10px" href="" @onclick="async () => { await _appUpdateService.Update(); _appUpdateService.Restart(); }">Restart</a>
+		</div>
+	}
+
 	@foreach(var errorMessage in _alertService.GetErrorMessages()){
 		<div class="alert alert-danger" role="alert">
+			<a @onclick="() => _alertService.RemoveErrorMessage(errorMessage)" class="close">X</a>
 			@errorMessage
-			<a class="close" @onclick="() => _alertService.RemoveErrorMessage(errorMessage)">X</a>
 		</div>
 	}
 
 	@foreach(var infoMessage in _alertService.GetInfoMessages()){
 		<div class="alert alert-info" role="alert">
+			<a @onclick="() => _alertService.RemoveInfoMessage(infoMessage)" class="close">X</a>
 			@infoMessage
-			<a class="close" @onclick="() => _alertService.RemoveInfoMessage(infoMessage)">X</a>
 		</div>
 	}
 </div>

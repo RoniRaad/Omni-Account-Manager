@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Services;
 using AccountManager.Core.Services.GraphServices;
@@ -39,7 +38,6 @@ namespace AccountManager.UI
 	public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
-		private bool updateAvailable = false;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
@@ -72,6 +70,7 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<AlertService>();
 			serviceCollection.AddState();
 			serviceCollection.AddAuth();
+			serviceCollection.AddLogging();
             serviceCollection.AddTransient<LeagueClient>();
 			serviceCollection.AddTransient<LeagueTokenClient>();
 			serviceCollection.AddSingleton<RiotFileSystemService>();
@@ -81,6 +80,7 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
+            serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
@@ -122,12 +122,8 @@ namespace AccountManager.UI
 			var builtServiceProvider = serviceCollection.BuildServiceProvider();
 
             Resources.Add("services", builtServiceProvider);
+
 			InitializeComponent();
-
-			var updateUrl = builtServiceProvider.GetRequiredService<IOptions<AboutEndpoints>>().Value;
-			if (updateUrl?.Github is not null)
-				Task.Run(() => CheckForUpdate(updateUrl.Github));
-
 			TrySetVersionNumber();
         }
 
@@ -146,26 +142,6 @@ namespace AccountManager.UI
                     versionNum.Text = "";
                 });
             }
-        }
-
-		private async Task CheckForUpdate(string url)
-		{
-			try
-			{
-                using (var manager = await UpdateManager.GitHubUpdateManager(url))
-                {
-					var updateInfo = await manager.CheckForUpdate();
-					if (updateInfo.ReleasesToApply.Count > 0)
-					{
-						updateAvailable = true;
-                        var value = await manager.UpdateApp();
-                    }
-                }
-            }
-			catch
-			{
-
-			}
         }
 
 		private void Close(object sender, RoutedEventArgs e)
