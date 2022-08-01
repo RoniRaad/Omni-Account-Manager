@@ -46,10 +46,13 @@ a {
 	right: 10px;
 	top: 10px;
 }
+
 .alert .close {
-	float: right;
-	cursor: pointer;
-	margin-left: 10px
+	position: absolute;
+	top: 0px;
+	right: 4px;
+	font-size: 12px;
+	text-decoration: none;
 }
 
 .alert {
