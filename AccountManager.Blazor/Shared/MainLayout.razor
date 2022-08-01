@@ -12,7 +12,7 @@
 @inject IAppUpdateService _appUpdateService
 
 <div class = "notification">
-	@if (!updateAvailable)
+	@if (updateAvailable)
 	{
 		<div class="alert alert-info" style="animation: inherit;" role="alert">
 			<a @onclick="() => updateAvailable = !updateAvailable" class="close">X</a>
