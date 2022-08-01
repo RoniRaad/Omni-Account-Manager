@@ -24,6 +24,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0-preview.4.22229.4" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0-preview.4.22229.4" />
     <PackageReference Include="NeoSmart.Caching.Sqlite" Version="6.0.1" />
+    <PackageReference Include="squirrel.windows" Version="1.9.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.18.0" />
     <PackageReference Include="WindowsShortcutFactory" Version="1.0.1" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />

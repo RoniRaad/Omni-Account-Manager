@@ -7,6 +7,7 @@ namespace AccountManager.Blazor.Shared
     {
         public string Password { get; set; } = string.Empty;
         public bool RememberMe { get; set; } = false;
+        private bool updateAvailable = false;
         public static string RememberMeCacheKey = "rememberPassword";
         public static string PasswordCacheKey = "masterPassword";
 
@@ -19,6 +20,8 @@ namespace AccountManager.Blazor.Shared
                 Password = await _persistantCache.GetAsync<string>(PasswordCacheKey) ?? "";
                 RememberMe = true;
             }
+
+            updateAvailable = await _appUpdateService.CheckForUpdate();
         }
 
         public async Task Login()
