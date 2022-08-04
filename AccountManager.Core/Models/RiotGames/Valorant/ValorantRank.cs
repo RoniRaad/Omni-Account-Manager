@@ -1,10 +1,4 @@
-﻿using AccountManager.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 
 namespace AccountManager.Core.Models.RiotGames.Valorant
 {
@@ -19,6 +13,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant
 			{"gold", "#e2cd5f"},
 			{"platinum", "#32a4bb"},
 			{"diamond", "#f195f4"},
+			{"ascendant", "#3b9d72"},
 			{"immortal", "#ac3654"},
 		}.ToImmutableDictionary();
 		
@@ -31,7 +26,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant
 			"GOLD" ,
 			"PLATINUM" ,
 			"DIAMOND" ,
-			"IMMORTAL" ,
+			"ASCENDANT" ,
 			"RADIANT"
 		}.ToImmutableList();
 	}

@@ -1,0 +1,28 @@
+﻿@using AccountManager.Core.Enums
+@using AccountManager.Core.Interfaces
+@inject IAccountFilterService _accountFilterService
+
+<div class="filter-sidebar" style="@Style">
+	<div class="filter-section">
+		<label>Filter by name</label>
+		<input value="@_accountFilterService.AccountNameFilter" @oninput="(ChangeEventArgs e) => { _accountFilterService.AccountNameFilter = e?.Value?.ToString() ?? string.Empty; _accountFilterService.Save(); }" type="text" class="input-text" >
+	</div>
+
+	<hr/>
+
+	<div class="filter-section">
+		<label>Filter by type</label>
+		<div class="checkbox-group">
+			@foreach (var enumName in Enum.GetNames(typeof(AccountType)))
+			{
+				<div class="checkbox-container">
+					<input checked="@_accountFilterService.AccountTypeFilter.Contains(Enum.Parse<AccountType>(enumName))" @onchange="(ChangeEventArgs e) => OnAccountTypeFilterCheckboxChange(e, Enum.Parse<AccountType>(enumName))" type="checkbox" id="@(enumName)" name="@(enumName)">
+					<label for="@(enumName)">@(enumName)</label>
+				</div>
+			}
+		</div>
+	</div>
+
+	<hr/>
+</div>
+

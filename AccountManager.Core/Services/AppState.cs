@@ -15,6 +15,7 @@ namespace AccountManager.Core.Services
         public AppState(IAccountService accountService, IIpcService ipcService)
         {
             _accountService = accountService;
+            _accountService.OnAccountListChanged += async () => await UpdateAccounts();
             Accounts = new RangeObservableCollection<Account>();
             Accounts.AddRange(_accountService.GetAllAccountsMin());
 
@@ -72,7 +73,7 @@ namespace AccountManager.Core.Services
 
             Accounts.AddRange(minAccounts);
 
-            var fullAccounts = new ObservableCollection<Account>(await _accountService.GetAllAccounts());
+            var fullAccounts = new List<Account>(await _accountService.GetAllAccounts());
             Accounts.Clear();
             Accounts.AddRange(fullAccounts);
             IsInitialized = true;

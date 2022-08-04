@@ -1,4 +1,6 @@
 ﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Core.Enums
+@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Services
 @using AccountManager.Blazor.Components
 @using AccountManager.Core.Static
@@ -10,6 +12,7 @@
 @inject IDistributedCache _persistantCache
 @inject IJSRuntime _jsRuntime
 @inject IAppUpdateService _appUpdateService
+@inject NavigationManager _navManager
 
 <div class = "notification">
 	@if (updateAvailable)
@@ -37,19 +40,29 @@
 </div>
 
 
-@foreach (var request in _alertService.GetTwoFactorAuthRequests()){
-	<TwoFactorAuthModal Request="request"></TwoFactorAuthModal>
+@if (settingsModalOpen)
+{
+	<SettingsModal Close="() => settingsModalOpen = false"></SettingsModal>
 }
 
+@foreach (var request in _alertService.GetTwoFactorAuthRequests())
+{
+	<TwoFactorAuthModal Request="request"></TwoFactorAuthModal>
+}
 @if (_authService.LoggedIn){
-    <div class="page">
-		<div class="sidebar">
-			<NavMenu />
-		</div>
 
-		<main>
+    <div class="page" style="width: 100%">
+		<div class="sidebars-container" >
+			<div class="sidebar" style="z-index: 3">
+				<NavMenu ToggleSettingsModal="() => settingsModalOpen = !settingsModalOpen" ToggleFilterSidebar="@(ToggleFilterSidebar)" />
+			</div>
+			<div style="@filterSidebarStyle">
+				<FilterSidebar style="width:188px" />
+			</div>
+		</div>
+		<main class="main-content" style="width: calc(100% - 238px);">
 			<div class="top-shadow"></div>
-			<article class="content px-4">
+			<article style="overflow: hidden;" class="content px-4">
 				@Body
 			</article>
 		</main>
