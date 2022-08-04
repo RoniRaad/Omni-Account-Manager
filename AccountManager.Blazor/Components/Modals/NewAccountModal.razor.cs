@@ -18,7 +18,8 @@ namespace AccountManager.Blazor.Components.Modals
     
         public void AddAccount()
         {
-            AccountService.AddAccount(NewAccount);
+            _appState.Accounts.Add(NewAccount);
+            _appState.SaveAccounts();
             Close();
         }
     }

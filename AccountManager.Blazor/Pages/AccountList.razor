@@ -13,15 +13,16 @@
 @inject IAppState _appState
 @inject IAccountFilterService _accountFilterService
 @inject AlertService _alertSerivce
+@inject IJSRuntime _jsRuntime
 @namespace AccountManager.Blazor.Pages
 
 <div class="container-fluid">
     <div class="row" style="--bs-gutter-x: 0rem">
-        <Dropzone Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
+        <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
                 <AccountListTile AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}" ></AccountListTile>
         </Dropzone>
 
-        <div class="placeholder-account-tile">
+        <div id="new-account-placeholder" class="placeholder-account-tile">
             <div class="card card-placeholder">
 	            <ul class="list-group list-group-flush">
                     <li @onclick="()=>addAccountPrompt=true" class="clickable-card list-group-item list-group-item-placeholder">

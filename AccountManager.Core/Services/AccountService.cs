@@ -30,14 +30,6 @@ namespace AccountManager.Core.Services
             _persistantCache = persistantCache;
         }
 
-        public void AddAccount(Account account)
-        {
-            var accounts = GetAllAccountsMin();
-            accounts.Add(account);
-            WriteAllAccounts(accounts);
-            OnAccountListChanged.Invoke();
-        }
-
         public void RemoveAccount(Account account)
         {
             var accounts = GetAllAccountsMin();
@@ -77,7 +69,6 @@ namespace AccountManager.Core.Services
 
             await Task.WhenAll(accountTasks);
 
-            WriteAllAccounts(accounts);
             _memoryCache.Set(accountCacheKey, accounts);
 
             return accounts;
@@ -93,24 +84,6 @@ namespace AccountManager.Core.Services
             _memoryCache.Set(minAccountCacheKey, accounts);
 
             return accounts;
-        }
-
-        public void EditAccount(Account editedAccount)
-        {
-            var accounts = GetAllAccountsMin();
-            accounts.ForEach(account =>
-            {
-                if (account.Guid == editedAccount.Guid)
-                {
-                    account.Username = editedAccount.Username;
-                    account.Password = editedAccount.Password;
-                    account.AccountType = editedAccount.AccountType;
-                    account.Id = editedAccount.Id;
-                    account.PlatformId = editedAccount.PlatformId;
-                }
-            });
-
-            WriteAllAccounts(accounts);
         }
 
         public async Task Login(Account account)
