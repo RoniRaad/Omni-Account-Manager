@@ -21,6 +21,8 @@
 .nav-item {
 	font-size: 0.9rem;
 	padding-bottom: 0.5rem;
+	display: flex;
+	justify-content: center;
 }
 
 .nav-item:first-of-type {
@@ -38,6 +40,8 @@
 	display: flex;
 	align-items: center;
 	line-height: 3rem;
+	display: flex;
+	justify-content: center;
 }
 
 .nav-item ::deep a.active {
@@ -50,14 +54,6 @@
 	color: white;
 }
 
-
-@media (min-width: 640px) {
-	.navbar-toggler {
-		display: none;
-	}
-
-	.collapse {
-		/* Never collapse the sidebar for wide screens */
-		display: block;
-	}
+.sidebar-shrink {
+	background-color: var(--primary-dark);
 }

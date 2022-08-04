@@ -85,7 +85,6 @@ a {
 
 .sidebar {
 	background-color: var(--primary-dark);
-	box-shadow: 0px 0px 5px #1b1b1b;
 }
 
 .top-row {
@@ -127,7 +126,7 @@ a {
 	}
 
 	.sidebar {
-		width: 155px;
+		width: 50px;
 		height: 100vh;
 		position: sticky;
 		top: 0;
@@ -160,4 +159,48 @@ label {
 
 button {
 	padding: 3% 14%;
+}
+
+@-webkit-keyframes popin-translate {
+	from {
+		transform: translate(0);
+		width: 188px;
+	}
+
+	to {
+		transform: translate(-188px);
+		width: 0px;
+	}
+}
+
+@-webkit-keyframes popout-translate {
+	from {
+		transform: translate(-188px);
+		width: 0px;
+	}
+
+	to {
+		transform: translate(0);
+		width: 188px;
+	}
+}
+
+@-webkit-keyframes popin-width {
+	from {
+		width: 238px
+	}
+
+	to {
+		width: 50px
+	}
+}
+
+@-webkit-keyframes popout-width {
+	from {
+		width: 50px
+	}
+
+	to {
+		width: 238px
+	}
 }

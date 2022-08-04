@@ -19,7 +19,7 @@ namespace AccountManager.Core.Services
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly SemaphoreSlim accountWriteSemaphore = new SemaphoreSlim(1, 1);
-
+        public event Action OnAccountListChanged = delegate { };
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
             , IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
@@ -35,14 +35,17 @@ namespace AccountManager.Core.Services
             var accounts = GetAllAccountsMin();
             accounts.Add(account);
             WriteAllAccounts(accounts);
+            OnAccountListChanged.Invoke();
         }
 
         public void RemoveAccount(Account account)
         {
             var accounts = GetAllAccountsMin();
             accounts.RemoveAll((acc) => acc?.Guid == account.Guid);
-
             WriteAllAccounts(accounts);
+            _memoryCache.Set(minAccountCacheKey, accounts);
+            _memoryCache.Remove(accountCacheKey);
+            OnAccountListChanged.Invoke();
         }
 
         public async Task<List<Account>> GetAllAccounts()

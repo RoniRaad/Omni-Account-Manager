@@ -73,3 +73,10 @@ p {
     font-size: 4rem;
     user-select: none;
 }
+
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-top: -12px;
+    justify-content: space-between;
+}

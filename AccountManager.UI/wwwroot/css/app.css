@@ -8,7 +8,7 @@
 }
 
 .sidebar {
-	width: 155px;
+	width: 83px;
 }
 
 .no-data-label {
@@ -190,16 +190,7 @@ a, .btn-link {
 p {
 	margin: 0px
 }
-@media (max-width: 750px) {
-	.nav-link p {
-		display: none;
-		width: 0px;
-	}
 
-	.sidebar {
-		width: 83px !important;
-	}
-}
 
 /* width */
 ::-webkit-scrollbar {
@@ -229,41 +220,110 @@ p {
 }
 
 
-@media (min-width: 576px) {
-	.col-sm-6 {
-		flex: 0 0 auto;
-		width: 49%;
+@media (max-width: 640px) {
+	.sidebars-container {
+		display: none !important;
+	}
+
+	.main-content {
+		width: 100% !important;
 	}
 }
 
-@media (min-width: 1048px) {
-	.col-md-4 {
-		flex: 0 0 auto;
-		width: 32%;
+@media (min-width: 200px) {
+	.display-content {
+		grid-template-columns: 100%;
+	}
+	.sidebar{
+		display:none;
+	}
+	.placeholder-account-tile {
+		width: 100%
+	}
+}
+
+@media (min-width: 530px) {
+	.display-content {
+		grid-template-columns: 50% 50%;
+	}
+	.sidebar {
+		display: initial;
+	}
+	.placeholder-account-tile {
+		width: 50%
+	}
+}
+
+
+@media (min-width: 1030px) {
+	.display-content {
+		grid-template-columns: 33% 33% 33%;
+	}
+
+	.placeholder-account-tile {
+		width: 33%
 	}
 } 
 
 @media (min-width: 1400px) {
-	.col-xxl-2 {
-		flex: 0 0 auto;
-		width: 19%;
+	.display-content {
+		grid-template-columns: 25% 25% 25% 25%;
+	}
+
+	.placeholder-account-tile {
+		width: 25%
 	}
 }
 
-@media (min-width: 2400px) {
-	.col-xxxl-2 {
-		flex: 0 0 auto;
-		width: 15%;
+@media (min-width: 2200px) {
+	.display-content {
+		grid-template-columns: 20% 20% 20% 20% 20%;
+	}
+
+	.placeholder-account-tile {
+		width: 20%
+	}
+}
+
+@media (min-width: 3000px) {
+	.display-content {
+		grid-template-columns: 16% 16% 16% 16% 16% 16%;
+	}
+
+	.placeholder-account-tile {
+		width: 16%
+	}
+}
+
+@media (min-width: 3450px) {
+	.display-content {
+		grid-template-columns: 12% 12% 12% 12% 12% 12% 12% 12%;
+	}
+
+	.placeholder-account-tile {
+		width: 12%
+	}
+}
+
+@media (min-width: 3750px) {
+	.display-content {
+		grid-template-columns: repeat(10, 9.8%);
+	}
+
+	.placeholder-account-tile {
+		width: 9.8%
 	}
 }
 
 .plk-dd-draggable {
-	margin-bottom: 5px;
-	margin-right: 5px;
+	width: 100%;
 }
 
 .display-content {
-	display:contents
+	display: grid;
+	grid-row-gap: 5px;
+	grid-column-gap: 5px;
+	max-width: 100%;
 }
 
 .form-control:focus {
@@ -288,4 +348,21 @@ p {
 
 .line-chart {
 	width: 90%;
+}
+
+.nav-button {
+	height: 2rem !important;
+	display: flex;
+	width: 2rem;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+}
+
+.main-content {
+	width: calc(100% - 283px)
+}
+
+.sidebars-container {
+	display: flex;
 }
