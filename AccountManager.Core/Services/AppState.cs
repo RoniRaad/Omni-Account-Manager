@@ -76,7 +76,7 @@ namespace AccountManager.Core.Services
 
             Accounts.ForEach((currentAccount) => {
                 currentAccount.Rank = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.Rank ?? currentAccount.Rank;
-                currentAccount.PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.Id ?? currentAccount.PlatformId;
+                currentAccount.PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.PlatformId ?? currentAccount.PlatformId;
             });
 
             SaveAccounts();
