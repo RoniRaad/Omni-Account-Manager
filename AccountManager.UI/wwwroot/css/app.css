@@ -237,9 +237,6 @@ p {
 	.sidebar{
 		display:none;
 	}
-	.placeholder-account-tile {
-		width: 100%
-	}
 }
 
 @media (min-width: 530px) {
@@ -249,9 +246,6 @@ p {
 	.sidebar {
 		display: initial;
 	}
-	.placeholder-account-tile {
-		width: 50%
-	}
 }
 
 
@@ -259,19 +253,11 @@ p {
 	.display-content {
 		grid-template-columns: 33% 33% 33%;
 	}
-
-	.placeholder-account-tile {
-		width: 33%
-	}
 } 
 
 @media (min-width: 1400px) {
 	.display-content {
 		grid-template-columns: 25% 25% 25% 25%;
-	}
-
-	.placeholder-account-tile {
-		width: 25%
 	}
 }
 
@@ -279,19 +265,11 @@ p {
 	.display-content {
 		grid-template-columns: 20% 20% 20% 20% 20%;
 	}
-
-	.placeholder-account-tile {
-		width: 20%
-	}
 }
 
 @media (min-width: 3000px) {
 	.display-content {
 		grid-template-columns: 16% 16% 16% 16% 16% 16%;
-	}
-
-	.placeholder-account-tile {
-		width: 16%
 	}
 }
 
@@ -299,19 +277,11 @@ p {
 	.display-content {
 		grid-template-columns: 12% 12% 12% 12% 12% 12% 12% 12%;
 	}
-
-	.placeholder-account-tile {
-		width: 12%
-	}
 }
 
 @media (min-width: 3750px) {
 	.display-content {
 		grid-template-columns: repeat(10, 9.8%);
-	}
-
-	.placeholder-account-tile {
-		width: 9.8%
 	}
 }
 

@@ -4,20 +4,19 @@ using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Services;
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using System.Linq;
 
 namespace AccountManager.Core.Services
 {
     public class AppState : IAppState
     {
         private readonly IAccountService _accountService;
-        public RangeObservableCollection<Account> Accounts { get; set; }
+        public List<Account> Accounts { get; set; }
         public bool IsInitialized { get; set; } = false;
         public AppState(IAccountService accountService, IIpcService ipcService)
         {
             _accountService = accountService;
-            _accountService.OnAccountListChanged += async () => await UpdateAccounts();
-            Accounts = new RangeObservableCollection<Account>();
-            Accounts.AddRange(_accountService.GetAllAccountsMin());
+            Accounts = _accountService.GetAllAccountsMin();
 
             Task.Run(UpdateAccounts);
 
@@ -74,8 +73,14 @@ namespace AccountManager.Core.Services
             Accounts.AddRange(minAccounts);
 
             var fullAccounts = new List<Account>(await _accountService.GetAllAccounts());
-            Accounts.Clear();
-            Accounts.AddRange(fullAccounts);
+
+            Accounts.ForEach((currentAccount) => {
+                currentAccount.Rank = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.Rank ?? currentAccount.Rank;
+                currentAccount.PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.Id ?? currentAccount.PlatformId;
+            });
+
+            SaveAccounts();
+
             IsInitialized = true;
         }
 

@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Models;
+using Microsoft.JSInterop;
 
 namespace AccountManager.Blazor.Pages
 {
@@ -9,8 +10,14 @@ namespace AccountManager.Blazor.Pages
 
         protected override void OnInitialized()
         {
-            _accountFilterService.OnFilterChanged += () => InvokeAsync(() => StateHasChanged());
-            _accountService.OnAccountListChanged += () => InvokeAsync(() => StateHasChanged());
+            _appState.UpdateAccounts();
+            _accountFilterService.OnFilterChanged += () => LoadList();
+        }
+
+        protected override void OnAfterRender(bool first)
+        {
+            if (first)
+                Task.Run(async () => await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder"));
         }
 
         public void SaveList()
@@ -20,7 +27,6 @@ namespace AccountManager.Blazor.Pages
 
         public void LoadList()
         {
-            _ = _appState.UpdateAccounts();
             InvokeAsync(() => StateHasChanged());
         }
 

@@ -63,10 +63,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public void UpdateData<T>(T data, string password)
         {
-            var type = typeof(T);
-            var name = type.Name;
-            name += string.Join("-",type.GetGenericArguments().Select(x => x.Name));
-
+            var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
 

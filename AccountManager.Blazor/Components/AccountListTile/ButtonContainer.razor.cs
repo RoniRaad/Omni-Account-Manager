@@ -55,7 +55,8 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 {
                     if (userConfirmed)
                     {
-                        AccountService.RemoveAccount(Account);
+                        _appState.Accounts.RemoveAll((acc) => acc.Guid == Account.Guid);
+                        _appState.SaveAccounts();
                         ReloadList();
                     }
 
