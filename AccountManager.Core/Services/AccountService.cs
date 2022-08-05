@@ -19,7 +19,7 @@ namespace AccountManager.Core.Services
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly SemaphoreSlim accountWriteSemaphore = new SemaphoreSlim(1, 1);
-
+        public event Action OnAccountListChanged = delegate { };
         public AccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
             , IMemoryCache memoryCache, IDistributedCache persistantCache)
         {
@@ -30,19 +30,14 @@ namespace AccountManager.Core.Services
             _persistantCache = persistantCache;
         }
 
-        public void AddAccount(Account account)
-        {
-            var accounts = GetAllAccountsMin();
-            accounts.Add(account);
-            WriteAllAccounts(accounts);
-        }
-
         public void RemoveAccount(Account account)
         {
             var accounts = GetAllAccountsMin();
             accounts.RemoveAll((acc) => acc?.Guid == account.Guid);
-
             WriteAllAccounts(accounts);
+            _memoryCache.Set(minAccountCacheKey, accounts);
+            _memoryCache.Remove(accountCacheKey);
+            OnAccountListChanged.Invoke();
         }
 
         public async Task<List<Account>> GetAllAccounts()
@@ -74,7 +69,6 @@ namespace AccountManager.Core.Services
 
             await Task.WhenAll(accountTasks);
 
-            WriteAllAccounts(accounts);
             _memoryCache.Set(accountCacheKey, accounts);
 
             return accounts;
@@ -90,24 +84,6 @@ namespace AccountManager.Core.Services
             _memoryCache.Set(minAccountCacheKey, accounts);
 
             return accounts;
-        }
-
-        public void EditAccount(Account editedAccount)
-        {
-            var accounts = GetAllAccountsMin();
-            accounts.ForEach(account =>
-            {
-                if (account.Guid == editedAccount.Guid)
-                {
-                    account.Username = editedAccount.Username;
-                    account.Password = editedAccount.Password;
-                    account.AccountType = editedAccount.AccountType;
-                    account.Id = editedAccount.Id;
-                    account.PlatformId = editedAccount.PlatformId;
-                }
-            });
-
-            WriteAllAccounts(accounts);
         }
 
         public async Task Login(Account account)

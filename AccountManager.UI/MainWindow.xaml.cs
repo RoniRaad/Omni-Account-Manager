@@ -68,6 +68,7 @@ namespace AccountManager.UI
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<AlertService>();
+			serviceCollection.AddSingleton<IAccountFilterService, AccountFilterService>();
 			serviceCollection.AddState();
 			serviceCollection.AddAuth();
 			serviceCollection.AddLogging();
