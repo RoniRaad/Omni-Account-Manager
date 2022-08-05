@@ -261,25 +261,25 @@ p {
 	}
 }
 
-@media (min-width: 2200px) {
+@media (min-width: 1750px) {
 	.display-content {
 		grid-template-columns: 20% 20% 20% 20% 20%;
 	}
 }
 
-@media (min-width: 3000px) {
+@media (min-width: 2300px) {
 	.display-content {
 		grid-template-columns: 16% 16% 16% 16% 16% 16%;
 	}
 }
 
-@media (min-width: 3450px) {
+@media (min-width: 2700px) {
 	.display-content {
 		grid-template-columns: 12% 12% 12% 12% 12% 12% 12% 12%;
 	}
 }
 
-@media (min-width: 3750px) {
+@media (min-width: 3500px) {
 	.display-content {
 		grid-template-columns: repeat(10, 9.8%);
 	}
