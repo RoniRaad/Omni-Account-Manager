@@ -27,6 +27,12 @@ namespace AccountManager.Blazor.Components.AccountListTile
             base.OnInitialized();
         }
 
+        protected override void OnParametersSet()
+        {
+            logoUrl = GetLogoUrl();
+            base.OnParametersSet();
+        }
+
         public string GetLogoUrl()
         {
             return _memoryCache?.GetOrCreate($"{nameof(GetLogoUrl)}.{AccountType}", (entry) =>

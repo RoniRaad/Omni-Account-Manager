@@ -30,7 +30,14 @@ namespace AccountManager.Blazor.Components
         }
         public void Submit()
         {
-            AccountService.EditAccount(Account);
+            var account = _appState.Accounts.FirstOrDefault((acc) => acc.Guid == Account.Guid);
+            if (account is null)
+                return;
+
+            account.Password = Account.Password;
+            account.Id = Account.Id;
+
+            _appState.SaveAccounts();
             Close();
         }
     }

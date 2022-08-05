@@ -22,9 +22,10 @@
         Chart.defaults.scale.ticks.autoSkipPadding = 50;
         Chart.defaults.scale.ticks.autoSkip = false;
 
-        window.focusElement = (elementId) => {
-            const element = document.getElementById(elementId);
-            element.focus();
+        window.appendElement = (parentId, childId) => {
+            const parentElement = document.getElementById(parentId);
+            const childElement = document.getElementById(childId);
+            parentElement.append(childElement);
         };
     </script>
     <div id="blazor-error-ui">

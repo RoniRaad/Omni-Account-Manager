@@ -13,10 +13,10 @@
     align-items: center;
 }
 
-.setting-col button {
-    width: auto;
-    margin-top: -17px;
-}
+    .setting-col button {
+        width: auto;
+        margin-top: -17px;
+    }
 
 p {
     width: auto;
@@ -26,9 +26,9 @@ p {
 }
 
 tr {
-    border-bottom: solid 1px #787b7c;
     height: 60px;
 }
+
 td {
     text-align: right;
     height: 60px;
@@ -37,9 +37,11 @@ td {
     align-items: center;
     justify-content: flex-end;
 }
+
 table {
     width: 100%;
 }
+
 .btn-text-save {
     margin-left: 10px !important;
 }
@@ -52,8 +54,8 @@ table {
     border-color: #ced4da;
 }
 
-.text-input{
-    width:400px;
+.text-input {
+    width: 400px;
 }
 
 .nav-link {
@@ -64,4 +66,21 @@ table {
 .nav-tabs {
     border-color: #979797;
     margin-bottom: 10px;
+}
+
+.modal-dialog {
+    max-width: initial;
+    height: 90%;
+    width: 90%;
+    background-color: var(--primary-light);
+}
+
+
+.btn-close-white {
+    margin: 8px;
+    margin-left: auto;
+}
+
+.modal-content {
+    border: initial;
 }

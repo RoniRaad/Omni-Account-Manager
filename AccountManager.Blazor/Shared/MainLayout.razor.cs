@@ -10,6 +10,9 @@ namespace AccountManager.Blazor.Shared
         private bool updateAvailable = false;
         public static string RememberMeCacheKey = "rememberPassword";
         public static string PasswordCacheKey = "masterPassword";
+        private string filterSidebarStyle = "transform: translate(-188px); width: 0px";
+        private bool isFilterSidebarOpen = false;
+        private bool settingsModalOpen = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -22,6 +25,16 @@ namespace AccountManager.Blazor.Shared
             }
 
             updateAvailable = await _appUpdateService.CheckForUpdate();
+        }
+
+        private void ToggleFilterSidebar()
+        {
+            isFilterSidebarOpen = !isFilterSidebarOpen;
+
+            if (isFilterSidebarOpen)
+                filterSidebarStyle = "transform: translate(0); animation: popout-translate .3s ease; width: 188px";
+            else
+                filterSidebarStyle = "transform: translate(-188px); animation: popin-translate .3s ease; width: 0px";
         }
 
         public async Task Login()

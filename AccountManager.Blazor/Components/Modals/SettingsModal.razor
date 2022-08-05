@@ -1,0 +1,38 @@
+﻿@using AccountManager.Blazor.Components.Modals
+@using AccountManager.Blazor.Components.SettingsPages
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Models.UserSettings
+@using AccountManager.Core.Services
+@using AccountManager.Blazor.Components
+@using Microsoft.Extensions.Options
+@inject IAppState _authService
+@inject IUserSettingsService<GeneralSettings> _settings
+<div class="modal fade show d-block" tabindex="-1" role="dialog" >
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: var(--primary-light);">
+            <div style="margin:1%">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link @(currentPage == typeof(General) ? "active" : "")" @onclick="() => currentPage = typeof(General)">General</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentPage == typeof(League) ? "active" : "")" @onclick="() => currentPage = typeof(League)">League</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentPage == typeof(Steam) ? "active" : "")" @onclick="() => currentPage = typeof(Steam)">Steam</a>
+                    </li>
+                    <button @onclick="Close" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                </ul>
+
+                <div class="container main">
+                    <DynamicComponent Type="currentPage"></DynamicComponent>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code{
+    Type currentPage = typeof(General);
+}

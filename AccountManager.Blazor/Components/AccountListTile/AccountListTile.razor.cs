@@ -52,7 +52,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         private bool showFullTile = false;
 
-        protected override void OnInitialized()
+        protected override void OnParametersSet()
         {
             if (!_accountItemSettings.Settings.TryGetValue(Account.Guid, out var settings))
             {
@@ -61,7 +61,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
             _accountItemSettings.Settings[Account.Guid] = settings;
             _settings = settings;
 
-            base.OnInitialized();
+            base.OnParametersSet();
         }
     }
 }
