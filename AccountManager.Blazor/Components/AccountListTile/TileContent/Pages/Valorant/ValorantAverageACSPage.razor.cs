@@ -83,7 +83,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-                displayGraph = await _valorantGraphService.GetRankedACS(Account);
+                try
+                {
+                    displayGraph = await _valorantGraphService.GetRankedACS(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display average ranked ACS for account {Account.Id}.");
+                }
+
                 await HandleRedraw();
             }
         }

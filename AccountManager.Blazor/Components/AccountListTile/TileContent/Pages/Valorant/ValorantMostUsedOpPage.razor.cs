@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Services;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
@@ -74,8 +75,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
+            try 
+            { 
                 displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
-                await HandleRedraw();
+            }
+                catch
+            {
+                _alertService.AddErrorMessage($"Unable to display Recently used operators for account {Account.Id}.");
+            }
+            await HandleRedraw();
             }
         }
 

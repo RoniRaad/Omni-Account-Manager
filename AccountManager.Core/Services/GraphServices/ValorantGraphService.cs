@@ -101,8 +101,10 @@ namespace AccountManager.Core.Services.GraphServices
             if (matchHistory?.Any() is not true)
                 return new BarChart();
 
+            var operators = await _valorantClient.GetValorantOperators();
+
             matchHistory = matchHistory.OrderBy(match => match.MatchInfo.GameStartMillis);
-            var groupedMatches = matchHistory.GroupBy(match => _mapper.Map<ValorantCharacter>(match.Players.First((player) => player.Subject == account.PlatformId).CharacterId).Name);
+            var groupedMatches = matchHistory.GroupBy(match => operators?.Data?.First((op) => op.Uuid == match.Players.First((player) => player.Subject == account.PlatformId).CharacterId));
 
             var barChartData = groupedMatches.Select(group =>
             {
@@ -123,7 +125,7 @@ namespace AccountManager.Core.Services.GraphServices
 
             var barChart = new BarChart
             {
-                Labels = groupedMatches.Select(group => group.Key).ToList(),
+                Labels = groupedMatches?.Select(group => group?.Key?.DisplayName ?? "UNKNOWN CHARACTER")?.ToList() ?? new(),
                 Data = barChartData,
                 Title = "Average ACS"
             };
@@ -133,7 +135,7 @@ namespace AccountManager.Core.Services.GraphServices
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
         {
-            PieChart? pieChart = new PieChart();
+            PieChart? pieChart;
 
             IEnumerable<ValorantMatch> matchHistory = new List<ValorantMatch>();
 
@@ -149,7 +151,8 @@ namespace AccountManager.Core.Services.GraphServices
             if (matchHistory?.Any() is not true)
                 return new PieChart();
 
-            var matches = matchHistory.GroupBy((match) => _mapper.Map<ValorantCharacter>(match.Players.First((player) => player.Subject == account.PlatformId).CharacterId).Name);
+            var operators = await _valorantClient.GetValorantOperators();
+            var matches = matchHistory.GroupBy((match) => operators?.Data?.First((op) => match.Players.First((player) => player.Subject == account.PlatformId).CharacterId == op.Uuid));
             pieChart = new PieChart();
             var dataList = new List<PieChartData>();
             pieChart.Labels = new();
@@ -161,7 +164,7 @@ namespace AccountManager.Core.Services.GraphServices
                     Value = match.Count()
                 });
 
-                pieChart.Labels.Add(match.Key);
+                pieChart.Labels.Add(match?.Key?.DisplayName ?? "UNKNOWN OPERATOR");
             }
 
             pieChart.Data = dataList;

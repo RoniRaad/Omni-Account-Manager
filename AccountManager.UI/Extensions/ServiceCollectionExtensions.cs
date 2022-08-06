@@ -132,10 +132,6 @@ namespace AccountManager.UI.Extensions
                 .ForMember(d => d.Ranking, opt => opt.MapFrom((src) => src.Ranking))
                 .ForMember(d => d.HexColor, opt => opt.MapFrom((src) => TeamFightTacticsRank.RankedColorMap[!string.IsNullOrEmpty(src.Tier) ? src.Tier.ToLower() : "unranked"]));
 
-                cfg.CreateMap<string, ValorantCharacter>()
-                .ForMember(d => d.Name, opt => opt.MapFrom((src) => ValorantCharacter.CharacterMapping.ContainsKey(src) ? ValorantCharacter.CharacterMapping[src] : "UNKNOWN CHARACTER"))
-                .ReverseMap();
-
                 cfg.CreateMap<MatchHistory, MatchHistoryResponse>()
                 .ReverseMap();
                 cfg.CreateMap<MatchHistory.Json, MatchHistoryResponse.Json>()
