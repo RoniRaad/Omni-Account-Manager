@@ -71,12 +71,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -85,8 +80,17 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 _account = Account;
 
-                displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
+                try
+                {
+                    displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display league winrate by champ for account {Account.Id}");
+                }
                 await HandleRedraw();
+                await InvokeAsync(() => StateHasChanged());
+
             }
         }
 

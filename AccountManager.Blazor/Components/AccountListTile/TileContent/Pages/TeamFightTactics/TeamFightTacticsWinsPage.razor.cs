@@ -113,7 +113,14 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
             if (_account != Account)
             {
                 _account = Account;
-                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+                try
+                {
+                    displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to show team fight tactics win offset for account {Account.Id}");
+                }
 
                 await HandleRedraw();
             }

@@ -1,19 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
-using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using Blazorise.Charts;
@@ -78,20 +63,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -100,8 +75,17 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 _account = Account;
 
-                displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
+                try
+                {
+                    displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display league champ cs rate for account {Account.Id}");
+                }
                 await HandleRedraw();
+                await InvokeAsync(() => StateHasChanged());
+
             }
         }
 
