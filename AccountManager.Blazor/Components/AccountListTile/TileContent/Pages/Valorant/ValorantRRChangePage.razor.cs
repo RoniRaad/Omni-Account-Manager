@@ -96,20 +96,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -118,7 +108,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+                try
+                {
+                    displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display RR change graph for account {Account.Id}.");
+                }
+
                 await HandleRedraw();
             }
         }
