@@ -72,12 +72,6 @@ namespace AccountManager.Infrastructure.Clients
 
             return rankedHistory;
         }
-        private async Task<ValorantSkinLevelResponse> GetSkinFromUuid(string uuid)
-        {
-            var client = _httpClientFactory.CreateClient();
-            return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"https://valorant-api.com/v1/weapons/skinlevels/{uuid}") ?? new();
-        }
-
 
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
         {
@@ -176,6 +170,22 @@ namespace AccountManager.Infrastructure.Clients
 
             return rank;
         }
+
+        public async Task<ValorantOperatorsResponse> GetValorantOperators()
+        {
+            var client = _httpClientFactory.CreateClient("Valorant");
+            var operatorsRequest = await client.GetAsync("/v1/agents");
+            operatorsRequest.EnsureSuccessStatusCode();
+
+            return await operatorsRequest.Content.ReadFromJsonAsync<ValorantOperatorsResponse>() ?? new();
+        }
+
+        private async Task<ValorantSkinLevelResponse> GetSkinFromUuid(string uuid)
+        {
+            var client = _httpClientFactory.CreateClient("Valorant");
+            return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"/v1/weapons/skinlevels/{uuid}") ?? new();
+        }
+
 
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {

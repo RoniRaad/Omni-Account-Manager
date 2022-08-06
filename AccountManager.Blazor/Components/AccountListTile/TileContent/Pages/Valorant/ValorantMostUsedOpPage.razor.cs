@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Services;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
@@ -52,20 +53,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -74,7 +65,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-                displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
+                try 
+                { 
+                    displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
+                }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display Recently used operators for account {Account.Id}.");
+                }
+
                 await HandleRedraw();
             }
         }
