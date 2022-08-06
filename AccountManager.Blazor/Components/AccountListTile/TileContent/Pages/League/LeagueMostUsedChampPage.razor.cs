@@ -1,19 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
-using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using Blazorise.Charts;
@@ -67,31 +52,30 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _leagueGraphService.GetRankedChampSelectPieChart(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
         {
-                if (_account != Account)
-                {
-                    _account = Account;
+            if (_account != Account)
+            {
+                _account = Account;
 
+                try
+                {
                     displayGraph = await _leagueGraphService.GetRankedChampSelectPieChart(Account);
-                    await HandleRedraw();
                 }
+                catch
+                {
+                    _alertService.AddErrorMessage($"Unable to display league most used champs for account {Account.Id}");
+                }
+                await HandleRedraw();
+                await InvokeAsync(() => StateHasChanged());
+
+            }
         }
 
         List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };

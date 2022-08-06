@@ -113,20 +113,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
         protected override async Task OnAfterRenderAsync(bool first)
         {
             if (first)
-            {
-                displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
                 await HandleRedraw();
-
-                await InvokeAsync(() => StateHasChanged());
-            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -135,16 +125,16 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
-            try 
-            { 
-                displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
-            }
+                try 
+                { 
+                    displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
+                }
                 catch
-            {
-                _alertService.AddErrorMessage($"Unable to display ranked win graph account {Account.Id}.");
-            }
+                {
+                    _alertService.AddErrorMessage($"Unable to display ranked win graph account {Account.Id}.");
+                }
 
-            await HandleRedraw();
+                await HandleRedraw();
             }
         }
 

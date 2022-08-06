@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
-using System.Security.Principal;
 
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
@@ -15,19 +14,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         private Account _account = new();
 
         List<ValorantSkinLevelResponse>? storeFrontSkins;
-        protected override void OnInitialized()
-        {
-            if (Account is null)
-                return;
-
-            _account = Account;
-
-            Task.Run(async () =>
-            {
-                storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
-                await InvokeAsync(() => StateHasChanged());
-            });
-        }
 
         protected override void OnParametersSet()
         {
@@ -37,7 +23,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
                 Task.Run(async () =>
                 {
-                    storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                    try
+                    {
+                        storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+                    }
+                    catch
+                    {
+                        _alertService.AddErrorMessage($"Unable to display valorant store page for account {Account.Id}.");
+                    }
+
                     await InvokeAsync(() => StateHasChanged());
                 });
             }

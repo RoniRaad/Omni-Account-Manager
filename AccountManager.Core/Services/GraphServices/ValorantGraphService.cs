@@ -8,19 +8,19 @@ using AccountManager.Infrastructure.Clients;
 using AutoMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace AccountManager.Core.Services.GraphServices
 {
     public class ValorantGraphService : IValorantGraphService
     {
-        private readonly AlertService _alertService;
+        private readonly ILogger<ValorantGraphService> _logger;
         private readonly IValorantClient _valorantClient;
         private readonly IMapper _mapper;
-        public ValorantGraphService(AlertService alertService, IMapper mapper,
-             IDistributedCache persistantCache,
+        public ValorantGraphService(ILogger<ValorantGraphService> logger, IMapper mapper,
              IValorantClient valorantClient)
         {
-            _alertService = alertService;
+            _logger = logger;
             _mapper = mapper;
             _valorantClient = valorantClient;
         }
@@ -34,9 +34,10 @@ namespace AccountManager.Core.Services.GraphServices
             {
                 matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
-            catch
+            catch (Exception ex)
             {
-                _alertService.AddErrorMessage("There was an issue getting your ranked wins graph. Try again later.");
+                _logger.LogError("There was an issue getting valorant game history for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                throw;
             }
 
             if (matchHistory?.Any() is not true)
@@ -93,9 +94,10 @@ namespace AccountManager.Core.Services.GraphServices
             {
                 matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
-            catch
+            catch (Exception ex)
             {
-                _alertService.AddErrorMessage("There was an issue getting your average acs chart. Try again later.");
+                _logger.LogError("There was an issue getting ranked ACS for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                throw;
             }
 
             if (matchHistory?.Any() is not true)
@@ -143,9 +145,10 @@ namespace AccountManager.Core.Services.GraphServices
             {
                 matchHistory = await _valorantClient.GetValorantGameHistory(account) ?? new List<ValorantMatch>();
             }
-            catch
+            catch (Exception ex)
             {
-                _alertService.AddErrorMessage("There was an issue getting your recently used operators chart. Try again later.");
+                _logger.LogError("There was an issue getting the recently used operators pie chart for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                throw;
             }
 
             if (matchHistory?.Any() is not true)
@@ -183,9 +186,10 @@ namespace AccountManager.Core.Services.GraphServices
             {
                 matchHistory = await _valorantClient.GetValorantCompetitiveHistory(account) ?? new ValorantRankedHistoryResponse();
             }
-            catch
+            catch (Exception ex)
             {
-                _alertService.AddErrorMessage("There was an issue getting your rr change graph. Try again later.");
+                _logger.LogError("There was an issue getting the ranked rr change for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                throw;
             }
 
             if (matchHistory?.Matches?.Any() is not true)
