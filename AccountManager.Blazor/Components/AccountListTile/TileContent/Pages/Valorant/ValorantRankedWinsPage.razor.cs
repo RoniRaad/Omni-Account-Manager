@@ -135,8 +135,16 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             {
                 _account = Account;
 
+            try 
+            { 
                 displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
-                await HandleRedraw();
+            }
+                catch
+            {
+                _alertService.AddErrorMessage($"Unable to display ranked win graph account {Account.Id}.");
+            }
+
+            await HandleRedraw();
             }
         }
 

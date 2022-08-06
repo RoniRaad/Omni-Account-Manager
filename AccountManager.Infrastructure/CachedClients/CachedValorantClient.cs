@@ -1,10 +1,12 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Clients;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Principal;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
@@ -48,6 +50,20 @@ namespace AccountManager.Infrastructure.CachedClients
 
                    return value;
                }) ?? new List<ValorantMatch>();
+        }
+
+        public async Task<ValorantOperatorsResponse> GetValorantOperators()
+        {
+            var cacheKey = $"{nameof(GetValorantOperators)}";
+            return await _memoryCache.GetOrCreateAsync(cacheKey,
+                async (entry) =>
+                {
+                    var value = await _valorantClient.GetValorantOperators();
+                    if (value is null)
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+
+                    return value;
+                }) ?? new();
         }
 
         public async Task<Rank> GetValorantRank(Account account)

@@ -177,6 +177,15 @@ namespace AccountManager.Infrastructure.Clients
             return rank;
         }
 
+        public async Task<ValorantOperatorsResponse> GetValorantOperators()
+        {
+            var client = _httpClientFactory.CreateClient("Valorant");
+            var operatorsRequest = await client.GetAsync("/v1/agents");
+            operatorsRequest.EnsureSuccessStatusCode();
+
+            return await operatorsRequest.Content.ReadFromJsonAsync<ValorantOperatorsResponse>() ?? new();
+        }
+
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {
             var client = _httpClientFactory.CreateClient("ValorantNA");
