@@ -81,7 +81,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to display league champ cs rate for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to display league champ cs rate for account {Account.Id}");
                 }
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());

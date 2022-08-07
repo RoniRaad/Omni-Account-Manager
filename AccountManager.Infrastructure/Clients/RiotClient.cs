@@ -28,13 +28,13 @@ namespace AccountManager.Infrastructure.Clients
     public partial class RiotClient : IRiotClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly AlertService _alertService;
+        private readonly IAlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
-        public RiotClient(IHttpClientFactory httpClientFactory, AlertService alertService, IMemoryCache memoryCache, 
+        public RiotClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IMemoryCache memoryCache, 
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder )
         {
             _httpClientFactory = httpClientFactory;
@@ -138,7 +138,7 @@ namespace AccountManager.Infrastructure.Clients
                     {
                         if (string.IsNullOrEmpty(tokenResponse?.Multifactor?.Email))
                         {
-                            _alertService.AddErrorMessage("Unable to authenticate due to throttling. Try again later.");
+                            _alertService.AddErrorAlert("Unable to authenticate due to throttling. Try again later.");
                             return null;
                         }
 
@@ -168,7 +168,7 @@ namespace AccountManager.Infrastructure.Clients
                         tokenResponse = authResponse?.ResponseContent;
 
                         if (tokenResponse?.Type == "multifactor")
-                            _alertService.AddErrorMessage($"Incorrect code. Unable to authenticate {account.Username}");
+                            _alertService.AddErrorAlert($"Incorrect code. Unable to authenticate {account.Username}");
                     }
 
                     if (authResponse?.Cookies is not null)

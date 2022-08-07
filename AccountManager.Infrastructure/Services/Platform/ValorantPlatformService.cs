@@ -21,8 +21,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly ITokenService _riotService;
         private readonly IValorantClient _valorantClient;
         private readonly IRiotClient _riotClient;
-        private readonly RiotFileSystemService _riotFileSystemService;
-        private readonly AlertService _alertService;
+        private readonly IRiotFileSystemService _riotFileSystemService;
+        private readonly IAlertService _alertService;
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
@@ -30,8 +30,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public static string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "valorant-logo.ico");
-        public ValorantPlatformService(IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotLockFileService, AlertService alertService, 
+        public ValorantPlatformService(IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
+            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotLockFileService, IAlertService alertService, 
             IMemoryCache memoryCache, IMapper mapper, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient)
         {
             _riotClient = riotClient;
@@ -99,7 +99,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 if (string.IsNullOrEmpty(credentialsResponse?.Type))
                 {
-                    _alertService.AddErrorMessage("There was an error signing in, please try again later.");
+                    _alertService.AddErrorAlert("There was an error signing in, please try again later.");
                 }
 
                 if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
@@ -122,7 +122,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
             catch (RiotClientNotFoundException)
             {
-                _alertService.AddErrorMessage("Could not find riot client. Please set your riot install location in the settings page.");
+                _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
                 return true;
             }
             catch
@@ -155,7 +155,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
                     authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
                 {
-                    _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
+                    _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
                     return true;
                 }
 
@@ -178,7 +178,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (await TryLoginUsingRCU(account))
                 return;
 
-            _alertService.AddErrorMessage("There was an error attempting to sign in.");
+            _alertService.AddErrorAlert("There was an error attempting to sign in.");
         }
 
         private void StartValorant()

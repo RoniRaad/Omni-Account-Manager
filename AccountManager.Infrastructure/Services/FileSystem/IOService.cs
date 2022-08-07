@@ -30,7 +30,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return true;
         }
 
-        public bool TryLogin(string password)
+        public bool TryReadEncryptedData(string password)
         {
             try
             {

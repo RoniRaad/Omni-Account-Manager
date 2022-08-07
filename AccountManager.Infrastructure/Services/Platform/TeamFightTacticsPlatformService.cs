@@ -20,15 +20,15 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
-        private readonly AlertService _alertService;
+        private readonly IAlertService _alertService;
         private readonly IMemoryCache _memoryCache;
-        private readonly RiotFileSystemService _riotFileSystemService;
+        private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         public static string WebIconFilePath = Path.Combine("logos", "tft-logo.png");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "tft-logo.ico");
-        public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, GenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, RiotFileSystemService riotFileSystemService, AlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService)
+        public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
+            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -96,7 +96,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 if (string.IsNullOrEmpty(credentialsResponse?.Type))
                 {
-                    _alertService.AddErrorMessage("There was an error signing in, please try again later.");
+                    _alertService.AddErrorAlert("There was an error signing in, please try again later.");
                 }
 
                 if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
@@ -119,7 +119,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
             catch (RiotClientNotFoundException)
             {
-                _alertService.AddErrorMessage("Could not find riot client. Please set your riot install location in the settings page.");
+                _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
                 return true;
             }
             catch
@@ -152,7 +152,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
                     authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
                 {
-                    _alertService.AddErrorMessage("There was an issue authenticating with riot. We are unable to sign you in.");
+                    _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
                     return true;
                 }
 
@@ -175,7 +175,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (await TryLoginUsingRCU(account))
                 return;
 
-            _alertService.AddErrorMessage("There was an error attempting to sign in.");
+            _alertService.AddErrorAlert("There was an error attempting to sign in.");
         }
 
         private void StartLeague()
@@ -218,7 +218,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return (false, new Rank());
             }
         }
-
 
         public async Task<(bool, string)> TryFetchId(Account account)
         {
