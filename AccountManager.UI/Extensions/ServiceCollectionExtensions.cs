@@ -39,7 +39,7 @@ namespace AccountManager.UI.Extensions
             {
                 var parsedArgs = ParseCommandLineArgs(args);
 
-                services.AddSingleton((services) =>
+                services.AddSingleton<IAuthService>((services) =>
                 {
                     var persistantCache = services.GetRequiredService<IDistributedCache>();
                     var authService = new AuthService(services.GetRequiredService<IIOService>(), services.GetRequiredService<AlertService>(), persistantCache);
@@ -64,7 +64,7 @@ namespace AccountManager.UI.Extensions
                 });
             }
             else
-                services.AddSingleton<AuthService>();
+                services.AddSingleton<IAuthService, AuthService>();
 
             return services;
         }

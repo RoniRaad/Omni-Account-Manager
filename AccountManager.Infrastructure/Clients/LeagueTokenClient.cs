@@ -26,7 +26,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IAppState _state;
         public LeagueTokenClient(IHttpClientFactory httpClientFactory,
             IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions,
-            IHttpRequestBuilder curlRequestBuilder, GenericFactory<AccountType, ITokenService> leagueTokenServiceFactory,
+            IHttpRequestBuilder curlRequestBuilder, IGenericFactory<AccountType, ITokenService> leagueTokenServiceFactory,
             IUserSettingsService<LeagueSettings> leagueSettings, IAppState state)
         {
             _httpClientFactory = httpClientFactory;

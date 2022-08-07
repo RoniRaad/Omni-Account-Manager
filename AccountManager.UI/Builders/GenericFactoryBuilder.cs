@@ -27,7 +27,7 @@ namespace AccountManager.UI.Builders
 
         public void Build()
         {
-            _services.AddSingleton(services =>
+            _services.AddSingleton<IGenericFactory<TKey, TInterface>>(services =>
             {
                 return new GenericFactory<TKey, TInterface>(_implementations, services);
             });

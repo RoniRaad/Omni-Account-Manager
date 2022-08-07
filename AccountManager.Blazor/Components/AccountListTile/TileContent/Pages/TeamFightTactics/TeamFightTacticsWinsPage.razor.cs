@@ -119,7 +119,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to show team fight tactics win offset for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to show team fight tactics win offset for account {Account.Id}");
                 }
 
                 await HandleRedraw();
