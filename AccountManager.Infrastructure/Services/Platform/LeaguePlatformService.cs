@@ -3,14 +3,15 @@ using AccountManager.Core.Models;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using AccountManager.Core.Enums;
-using AccountManager.Core.Factories;
 using AccountManager.Infrastructure.Services.FileSystem;
-using AccountManager.Core.Services;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Exceptions;
 using System.Reflection;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Infrastructure.Clients;
+using Microsoft.Extensions.Logging;
+using AccountManager.Core.Models.RiotGames;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -21,15 +22,18 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotClient _riotClient;
         private readonly HttpClient _httpClient;
         private readonly IAlertService _alertService;
+        private readonly ILogger<LeaguePlatformService> _logger;
         private readonly IMemoryCache _memoryCache;
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
+        private readonly IRiotTokenClient _riotTokenClient;
         public static string WebIconFilePath = Path.Combine("logos", "league-logo.png");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "league-logo.ico");
-        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType, 
+        public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType,
             ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService,
-            IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService)
+            IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
+            IRiotTokenClient riotTokenClient, ILogger<LeaguePlatformService> logger)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -39,6 +43,8 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
             _settingsService = settingsService;
+            _riotTokenClient = riotTokenClient;
+            _logger = logger;
         }
 
         private async Task<bool> TryLoginUsingRCU(Account account)
@@ -125,16 +131,20 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         private async Task<bool> TryLoginUsingApi(Account account)
         {
+            RegionInfo regionInfo;
             try
             {
+                _logger.LogInformation("Attempting to login to account! Username: {Username}, Account Type: {AccountType}", account.Username, account.AccountType);
                 foreach (var process in Process.GetProcesses())
                     if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot") || process.ProcessName.Contains("Valorant"))
                         process.Kill();
 
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
+                _logger.LogInformation("Riot client closed and lockfile deleted!");
 
-                var request = new RiotSessionRequest
+
+                var request = new RiotTokenRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -143,16 +153,32 @@ namespace AccountManager.Infrastructure.Services.Platform
                     Scope = "openid offline_access lol ban profile email phone account"
                 };
 
-                var authResponse = await _riotClient.RiotAuthenticate(request, account);
-                if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
-                    authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
+                _logger.LogInformation("Attempted to retrieve riot tokens!");
+
+                var riotTokens = await _riotTokenClient.GetRiotTokens(request, account);
+                if (riotTokens is null || riotTokens?.Cookies?.Tdid is null || riotTokens?.Cookies?.Ssid is null ||
+                    riotTokens?.Cookies?.Sub is null || riotTokens?.Cookies?.Csid is null)
                 {
                     _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
+                    _logger.LogError("Unable to retrieve riot login cookies! There must have been an issue with the auth request! Account Username: {Username}", account.Username);
+
                     return true;
                 }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
-                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
+                _logger.LogInformation("Riot token obtained successfully!");
+
+                try
+                {
+                    regionInfo = await _riotClient.GetRegionInfo(account);
+                }
+                catch
+                {
+                    _logger.LogError("Unable to obtain region info for riot account! Account Username: {Username}", account.Username);
+                    regionInfo = new();
+                }
+
+                await _riotFileSystemService.WriteRiotYaml(regionInfo.RegionId.ToUpper(), riotTokens.Cookies.Tdid.Value, riotTokens.Cookies.Ssid.Value,
+                    riotTokens.Cookies.Sub.Value, riotTokens.Cookies.Csid.Value);
 
                 StartLeague();
                 return true;
@@ -160,6 +186,8 @@ namespace AccountManager.Infrastructure.Services.Platform
             catch (RiotClientNotFoundException)
             {
                 _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
+                _logger.LogError("Could not find riot client! Unable to login!");
+
                 return true;
             }
             catch
@@ -176,10 +204,13 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return;
 
             _alertService.AddErrorAlert("There was an error attempting to sign in.");
+            _logger.LogError("Riot login failed via api and rcu!");
         }
 
         private void StartLeague()
         {
+            _logger.LogInformation("Launching league of legends...");
+
             var startLeagueCommandline = "--launch-product=league_of_legends --launch-patchline=live";
             var startLeague = new ProcessStartInfo
             {

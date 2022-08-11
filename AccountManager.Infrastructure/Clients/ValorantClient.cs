@@ -5,94 +5,95 @@ using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Models.UserSettings;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.RegularExpressions;
 
 namespace AccountManager.Infrastructure.Clients
 {
     public class ValorantClient : IValorantClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<RiotTokenClient> _logger;
         private readonly IUserSettingsService<GeneralSettings> _settings;
         private readonly IRiotClient _riotClient;
+        private readonly IRiotTokenClient _riotTokenClient;
         private readonly IMapper _autoMapper;
+        private readonly RiotTokenRequest tokenRequest = new RiotTokenRequest
+            {
+                Id = "play-valorant-web-prod",
+                Nonce = "1",
+                RedirectUri = "https://playvalorant.com/opt_in",
+                ResponseType = "token id_token",
+                Scope = "account openid"
+            };
         private const int historyLength = 15;
         public ValorantClient(IHttpClientFactory httpClientFactory,
             IUserSettingsService<GeneralSettings> settings,
-            IRiotClient riotClient, IMapper autoMapper)
+            IRiotClient riotClient, IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotTokenClient> logger)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
             _riotClient = riotClient;
             _autoMapper = autoMapper;
-        }
-
-        public async Task<string?> GetValorantToken(Account account)
-        {
-            var initialAuthTokenRequest = new RiotSessionRequest
-            {
-                Id = "play-valorant-web-prod",
-                Nonce = "1",
-                RedirectUri = "https://playvalorant.com/opt_in",
-                ResponseType = "token id_token"
-            };
-
-            var riotAuthResponse = await _riotClient.RiotAuthenticate(initialAuthTokenRequest, account);
-
-            if (riotAuthResponse is null || riotAuthResponse?.Content?.Response?.Parameters?.Uri is null)
-                return null;
-
-            var responseUri = new Uri(riotAuthResponse.Content.Response.Parameters.Uri);
-
-            var queryString = responseUri.Fragment[1..];
-            var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
-
-            var token = queryDictionary["access_token"];
-
-            return token;
+            _riotTokenClient = riotTokenClient;
+            _logger = logger;
         }
 
         public async Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account)
         {
-            var client = _httpClientFactory.CreateClient("ValorantNA");
+            var region = await _riotClient.GetRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
-            var bearerToken = await GetValorantToken(account);
-            if (bearerToken is null)
-                return new();
+            var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
+            var entitlementToken = await _riotTokenClient.GetEntitlementToken(riotTokens.AccessToken);
 
-            var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex={historyLength}");
-            var rankedHistory = await response.Content.ReadFromJsonAsync<ValorantRankedHistoryResponse>();
+            try
+            {
+                var response = await client.GetAsync($"/mmr/v1/players/{account.PlatformId}/competitiveupdates?queue=competitive&startIndex=0&endIndex={historyLength}");
+                var rankedHistory = await response.Content.ReadFromJsonAsync<ValorantRankedHistoryResponse>();
+                return rankedHistory;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get expected valorant competitive history! Status Code: {StatusCode}, Message: {Message}, Account Username: {Username}", ex.StatusCode, ex.Message, account.Username);
+                throw;
+            }
 
-            return rankedHistory;
+
         }
 
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
         {
-
-            var valClient = _httpClientFactory.CreateClient("ValorantNA");
+            ValorantShopOffers? shopOffers;
+            var region = await _riotClient.GetRegionInfo(account);
+            var valClient = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
-            var bearerToken = await GetValorantToken(account);
-            if (bearerToken is null)
-                return new();
+            var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
 
-            var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
+            var entitlementToken = await _riotTokenClient.GetEntitlementToken(riotTokens.AccessToken);
 
-            valClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            valClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var response = await valClient.GetFromJsonAsync<ValorantShopOffers>($"/store/v2/storefront/{account.PlatformId}");
+            try
+            {
+                shopOffers = await valClient.GetFromJsonAsync<ValorantShopOffers>($"/store/v2/storefront/{account.PlatformId}");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get valorant shop history! Status Code: {StatusCode}, Message: {Message}, Account Username: {Username}", ex.StatusCode, ex.Message, account.Username);
+                throw;
+            }
 
-            if (response?.SkinsPanelLayout?.SingleItemOffers is null)
+            if (shopOffers?.SkinsPanelLayout?.SingleItemOffers is null)
                 return new();
 
-            var getSkinTasks = response.SkinsPanelLayout.SingleItemOffers.Select((offer) =>
+            var getSkinTasks = shopOffers.SkinsPanelLayout.SingleItemOffers.Select((offer) =>
             {
                 return GetSkinFromUuid(offer);
             }).ToList();
@@ -120,27 +121,44 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account)
         {
-            var client = _httpClientFactory.CreateClient("ValorantNA");
+            ValorantGameHistoryDataResponse? gameHistoryData;
+            var region = await _riotClient.GetRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             var expectedVersion = await _riotClient.GetExpectedClientVersion();
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", expectedVersion);
-            var bearerToken = await GetValorantToken(account);
-            if (bearerToken is null)
-                return Enumerable.Empty<ValorantMatch>();
+            var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
+            var entitlementToken = await _riotTokenClient.GetEntitlementToken(riotTokens.AccessToken);
 
-            var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var gameHistoryData = await client.GetFromJsonAsync<ValorantGameHistoryDataResponse>($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
+            try
+            {
+                gameHistoryData = await client.GetFromJsonAsync<ValorantGameHistoryDataResponse>($"/match-history/v1/history/{account.PlatformId}?queue=competitive&startIndex=0&endIndex={historyLength}");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get valorant match history! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
+                throw;
+            }
 
             if (gameHistoryData?.History is null)
                 return Enumerable.Empty<ValorantMatch>();
 
             var getValorantMatchesTasks = gameHistoryData.History.Select((game) =>
             {
-                return client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
+                try
+                {
+                    return client.GetFromJsonAsync<ValorantMatch>($"/match-details/v1/matches/{game.MatchID}");
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError("Unable to get a valorant match details! Status Code: {StatusCode}, Message: {Message}, Account Username: {Username}", ex.StatusCode, ex.Message, account.Username);
+                    throw;
+                }
             }).ToList();
+
+
 
             await Task.WhenAll(getValorantMatchesTasks);
 
@@ -173,34 +191,61 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<ValorantOperatorsResponse> GetValorantOperators()
         {
-            var client = _httpClientFactory.CreateClient("Valorant");
+            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
             var operatorsRequest = await client.GetAsync("/v1/agents");
-            operatorsRequest.EnsureSuccessStatusCode();
+
+            try
+            {
+                operatorsRequest.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get valorant operators! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
+                throw;
+            }
 
             return await operatorsRequest.Content.ReadFromJsonAsync<ValorantOperatorsResponse>() ?? new();
         }
 
         private async Task<ValorantSkinLevelResponse> GetSkinFromUuid(string uuid)
         {
-            var client = _httpClientFactory.CreateClient("Valorant");
-            return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"/v1/weapons/skinlevels/{uuid}") ?? new();
+            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
+            try
+            {
+                return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"/v1/weapons/skinlevels/{uuid}") ?? new();
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get valorant skin details for UUID: {UUID}! Status Code: {StatusCode}, Message: {Message}",uuid ,ex.StatusCode, ex.Message);
+                throw;
+            }
         }
 
 
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {
-            var client = _httpClientFactory.CreateClient("ValorantNA");
+            ValorantStoreTotalOffers? offers;
+            var region = await _riotClient.GetRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
-            var bearerToken = await GetValorantToken(account);
-            if (bearerToken is null)
+            var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
+            if (riotTokens is null)
                 return new();
 
-            var entitlementToken = await _riotClient.GetEntitlementToken(bearerToken);
+            var entitlementToken = await _riotTokenClient.GetEntitlementToken(riotTokens.AccessToken);
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-Entitlements-JWT", entitlementToken);
 
-            var offers = await client.GetFromJsonAsync<ValorantStoreTotalOffers>($"/store/v1/offers/");
+            try
+            {
+                offers = await client.GetFromJsonAsync<ValorantStoreTotalOffers>($"/store/v1/offers/");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get valorant skin details! Status Code: {StatusCode}, Message: {Message}, Account Username: {Username}", ex.StatusCode, ex.Message, account.Username);
+                throw;
+            }
 
             return offers;
         }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -14,7 +14,10 @@
   </PropertyGroup>
  
     <ItemGroup>
+	    <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
 	    <PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
+	    <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
+	    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
 	    <PackageReference Include="NuGet.CommandLine" Version="6.2.1">
 		    <PrivateAssets>all</PrivateAssets>
 		    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
