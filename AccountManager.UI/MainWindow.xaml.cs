@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
@@ -29,13 +28,16 @@ using Microsoft.Extensions.Options;
 using AccountManager.Core.Models.UserSettings;
 using System.Collections.Generic;
 using System;
+using AccountManager.Core.Models.RiotGames.Valorant;
+using Microsoft.Extensions.Logging;
+using System.Configuration;
 
 namespace AccountManager.UI
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
 
@@ -57,8 +59,12 @@ namespace AccountManager.UI
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
             serviceCollection.AddOptions();
-            serviceCollection.AddLogging();
-			serviceCollection.AddSqliteCache(options => {
+			serviceCollection.AddLogging(builder =>
+			{
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
+                builder.AddFile(o => o.RootPath = AppContext.BaseDirectory);
+            });
+            serviceCollection.AddSqliteCache(options => {
 				options.CachePath = @$"{IOService.DataPath}\cache.db";
 			});
 			serviceCollection.AddMemoryCache();
@@ -87,7 +93,9 @@ namespace AccountManager.UI
             serviceCollection.AddTransient<LeagueTokenClient>();
             serviceCollection.AddSingleton<ValorantGraphService>();
             serviceCollection.AddSingleton<LeagueGraphService>();
+            serviceCollection.AddSingleton<RiotTokenClient>();
 
+            serviceCollection.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
             serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
             serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));

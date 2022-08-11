@@ -11,6 +11,7 @@ using System.Net.Http.Json;
 using AccountManager.Core.Exceptions;
 using System.Reflection;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -24,11 +25,12 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IMemoryCache _memoryCache;
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
+        private readonly IRiotTokenClient _riotTokenClient;
         public static string WebIconFilePath = Path.Combine("logos", "tft-logo.png");
         public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "tft-logo.ico");
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService)
+            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IRiotTokenClient riotTokenClient)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -38,6 +40,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
             _settingsService = settingsService;
+            _riotTokenClient = riotTokenClient;
         }
 
         private async Task<bool> TryLoginUsingRCU(Account account)
@@ -139,7 +142,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
 
-                var request = new RiotSessionRequest
+                var request = new RiotTokenRequest
                 {
                     Id = "riot-client",
                     Nonce = "1",
@@ -148,7 +151,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     Scope = "openid offline_access lol ban profile email phone account"
                 };
 
-                var authResponse = await _riotClient.RiotAuthenticate(request, account);
+                var authResponse = await _riotTokenClient.GetRiotTokens(request, account);
                 if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
                     authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
                 {
@@ -156,7 +159,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return true;
                 }
 
-                await _riotFileSystemService.WriteRiotYaml("NA", authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
+                var regionInfo = await _riotClient.GetRegionInfo(account);
+                await _riotFileSystemService.WriteRiotYaml(regionInfo.RegionId, authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
                     authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
 
                 StartLeague();

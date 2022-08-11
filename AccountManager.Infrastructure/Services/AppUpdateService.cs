@@ -19,6 +19,9 @@ namespace AccountManager.Infrastructure.Services
         {
             try
             {
+                #if DEBUG
+                    return false;
+                #endif
                 using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
                 {
                     var updateInfo = await manager.CheckForUpdate();

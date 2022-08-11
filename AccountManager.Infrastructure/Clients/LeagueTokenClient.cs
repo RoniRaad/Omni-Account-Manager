@@ -10,8 +10,11 @@ using AccountManager.Core.Models.RiotGames.League.Responses;
 using AccountManager.Core.Models.RiotGames.Requests;
 using Microsoft.Extensions.Options;
 using AccountManager.Core.Enums;
-using AccountManager.Core.Factories;
 using AccountManager.Core.Models.UserSettings;
+using AutoMapper;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -20,14 +23,25 @@ namespace AccountManager.Infrastructure.Clients
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRiotClient _riotClient;
+        private readonly IRiotTokenClient _riotTokenClient;
         private readonly RiotApiUri _riotApiUri;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
         private readonly IUserSettingsService<LeagueSettings> _leagueSettings;
         private readonly IAppState _state;
+        private readonly ILogger<LeagueTokenClient> _logger;
+        private readonly RiotTokenRequest riotTokenRequest = new()
+        {
+            Id = "lol",
+            Nonce = "1",
+            RedirectUri = "http://localhost/redirect",
+            ResponseType = "token id_token",
+            Scope = "openid link ban lol_region"
+        };
+
         public LeagueTokenClient(IHttpClientFactory httpClientFactory,
             IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions,
             IHttpRequestBuilder curlRequestBuilder, IGenericFactory<AccountType, ITokenService> leagueTokenServiceFactory,
-            IUserSettingsService<LeagueSettings> leagueSettings, IAppState state)
+            IUserSettingsService<LeagueSettings> leagueSettings, IAppState state, IRiotTokenClient riotTokenClient, ILogger<LeagueTokenClient> logger)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;
@@ -37,6 +51,8 @@ namespace AccountManager.Infrastructure.Clients
             _leagueTokenService = leagueTokenServiceFactory.CreateImplementation(AccountType.League);
             _leagueSettings = leagueSettings;
             _state = state;
+            _riotTokenClient = riotTokenClient;
+            _logger = logger;
         }
 
         public async Task<string> GetLocalSessionToken()
@@ -46,11 +62,25 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("SSLBypass");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var rankResponse = await client.GetFromJsonAsync<string>($"https://127.0.0.1:{port}/lol-league-session/v1/league-session-token");
-            if (rankResponse is null)
+            var sessionTokenResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-league-session/v1/league-session-token");
+            try
+            {
+                sessionTokenResponse.EnsureSuccessStatusCode();
+            }
+            catch(HttpRequestException ex)
+            {
+                _logger.LogError("Unable to get local league of legends session token! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
                 return string.Empty;
+            }
+            
+            var sessionToken = await sessionTokenResponse.Content.ReadAsStringAsync();
+            if (sessionToken is null)
+            {
+                _logger.LogError("Unable to get local league of legends session token! Token was null!");
+                return string.Empty;
+            }
 
-            return rankResponse;
+            return sessionToken;
         }
 
         public async Task<string> GetLeagueSessionToken()
@@ -100,12 +130,18 @@ namespace AccountManager.Infrastructure.Clients
             if (string.IsNullOrEmpty(leagueToken))
                 return string.Empty;
 
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var region = await _riotClient.GetRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(leagueToken);
+            jwtToken.Payload.TryGetValue("region", out object? regionCode);
 
-            var sessionResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/session-external/v1/session/create", new PostSessionsRequest
+            if (regionCode is null)
+                regionCode = "NA1";
+
+            var sessionResponse = await client.PostAsJsonAsync($"/session-external/v1/session/create", new PostSessionsRequest
             {
                 Claims = new Claims
                 {
@@ -113,9 +149,19 @@ namespace AccountManager.Infrastructure.Clients
                 },
                 Product = "lol",
                 PuuId = puuId,
-                Region = "NA1"
+                Region = regionCode.ToString()
             });
-            sessionResponse.EnsureSuccessStatusCode();
+
+            try
+            {
+                sessionResponse.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError("Unable to create league of legends session with account username {Username}! Status Code: {StatusCode}, Message: {Message}", account.Username, ex.StatusCode, ex.Message);
+                return string.Empty;
+            }
+
             sessionToken = await sessionResponse.Content.ReadAsStringAsync();
 
             return sessionToken.Replace("\"", "");
@@ -124,56 +170,41 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<string> GetLeagueLoginToken(Account account)
         {
             string token;
-            var riotToken = await GetRiotAuthToken(account);
-            var userInfo = await GetUserInfo(riotToken ?? "");
-            var entitlement = await GetEntitlementJWT(riotToken ?? "");
-            if (string.IsNullOrEmpty(riotToken)
+            var riotToken = await _riotTokenClient.GetRiotTokens(riotTokenRequest, account);
+            var userInfo = await GetUserInfo(riotToken.AccessToken ?? "");
+            var entitlement = await GetEntitlementJWT(riotToken.AccessToken ?? "");
+            if (string.IsNullOrEmpty(riotToken.AccessToken)
                 || string.IsNullOrEmpty(userInfo)
                 || string.IsNullOrEmpty(entitlement))
                 return string.Empty;
 
-            var client = _httpClientFactory.CreateClient("CloudflareBypass");
+            var region = await _riotClient.GetRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
 
-            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken);
-            client.DefaultRequestVersion = HttpVersion.Version20;
+            client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken.AccessToken);
+            var leagueInfo = GetLeagueInfo(riotToken.IdToken);
+            var countryId = leagueInfo?.Pid ?? "na1";
 
-            var loginResponse = await client.PostAsJsonAsync($"{_riotApiUri.LeagueSessionUS}/login-queue/v2/login/products/lol/regions/na1", new LoginRequest
+            var loginResponse = await client.PostAsJsonAsync($"/login-queue/v2/login/products/lol/regions/{countryId}", new LoginRequest
             {
                 Entitlements = entitlement,
                 UserInfo = userInfo
             });
-            loginResponse.EnsureSuccessStatusCode();
+
+            try
+            {
+                loginResponse.EnsureSuccessStatusCode();
+
+            }
+            catch (HttpRequestException ex) 
+            {
+                _logger.LogError("Could not get remote league of legends login token! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
+            }
             var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponse>();
             if (tokenResponse?.Token is null)
                 return string.Empty;
 
             token = tokenResponse.Token;
-
-            return token;
-        }
-
-        private async Task<string?> GetRiotAuthToken(Account account)
-        {
-            var request = new RiotSessionRequest
-            {
-                Id = "lol",
-                Nonce = "1",
-                RedirectUri = "http://localhost/redirect",
-                ResponseType = "token id_token",
-                Scope = "openid link ban lol_region"
-            };
-
-            var response = await _riotClient.RiotAuthenticate(request, account);
-
-            if (response is null || response?.Content?.Response?.Parameters?.Uri is null)
-                return string.Empty;
-
-            var responseUri = new Uri(response.Content.Response.Parameters.Uri);
-
-            var queryString = responseUri.Fragment[1..];
-            var queryDictionary = System.Web.HttpUtility.ParseQueryString(queryString);
-
-            var token = queryDictionary["access_token"];
 
             return token;
         }
@@ -202,6 +233,19 @@ namespace AccountManager.Infrastructure.Clients
             entitlement = response?.ResponseContent?.EntitlementToken ?? "";
 
             return entitlement;
+        }
+
+        private LeagueIdInfo? GetLeagueInfo(string idToken)
+        {
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(idToken);
+            parsedIdToken.Payload.TryGetValue("lol", out object? leagueInfoJson);
+            if (leagueInfoJson?.ToString() is null)
+                return null;
+
+            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString());
+
+            return leagueInfo?.FirstOrDefault();
         }
     }
 }
