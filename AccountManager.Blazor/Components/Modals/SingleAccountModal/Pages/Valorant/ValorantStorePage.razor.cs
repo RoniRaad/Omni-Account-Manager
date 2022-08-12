@@ -22,7 +22,14 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
             if (Account is null)
                 return;
 
-            storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+            try
+            {
+                storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert("Unable to get store information for valorant account.");
+            }
         }
     }
 }

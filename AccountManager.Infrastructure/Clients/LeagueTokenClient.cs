@@ -80,7 +80,7 @@ namespace AccountManager.Infrastructure.Clients
                 return string.Empty;
             }
 
-            return sessionToken;
+            return sessionToken.Trim('\"');
         }
 
         public async Task<string> GetLeagueSessionToken()

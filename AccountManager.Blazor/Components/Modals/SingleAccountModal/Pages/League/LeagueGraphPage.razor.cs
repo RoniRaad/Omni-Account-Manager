@@ -29,15 +29,22 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
             if (Account is null)
                 return;
 
-            graphTasks = new()
+            try
             {
-                Task.Run(async () => rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account)),
-                Task.Run(async () => rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account)),
-                Task.Run(async () => rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account)),
-                Task.Run(async () => rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account))
-            };
+                graphTasks = new()
+                {
+                    Task.Run(async () => rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account)),
+                    Task.Run(async () => rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account)),
+                    Task.Run(async () => rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account)),
+                    Task.Run(async () => rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account))
+                };
 
-            await Task.WhenAll(graphTasks);
+                await Task.WhenAll(graphTasks);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert("Unable to get graph information for league account.");
+            }
 
             if (rankedWinrateByChamp is not null)
                 rankedWinrateByChamp.Type = "percent";
