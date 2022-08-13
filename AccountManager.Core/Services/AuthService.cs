@@ -32,8 +32,8 @@ namespace AccountManager.Core.Services
 
             Task.Run(async () =>
             {
-                if (await _persistantCache.GetAsync<bool>("rememberPassword"))
-                    await _persistantCache.SetAsync("masterPassword", password);
+                if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
+                    await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
             });
         }
 
