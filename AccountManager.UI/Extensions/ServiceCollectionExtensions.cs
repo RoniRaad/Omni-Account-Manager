@@ -48,9 +48,9 @@ namespace AccountManager.UI.Extensions
 
                     Task.Run(async () =>
                     {
-                        if (await persistantCache.GetAsync<bool>("rememberPassword"))
+                        if (await persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
                         {
-                            var password = await persistantCache.GetAsync<string>("masterPassword");
+                            var password = await persistantCache.GetAsync<string>(CacheKeys.LoginCacheKeys.RememberedPassword);
                             if (!string.IsNullOrEmpty(password))
                             {
                                 authService.Login(password);
