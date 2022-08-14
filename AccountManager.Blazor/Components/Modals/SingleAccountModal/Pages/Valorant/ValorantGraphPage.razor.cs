@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 {
+    [SingleAccountPage("Data", Core.Enums.AccountType.Valorant, 1)]
     public partial class ValorantGraphPage
     {
-        public static string Title = "Data";
         [Parameter, EditorRequired]
         public Account? Account { get; set; }
 

@@ -18,9 +18,11 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using Blazorise.Charts;
 using System.Security.Principal;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 3)]
     public partial class ValorantRankedWinsPage
     {
         public static int OrderNumber = 3;

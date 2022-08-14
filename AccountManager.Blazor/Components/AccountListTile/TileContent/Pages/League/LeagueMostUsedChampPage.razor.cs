@@ -3,9 +3,11 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using Blazorise.Charts;
 using System.Security.Principal;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.League, 3)]
     public partial class LeagueMostUsedChampPage
     {
         [Parameter]

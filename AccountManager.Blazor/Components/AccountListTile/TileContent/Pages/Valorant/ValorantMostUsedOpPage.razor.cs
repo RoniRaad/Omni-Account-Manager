@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
-using AccountManager.Core.Services;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 4)]
     public partial class ValorantMostUsedOpPage
     {
         public static int OrderNumber = 4;

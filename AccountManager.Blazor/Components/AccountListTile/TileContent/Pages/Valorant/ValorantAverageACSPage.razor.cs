@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 2)]
     public partial class ValorantAverageACSPage
     {
         public static int OrderNumber = 2;

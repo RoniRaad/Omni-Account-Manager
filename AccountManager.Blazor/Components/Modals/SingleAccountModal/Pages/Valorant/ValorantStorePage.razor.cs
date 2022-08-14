@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 {
+    [SingleAccountPage("Store Front", Core.Enums.AccountType.Valorant, 0)]
     public partial class ValorantStorePage
     {
         [Parameter, EditorRequired]
@@ -15,7 +17,6 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
         [Parameter, EditorRequired]
         public Action? DecrementPage { get; set; }
 
-        public static string Title = "Store Front";
         List<ValorantSkinLevelResponse>? storeFrontSkins;
         protected override async Task OnInitializedAsync()
         {

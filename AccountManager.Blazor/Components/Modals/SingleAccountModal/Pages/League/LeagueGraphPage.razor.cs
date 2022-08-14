@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
 {
+    [SingleAccountPage("Data", Core.Enums.AccountType.League)]
     public partial class LeagueGraphPage
     {
-        public static string Title = "Data";
-        [Parameter]
-        public string navigationTitle { get; set; } = string.Empty;
         [Parameter, EditorRequired]
         public Account? Account { get; set; }
 
@@ -25,7 +24,6 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
         {
             List<Task> graphTasks;
 
-            navigationTitle = Title;
             if (Account is null)
                 return;
 
