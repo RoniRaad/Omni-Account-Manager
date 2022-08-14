@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.League, 0)]
     public partial class LeagueWinsPage
     {
         public static int OrderNumber = 0;

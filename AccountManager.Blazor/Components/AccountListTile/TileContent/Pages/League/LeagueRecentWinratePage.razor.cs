@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
-
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.League, 1)]
     public partial class LeagueRecentWinratePage
     {
         [Parameter]

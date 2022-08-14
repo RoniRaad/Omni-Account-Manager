@@ -4,9 +4,11 @@ using Blazorise.Charts;
 using AccountManager.Core.Models.Steam;
 using Microsoft.Extensions.Caching.Distributed;
 using AccountManager.Core.Static;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Steam
 {
+    [AccountTilePage(Core.Enums.AccountType.Steam, 0)]
     public partial class SteamFrontPage
     {
         public static int OrderNumber = 0;

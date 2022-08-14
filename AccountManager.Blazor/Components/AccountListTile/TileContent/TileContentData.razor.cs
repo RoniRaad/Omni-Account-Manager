@@ -8,6 +8,8 @@ using System.Reflection;
 using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.TeamFightTactics;
 using AccountManager.Core.Static;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Core.Attributes;
+using AccountManager.Core.Enums;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -21,6 +23,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         private List<Type> pages = new();
         private Dictionary<string, object> pageParams = new();
         private int activePage = 0;
+        private Account _account;
+
 
         protected override void OnInitialized()
         {
@@ -29,33 +33,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         protected override void OnParametersSet()
         {
-            pageParams["Account"] = Account;
-            var currentPages = pages;
-            pages = _cache?.GetOrCreate($"{Account.AccountType}.pages", cacheEntry =>
+            if (_account != Account)
             {
-                Type currentPageType;
-                switch (Account.AccountType)
+                _account = Account;
+                pageParams["Account"] = Account;
+                var currentPages = pages;
+                pages = _cache?.GetOrCreate($"{nameof(TileContentData)}.{Account.AccountType}.Pages", cacheEntry =>
                 {
-                    case Core.Enums.AccountType.League:
-                        currentPageType = typeof(ILeaguePage);
-                        break;
-                    case Core.Enums.AccountType.Valorant:
-                        currentPageType = typeof(IValorantPage);
-                        break;
-                    case Core.Enums.AccountType.TeamFightTactics:
-                        currentPageType = typeof(ITeamFightTacticsPage);
-                        break;
-                    default:
-                        currentPageType = typeof(IDefaultPage);
-                        break;
-                }
+                    return AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(AccountTilePageAttribute), true)))
+                        .ToDictionary((element) =>
+                        {
+                            return Attribute.GetCustomAttribute(element, typeof(AccountTilePageAttribute)) as AccountTilePageAttribute ?? new AccountTilePageAttribute(0, 0);
+                        })
+                        .Where((kvp) => kvp.Key?.AccountType == Account.AccountType)
+                        .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
+                        .Select((kvp) => kvp.Value)
+                        .ToList();
 
-                var releventPages = AppDomain.CurrentDomain?.GetAssemblies()?.SelectMany(x => x.GetTypes()).Where(t => t.GetInterfaces().Contains(currentPageType))?.ToList();
-                releventPages = releventPages?.OrderBy((item) => item?.GetField("OrderNumber", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)?.GetValue(null))?.ToList();
-                return releventPages;
-            }) ?? new();
-            if (currentPages != pages)
-                activePage = 0;
+                }) ?? new();
+
+                if (currentPages != pages)
+                    activePage = 0;
+            }
         }
 
 
