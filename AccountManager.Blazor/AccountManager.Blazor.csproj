@@ -57,4 +57,11 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+
+	<ItemGroup>
+		<Resource Include="icon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
+
 </Project>

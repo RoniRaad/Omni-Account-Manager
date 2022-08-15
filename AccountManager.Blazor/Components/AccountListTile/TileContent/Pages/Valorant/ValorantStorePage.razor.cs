@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
-
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 0)]
     public partial class ValorantStorePage
     {
         public static int OrderNumber = 0;
@@ -29,7 +30,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                     }
                     catch
                     {
-                        _alertService.AddErrorMessage($"Unable to display valorant store page for account {Account.Id}.");
+                        _alertService.AddErrorAlert($"Unable to display valorant store page for account {Account.Id}.");
                     }
 
                     await InvokeAsync(() => StateHasChanged());

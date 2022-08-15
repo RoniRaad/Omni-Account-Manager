@@ -1,10 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Services;
-using System.Collections.ObjectModel;
 using System.Text.Json;
-using System.Linq;
 
 namespace AccountManager.Core.Services
 {

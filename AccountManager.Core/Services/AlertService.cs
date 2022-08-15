@@ -1,15 +1,14 @@
-﻿using AccountManager.Core.Models;
-using System.Collections.ObjectModel;
+﻿using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models;
 
 namespace AccountManager.Core.Services
 {
-    public class AlertService
+    public class AlertService : IAlertService
     {
         private readonly List<TwoFactorAuthenticationUserRequest> twoFactorRequests = new();
-        private readonly List<string> errorMessages = new();
-        private readonly List<string> infoMessages = new();
+        private readonly List<Alert> errorMessages = new();
+        private readonly List<Alert> infoMessages = new();
         public event Action Notify = delegate { };
-
         public async Task<string> PromptUserFor2FA(Account account, string emailHint)
         {
             string? returnCode = null;
@@ -34,40 +33,42 @@ namespace AccountManager.Core.Services
             return returnCode;
         }
 
-        public IEnumerable<string> GetErrorMessages()
+        public IEnumerable<Alert> GetErrorAlerts()
         {
             return errorMessages;
         }
 
-        public IEnumerable<string> GetInfoMessages()
+        public IEnumerable<Alert> GetInfoAlerts()
         {
             return infoMessages;
         }
 
-        public void AddErrorMessage(string errorMessage)
+        public void AddErrorAlert(string errorMessage)
         {
-            errorMessages.Add(errorMessage);
-            Notify.Invoke();
-            Task.Run(async () =>
-            {
-                await Task.Delay(6000);
-                RemoveErrorMessage(errorMessage);
-            }); 
-        }
+            if (string.IsNullOrEmpty(errorMessage))
+                return;
 
-        public void AddInfoMessage(string infoMessage)
-        {
-            infoMessages.Add(infoMessage);
+            errorMessages.Add(new Alert { DisplayMessage = errorMessage, Type = AlertType.Error } );
             Notify.Invoke();
         }
 
-        public void RemoveErrorMessage(string errorMessage)
+        public void AddInfoAlert(string infoMessage)
+        {
+            if (string.IsNullOrEmpty(infoMessage))
+                return;
+
+
+            infoMessages.Add(new Alert { DisplayMessage = infoMessage, Type = AlertType.Info });
+            Notify.Invoke();
+        }
+
+        public void RemoveErrorMessage(Alert errorMessage)
         {
             errorMessages.Remove(errorMessage);
             Notify.Invoke();
         }
 
-        public void RemoveInfoMessage(string infoMessage)
+        public void RemoveInfoMessage(Alert infoMessage)
         {
             infoMessages.Remove(infoMessage);
             Notify.Invoke();
@@ -77,7 +78,6 @@ namespace AccountManager.Core.Services
         {
             return twoFactorRequests;
         }
-
     }
 
     public class TwoFactorAuthenticationUserRequest
@@ -86,5 +86,18 @@ namespace AccountManager.Core.Services
         public string EmailHint { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
         public Action<string>? Callback { get; set; }
+    }
+
+    public class Alert
+    {
+        public AlertType Type { get; set; }
+        public string DisplayMessage { get; set; } = "";
+        public DateTime CreateTime { get; set; } = DateTime.Now;
+    }
+
+    public enum AlertType
+    {
+        Error,
+        Info
     }
 }

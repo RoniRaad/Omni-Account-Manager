@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Interfaces;
@@ -29,13 +28,16 @@ using Microsoft.Extensions.Options;
 using AccountManager.Core.Models.UserSettings;
 using System.Collections.Generic;
 using System;
+using AccountManager.Core.Models.RiotGames.Valorant;
+using Microsoft.Extensions.Logging;
+using System.Configuration;
 
 namespace AccountManager.UI
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
 
@@ -57,8 +59,12 @@ namespace AccountManager.UI
             serviceCollection.AddBlazorWebView();
             serviceCollection.AddBlazorDragDrop();
             serviceCollection.AddOptions();
-            serviceCollection.AddLogging();
-			serviceCollection.AddSqliteCache(options => {
+			serviceCollection.AddLogging(builder =>
+			{
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
+                builder.AddFile(o => o.RootPath = AppContext.BaseDirectory);
+            });
+            serviceCollection.AddSqliteCache(options => {
 				options.CachePath = @$"{IOService.DataPath}\cache.db";
 			});
 			serviceCollection.AddMemoryCache();
@@ -67,23 +73,28 @@ namespace AccountManager.UI
             serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
-			serviceCollection.AddSingleton<AlertService>();
+			serviceCollection.AddSingleton<IAlertService, AlertService>();
 			serviceCollection.AddSingleton<IAccountFilterService, AccountFilterService>();
 			serviceCollection.AddState();
 			serviceCollection.AddAuth();
 			serviceCollection.AddLogging();
-            serviceCollection.AddTransient<LeagueClient>();
-			serviceCollection.AddTransient<LeagueTokenClient>();
-			serviceCollection.AddSingleton<RiotFileSystemService>();
-			serviceCollection.AddSingleton<ValorantClient>();
+			serviceCollection.AddSingleton<IRiotFileSystemService, RiotFileSystemService>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
-            serviceCollection.AddSingleton<ValorantGraphService>();
-            serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
             serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
+			
+			// Cached Objects
 			serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
+            serviceCollection.AddSingleton<ValorantClient>();
+            serviceCollection.AddTransient<LeagueClient>();
+            serviceCollection.AddTransient<LeagueTokenClient>();
+            serviceCollection.AddSingleton<ValorantGraphService>();
+            serviceCollection.AddSingleton<LeagueGraphService>();
+            serviceCollection.AddSingleton<RiotTokenClient>();
+
+            serviceCollection.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
             serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
             serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
             serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
@@ -91,12 +102,10 @@ namespace AccountManager.UI
 			serviceCollection.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
             serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<LeagueGraphService>();
 			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
 			serviceCollection.AddSingleton<IIpcService, IpcService>();
 			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
 			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<LeagueTokenService>();
 			serviceCollection.AddBlazorise(options =>
 			{
 				options.Immediate = true;

@@ -8,8 +8,6 @@ namespace AccountManager.Blazor.Shared
         public string Password { get; set; } = string.Empty;
         public bool RememberMe { get; set; } = false;
         private bool updateAvailable = false;
-        public static string RememberMeCacheKey = "rememberPassword";
-        public static string PasswordCacheKey = "masterPassword";
         private string filterSidebarStyle = "transform: translate(-188px); width: 0px";
         private bool isFilterSidebarOpen = false;
         private bool settingsModalOpen = false;
@@ -18,9 +16,9 @@ namespace AccountManager.Blazor.Shared
         {
             _alertService.Notify += () => InvokeAsync(() => StateHasChanged());
 
-            if (await _persistantCache.GetAsync<bool>(RememberMeCacheKey))
+            if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
             {
-                Password = await _persistantCache.GetAsync<string>(PasswordCacheKey) ?? "";
+                Password = await _persistantCache.GetAsync<string>(CacheKeys.LoginCacheKeys.RememberedPassword) ?? "";
                 RememberMe = true;
             }
 
@@ -52,11 +50,11 @@ namespace AccountManager.Blazor.Shared
         public async Task RememberMeChanged(ChangeEventArgs e)
         {
             var isChecked = (bool)(e?.Value ?? false);
-            await _persistantCache.SetAsync(RememberMeCacheKey, isChecked);
+            await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberMe, isChecked);
             RememberMe = isChecked;
 
             if (!isChecked)
-                await _persistantCache.RemoveAsync(PasswordCacheKey);
+                await _persistantCache.RemoveAsync(CacheKeys.LoginCacheKeys.RememberedPassword);
         } 
     }
 }

@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
-using AccountManager.Core.Services;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 4)]
     public partial class ValorantMostUsedOpPage
     {
         public static int OrderNumber = 4;
@@ -71,7 +72,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to display Recently used operators for account {Account.Id}.");
+                    _alertService.AddErrorAlert($"Unable to display Recently used operators for account {Account.Id}.");
                 }
 
                 await HandleRedraw();

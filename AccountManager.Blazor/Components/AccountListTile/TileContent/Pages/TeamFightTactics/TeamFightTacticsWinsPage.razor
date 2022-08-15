@@ -5,7 +5,6 @@
 @using Blazorise.Charts
 @inject IAppState _state
 @inject ITeamFightTacticsGraphService _tftGraphService
-@inject AlertService _alertService
-@implements ITeamFightTacticsPage
+@inject IAlertService _alertService
 
 <LineChart @ref="lineChart" Options="lineChartOptions"  TItem="CoordinatePair"></LineChart>

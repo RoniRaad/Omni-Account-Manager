@@ -1,17 +1,18 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
-using Microsoft.Extensions.Hosting;
-using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
     public class IOService : IIOService
     {
-        public IOService()
+        private readonly IMemoryCache _memoryCache;
+        public IOService(IMemoryCache memoryCache)
         {
             ValidateData();
+            _memoryCache = memoryCache;
         }
 
         public static string DataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
@@ -30,7 +31,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return true;
         }
 
-        public bool TryLogin(string password)
+        public bool TryReadEncryptedData(string password)
         {
             try
             {
@@ -45,20 +46,25 @@ namespace AccountManager.Infrastructure.Services.FileSystem
        
         public bool IsFileLocked(string filePath)
         {
-            if (!File.Exists(filePath))
-                return false;
+            var cacheKey = $"{filePath}.{nameof(IsFileLocked)}";
+            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
+                if (!File.Exists(filePath))
+                    return false;
 
-            try
-            {
-                using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                try
                 {
-                    return inputStream.Length <= 0;
+                    using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        return inputStream.Length <= 0;
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                return true;
-            }
+                catch (Exception)
+                {
+                    return true;
+                }
+            });
         }
 
         public void UpdateData<T>(T data, string password)
