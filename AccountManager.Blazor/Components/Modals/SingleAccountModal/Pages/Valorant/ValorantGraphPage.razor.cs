@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 {
+    [SingleAccountPage("Data", Core.Enums.AccountType.Valorant, 1)]
     public partial class ValorantGraphPage
     {
-        public static string Title = "Data";
         [Parameter, EditorRequired]
         public Account? Account { get; set; }
 
@@ -26,15 +27,22 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
             if (Account is null)
                 return;
 
-            graphTasks = new()
+            try
             {
-                Task.Run(async () => rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account)),
-                Task.Run(async () => recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account)),
-                Task.Run(async () => rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account)),
-                Task.Run(async () => averageACS = await _graphService.GetRankedACS(Account))
-            };
+                graphTasks = new()
+                {
+                    Task.Run(async () => rankedRRChangeGraph = await _graphService.GetRankedRRChangeLineGraph(Account)),
+                    Task.Run(async () => recentlyUsedOperatorsPieChart = await _graphService.GetRecentlyUsedOperatorsPieChartAsync(Account)),
+                    Task.Run(async () => rankedWinGraph = await _graphService.GetRankedWinsLineGraph(Account)),
+                    Task.Run(async () => averageACS = await _graphService.GetRankedACS(Account))
+                };
 
-            await Task.WhenAll(graphTasks);
+                await Task.WhenAll(graphTasks);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert("Unable to get graph information for valorant account.");
+            }
         }
     }
 }

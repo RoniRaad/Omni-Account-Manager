@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 2)]
     public partial class ValorantAverageACSPage
     {
         public static int OrderNumber = 2;
@@ -80,7 +82,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to display average ranked ACS for account {Account.Id}.");
+                    _alertService.AddErrorAlert($"Unable to display average ranked ACS for account {Account.Id}.");
                 }
 
                 await HandleRedraw();

@@ -12,7 +12,6 @@
 @inject ISteamLibraryService _steamLibraryService
 @inject IUserSettingsService<SteamSettings> _steamSettings
 @inject IUserSettingsService<GeneralSettings> _generalSettings
-@implements IDefaultPage
 
 @if (steamInstallNotFound){
     <h5 class="no-data-label">Steam install not found</h5>
