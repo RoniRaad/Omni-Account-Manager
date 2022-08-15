@@ -85,7 +85,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());
-
             }
         }
 

@@ -80,7 +80,6 @@ namespace AccountManager.UI
 			serviceCollection.AddLogging();
 			serviceCollection.AddSingleton<IRiotFileSystemService, RiotFileSystemService>();
             serviceCollection.AddSingleton<LeagueFileSystemService>();
-            serviceCollection.AddSingleton<ILeagueClient, LeagueClient>();
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
             serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
