@@ -39,7 +39,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
             _settingsService = settingsService;
-        }
+        } 
 
         private async Task<bool> TryLoginUsingRCU(Account account)
         {
