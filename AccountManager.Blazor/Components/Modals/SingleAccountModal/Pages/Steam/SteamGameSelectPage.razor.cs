@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Models.Steam;
 using Microsoft.Extensions.Caching.Distributed;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
 {
+    [SingleAccountPage("Game Select", Core.Enums.AccountType.Steam, 0)]
     public partial class SteamGameSelectPage
     {
         [Parameter, EditorRequired]
@@ -17,7 +18,6 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
         [Parameter, EditorRequired]
         public Action? DecrementPage { get; set; }
 
-        public static string Title = "Game Select";
         List<SteamGameManifest> games = new();
         bool steamInstallNotFound = false;
         public string SelectedSteamGame = "none";

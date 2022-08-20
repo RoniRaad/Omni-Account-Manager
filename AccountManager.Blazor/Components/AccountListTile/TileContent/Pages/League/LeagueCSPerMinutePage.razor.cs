@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
 using Blazorise.Charts;
-using System.Security.Principal;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.League, 2)]
     public partial class LeagueCSPerMinutePage
     {
         [Parameter]
@@ -81,11 +81,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to display league champ cs rate for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to display league champ cs rate for account {Account.Id}");
                 }
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());
-
             }
         }
 

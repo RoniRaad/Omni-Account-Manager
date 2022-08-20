@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.TeamFightTactics
 {
+    [AccountTilePage(Core.Enums.AccountType.TeamFightTactics, 0)]
     public partial class TeamFightTacticsWinsPage
     {
         public static int OrderNumber = 0;
@@ -119,7 +121,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to show team fight tactics win offset for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to show team fight tactics win offset for account {Account.Id}");
                 }
 
                 await HandleRedraw();

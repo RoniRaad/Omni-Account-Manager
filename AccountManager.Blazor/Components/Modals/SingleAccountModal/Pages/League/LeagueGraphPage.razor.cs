@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
 {
+    [SingleAccountPage("Data", Core.Enums.AccountType.League)]
     public partial class LeagueGraphPage
     {
-        public static string Title = "Data";
-        [Parameter]
-        public string navigationTitle { get; set; } = string.Empty;
         [Parameter, EditorRequired]
         public Account? Account { get; set; }
 
@@ -25,19 +24,25 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
         {
             List<Task> graphTasks;
 
-            navigationTitle = Title;
             if (Account is null)
                 return;
 
-            graphTasks = new()
+            try
             {
-                Task.Run(async () => rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account)),
-                Task.Run(async () => rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account)),
-                Task.Run(async () => rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account)),
-                Task.Run(async () => rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account))
-            };
+                graphTasks = new()
+                {
+                    Task.Run(async () => rankedWinsGraph = await _graphService.GetRankedWinsGraph(Account)),
+                    Task.Run(async () => rankedChampSelectPieChart = await _graphService.GetRankedChampSelectPieChart(Account)),
+                    Task.Run(async () => rankedWinrateByChamp = await _graphService.GetRankedWinrateByChampBarChartAsync(Account)),
+                    Task.Run(async () => rankedCsRateByChamp = await _graphService.GetRankedCsRateByChampBarChartAsync(Account))
+                };
 
-            await Task.WhenAll(graphTasks);
+                await Task.WhenAll(graphTasks);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert("Unable to get graph information for league account.");
+            }
 
             if (rankedWinrateByChamp is not null)
                 rankedWinrateByChamp.Type = "percent";

@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "published", "published", "{
 		AccountManager.UI\publish\.gitattributes = AccountManager.UI\publish\.gitattributes
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManager.Tests", "AccountManager.Tests\AccountManager.Tests.csproj", "{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{2AB5A6C2-B2A4-452D-BA9C-9D33DFE508E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AB5A6C2-B2A4-452D-BA9C-9D33DFE508E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AB5A6C2-B2A4-452D-BA9C-9D33DFE508E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

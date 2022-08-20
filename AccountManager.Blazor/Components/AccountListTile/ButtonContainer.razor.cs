@@ -77,9 +77,9 @@ namespace AccountManager.Blazor.Components.AccountListTile
             var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Id, Account.Guid, icoPath);
              
             if (successful)
-                _alertService.AddInfoMessage("Shortcut created successfully!");
+                _alertService.AddInfoAlert("Shortcut created successfully!");
             else
-                _alertService.AddErrorMessage("There was an error creating the desktop shortcut!");
+                _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
         }
 
         public void ToggleContentView()

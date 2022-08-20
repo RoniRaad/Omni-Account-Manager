@@ -98,21 +98,5 @@ namespace AccountManager.Infrastructure.CachedClients
                     return await _valorantClient.GetValorantShopDeals(account);
                 }, expireDate) ?? new();
         }
-
-        public async Task<string?> GetValorantToken(Account account)
-        {
-            var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetValorantToken)}";
-
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
-                async (entry) =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55);
-                    var value = await _valorantClient.GetValorantToken(account);
-                    if (value is null)
-                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
-
-                    return value;
-                }) ?? "";
-        }
     }
 }

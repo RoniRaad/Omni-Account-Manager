@@ -21,6 +21,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Distributed;
 using AccountManager.Core.Static;
 using System.Linq;
+using AccountManager.Infrastructure.Clients;
+using AccountManager.Core.Models.RiotGames;
 
 namespace AccountManager.UI.Extensions
 {
@@ -39,16 +41,16 @@ namespace AccountManager.UI.Extensions
             {
                 var parsedArgs = ParseCommandLineArgs(args);
 
-                services.AddSingleton((services) =>
+                services.AddSingleton<IAuthService>((services) =>
                 {
                     var persistantCache = services.GetRequiredService<IDistributedCache>();
                     var authService = new AuthService(services.GetRequiredService<IIOService>(), services.GetRequiredService<AlertService>(), persistantCache);
 
                     Task.Run(async () =>
                     {
-                        if (await persistantCache.GetAsync<bool>("rememberPassword"))
+                        if (await persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
                         {
-                            var password = await persistantCache.GetAsync<string>("masterPassword");
+                            var password = await persistantCache.GetAsync<string>(CacheKeys.LoginCacheKeys.RememberedPassword);
                             if (!string.IsNullOrEmpty(password))
                             {
                                 authService.Login(password);
@@ -64,7 +66,7 @@ namespace AccountManager.UI.Extensions
                 });
             }
             else
-                services.AddSingleton<AuthService>();
+                services.AddSingleton<IAuthService, AuthService>();
 
             return services;
         }
@@ -178,6 +180,9 @@ namespace AccountManager.UI.Extensions
                 .ReverseMap();
                 cfg.CreateMap<MatchHistory.Tower, MatchHistoryResponse.Tower>()
                 .ReverseMap();
+                cfg.CreateMap<string, RegionInfo>()
+                    .ForMember(d => d.RegionId, opt => opt.MapFrom((src) => src))
+                    .ForMember(d => d.CountryId, opt => opt.MapFrom((src) => RiotClient.RiotAuthRegionMapping[src]));
 
                 cfg.AllowNullDestinationValues = true;
             });
@@ -189,84 +194,22 @@ namespace AccountManager.UI.Extensions
         {
             var riotApiUri = configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
 
-            services.AddHttpClient("RiotAuth", (httpClient) =>
-            {
-                httpClient.BaseAddress = new Uri(riotApiUri?.Auth ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false,
-                };
-            });
-            services.AddHttpClient("RiotEntitlement", (httpClient) =>
-{
-                httpClient.BaseAddress = new Uri(riotApiUri?.Entitlement ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-            });
-            services.AddHttpClient("RiotSessionNA", (httpClient) =>
-{
-                httpClient.BaseAddress = new Uri(riotApiUri?.LeagueSessionUS ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-            });
-            services.AddHttpClient("LeagueNA", (httpClient) =>
-{
-                httpClient.BaseAddress = new Uri(riotApiUri?.LeagueNA ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-            });
-            services.AddHttpClient("Valorant", (httpClient) =>
-{
-                httpClient.BaseAddress = new Uri(riotApiUri?.Valorant ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-            });
-            services.AddHttpClient("ValorantNA", (httpClient) =>
-{
-                httpClient.BaseAddress = new Uri(riotApiUri?.ValorantNA ?? "");
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
-                httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            }).ConfigureHttpMessageHandlerBuilder(x =>
-            {
-                x.PrimaryHandler = new HttpClientHandler
-                {
-                    UseCookies = false
-                };
-            });
+            services.AddRiotClient("RiotAuth", new Uri(riotApiUri?.Auth ?? ""));
+            services.AddRiotClient("Valorant3rdParty", new Uri(riotApiUri?.Valorant3rdParty ?? ""));
+            services.AddRiotClient("ValorantNA", new Uri(riotApiUri?.ValorantNA ?? ""));
+            services.AddRiotClient("ValorantAP", new Uri(riotApiUri?.ValorantAP ?? ""));
+            services.AddRiotClient("ValorantEU", new Uri(riotApiUri?.ValorantEU ?? ""));
+            services.AddRiotClient("RiotEntitlement", new Uri(riotApiUri?.Entitlement ?? ""));
+            services.AddRiotClient("LeagueNA", new Uri(riotApiUri?.LeagueNA ?? ""));
+            services.AddRiotClient("LeagueAP", new Uri(riotApiUri?.LeagueAP ?? ""));
+            services.AddRiotClient("LeagueEU", new Uri(riotApiUri?.LeagueEU ?? ""));
+            services.AddRiotClient("LeagueKR", new Uri(riotApiUri?.LeagueKR ?? ""));
+            services.AddRiotClient("LeagueBR", new Uri(riotApiUri?.LeagueBR ?? ""));
+            services.AddRiotClient("LeagueSessionUSW", new Uri(riotApiUri?.LeagueSessionUSW ?? ""));
+            services.AddRiotClient("LeagueSessionEUC", new Uri(riotApiUri?.LeagueSessionEUC ?? ""));
+            services.AddRiotClient("LeagueSessionAPSE", new Uri(riotApiUri?.LeagueSessionAPSE ?? ""));
+            services.AddRiotClient("RiotCDN", new Uri(riotApiUri?.RiotCDN ?? ""));
+
             services.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
             {
                 var httpClientHandler = new HttpClientHandler();
@@ -276,6 +219,24 @@ namespace AccountManager.UI.Extensions
                 };
 
                 x.PrimaryHandler = httpClientHandler;
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection AddRiotClient(this ServiceCollection services, string name, Uri baseUri )
+        {
+            services.AddHttpClient(name, (httpClient) =>
+            {
+                httpClient.BaseAddress = baseUri;
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+            }).ConfigureHttpMessageHandlerBuilder(x =>
+            {
+                x.PrimaryHandler = new HttpClientHandler
+                {
+                    UseCookies = false,
+                };
             });
 
             return services;
