@@ -57,17 +57,25 @@ a {
 
 .alert {
 	opacity: 1;
-	animation: fade 6s linear;
+	animation: fade-b-vfrobp426x linear 6s;
+	animation-fill-mode: forwards;
 }
 
 
 @keyframes fade {
 	0% {
-		opacity: 1
+		opacity: 1;
+	}
+
+	99% {
+		position: initial;
+		right: inherit;
 	}
 
 	100% {
-		opacity: 0
+		opacity: 0;
+		right: -1000px;
+		position: absolute;
 	}
 }
 

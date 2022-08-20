@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models.RiotGames.Requests
 {
-    public class RiotSessionRequest
+    public class RiotTokenRequest
     {
         [JsonPropertyName("client_id")]
         public string? Id { get; set; }

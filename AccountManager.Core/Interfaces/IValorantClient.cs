@@ -11,6 +11,5 @@ namespace AccountManager.Infrastructure.Clients
         Task<ValorantOperatorsResponse> GetValorantOperators();
         Task<Rank> GetValorantRank(Account account);
         Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account);
-        Task<string?> GetValorantToken(Account account);
     }
 }

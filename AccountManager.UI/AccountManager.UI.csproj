@@ -1,190 +1,193 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-    <AssemblyName>OmniAccountManager</AssemblyName>
-    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Title>Omni Account Manager</Title>
-	<Version>1.9.2</Version>
-  </PropertyGroup>
- 
-    <ItemGroup>
-	    <PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
-	    <PackageReference Include="NuGet.CommandLine" Version="6.2.1">
-		    <PrivateAssets>all</PrivateAssets>
-		    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	    </PackageReference>
-	</ItemGroup>
-
-    <PropertyGroup>
-	    <NugetTools>$(PkgNuGet_CommandLine)\tools</NugetTools>
-	    <SquirrelTools>$(Pkgsquirrel_windows)\tools</SquirrelTools>
-	    <NuspecFile>$(SolutionDir)AccountManager.UI\ReleaseSpec.nuspec</NuspecFile>
-    </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<AssemblyName>OmniAccountManager</AssemblyName>
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<Title>Omni Account Manager</Title>
+		<Version>1.11.0</Version>
+	</PropertyGroup>
 
 	<ItemGroup>
-    <None Remove="curl\curl-ca-bundle.crt" />
-    <None Remove="curl\curl.exe" />
-    <None Remove="curl\libcurl.def" />
-    <None Remove="curl\libcurl.dll" />
-    <None Remove="icon.ico" />
-    <None Remove="ShortcutIcons\league-logo.ico" />
-    <None Remove="ShortcutIcons\steam-logo.ico" />
-    <None Remove="ShortcutIcons\tft-logo.ico" />
-    <None Remove="ShortcutIcons\valorant-logo.ico" />
-  </ItemGroup>
+		<PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
+		<PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
+		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
+		<PackageReference Include="NuGet.CommandLine" Version="6.2.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
-    <PackageReference Include="Blazorise" Version="1.0.4" />
-    <PackageReference Include="Blazorise.Bootstrap" Version="1.0.4" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.13.2865" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0-preview.1.22076.8" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
-  </ItemGroup>
+	<PropertyGroup>
+		<NugetTools>$(PkgNuGet_CommandLine)\tools</NugetTools>
+		<SquirrelTools>$(Pkgsquirrel_windows)\tools</SquirrelTools>
+		<NuspecFile>$(SolutionDir)AccountManager.UI\ReleaseSpec.nuspec</NuspecFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\AccountManager.Blazor\AccountManager.Blazor.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="curl\curl-ca-bundle.crt" />
+		<None Remove="curl\curl.exe" />
+		<None Remove="curl\libcurl.def" />
+		<None Remove="curl\libcurl.dll" />
+		<None Remove="icon.ico" />
+		<None Remove="ShortcutIcons\league-logo.ico" />
+		<None Remove="ShortcutIcons\steam-logo.ico" />
+		<None Remove="ShortcutIcons\tft-logo.ico" />
+		<None Remove="ShortcutIcons\valorant-logo.ico" />
+	</ItemGroup>
 
+	<ItemGroup>
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+		<PackageReference Include="Blazorise" Version="1.0.4" />
+		<PackageReference Include="Blazorise.Bootstrap" Version="1.0.4" />
+		<PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.13.2865" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0-preview.1.22076.8" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="ReleaseSpec.nuspec">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\appicon.svg">
-      <Color>#512BD4</Color>
-      <ForegroundFile>Resources\appiconfg.svg</ForegroundFile>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\appiconfg.svg">
-      <Color>#512BD4</Color>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Fonts\OpenSans-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Raw\AboutAssets.txt">
-      <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\AccountManager.Blazor\AccountManager.Blazor.csproj" />
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <Folder Include="published\" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="ReleaseSpec.nuspec">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\appicon.svg">
+			<Color>#512BD4</Color>
+			<ForegroundFile>Resources\appiconfg.svg</ForegroundFile>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\appiconfg.svg">
+			<Color>#512BD4</Color>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\Fonts\OpenSans-Regular.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\Raw\AboutAssets.txt">
+			<LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <Content Include="curl\curl-ca-bundle.crt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="curl\curl.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="curl\libcurl.def">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="curl\libcurl.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="icon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ShortcutIcons\league-logo.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ShortcutIcons\steam-logo.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ShortcutIcons\tft-logo.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ShortcutIcons\valorant-logo.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="published\" />
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <None Include="wwwroot\css\app.css" />
-    <None Include="wwwroot\css\bootstrap\bootstrap.min.css" />
-    <None Include="wwwroot\css\bootstrap\bootstrap.min.css.map" />
-    <None Include="wwwroot\css\open-iconic\FONT-LICENSE" />
-    <None Include="wwwroot\css\open-iconic\font\css\open-iconic-bootstrap.min.css" />
-    <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.eot" />
-    <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.otf" />
-    <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.svg" />
-    <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.ttf" />
-    <None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.woff" />
-    <None Include="wwwroot\css\open-iconic\ICON-LICENSE" />
-    <None Include="wwwroot\css\open-iconic\README.md" />
-    <None Include="wwwroot\favicon.ico" />
-    <None Include="wwwroot\fonts\Roboto-Regular.ttf" />
-    <None Include="wwwroot\fonts\roboto.woff2" />
-    <None Include="wwwroot\index.html" />
-    <None Include="wwwroot\logos\league-logo.png" />
-    <None Include="wwwroot\logos\steam-logo.svg" />
-    <None Include="wwwroot\logos\tft-logo.png" />
-    <None Include="wwwroot\logos\valorant-logo.svg" />
-    <None Include="wwwroot\logos\valorant_point_icon.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="curl\curl-ca-bundle.crt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="curl\curl.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="curl\libcurl.def">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="curl\libcurl.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="icon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ShortcutIcons\league-logo.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ShortcutIcons\steam-logo.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ShortcutIcons\tft-logo.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ShortcutIcons\valorant-logo.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <Resource Include="icon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="wwwroot\css\app.css" />
+		<None Include="wwwroot\css\bootstrap\bootstrap.min.css" />
+		<None Include="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+		<None Include="wwwroot\css\open-iconic\FONT-LICENSE" />
+		<None Include="wwwroot\css\open-iconic\font\css\open-iconic-bootstrap.min.css" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.eot" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.otf" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.svg" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.ttf" />
+		<None Include="wwwroot\css\open-iconic\font\fonts\open-iconic.woff" />
+		<None Include="wwwroot\css\open-iconic\ICON-LICENSE" />
+		<None Include="wwwroot\css\open-iconic\README.md" />
+		<None Include="wwwroot\favicon.ico" />
+		<None Include="wwwroot\fonts\Roboto-Regular.ttf" />
+		<None Include="wwwroot\fonts\roboto.woff2" />
+		<None Include="wwwroot\index.html" />
+		<None Include="wwwroot\logos\league-logo.png" />
+		<None Include="wwwroot\logos\steam-logo.svg" />
+		<None Include="wwwroot\logos\tft-logo.png" />
+		<None Include="wwwroot\logos\valorant-logo.svg" />
+		<None Include="wwwroot\logos\valorant_point_icon.png" />
+	</ItemGroup>
 
 
-  <ItemGroup>
-    <Content Update="wwwroot\css\app.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\css\bootstrap\bootstrap.min.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\css\bootstrap\bootstrap.min.css.map">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\css\open-iconic\FONT-LICENSE">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\css\open-iconic\ICON-LICENSE">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\css\open-iconic\README.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\favicon.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\fonts\Roboto-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\fonts\roboto.woff2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\index.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\logos\league-logo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\logos\tft-logo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\logos\valorant_point_icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Resource Include="icon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<Content Update="wwwroot\css\app.css">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\css\bootstrap\bootstrap.min.css">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\css\bootstrap\bootstrap.min.css.map">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\css\open-iconic\FONT-LICENSE">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\css\open-iconic\ICON-LICENSE">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\css\open-iconic\README.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\favicon.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\fonts\Roboto-Regular.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\fonts\roboto.woff2">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\index.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\logos\league-logo.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\logos\tft-logo.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\logos\valorant_point_icon.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
 </Project>

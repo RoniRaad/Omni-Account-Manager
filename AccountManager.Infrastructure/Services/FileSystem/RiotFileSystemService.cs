@@ -1,10 +1,9 @@
-﻿
-using AccountManager.Core.Interfaces;
+﻿using AccountManager.Core.Interfaces;
 using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class RiotFileSystemService
+    public class RiotFileSystemService : IRiotFileSystemService
     {
         private readonly IIOService _iOService;
         private readonly string appDataPath;
@@ -69,7 +68,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 using StreamReader reader = new(stream);
                 yaml = await reader.ReadToEndAsync();
             }
-  
+
             yaml = yaml.Replace("{region}", region);
             yaml = yaml.Replace("{tdid}", tdid);
             yaml = yaml.Replace("{ssid}", ssid);

@@ -7,8 +7,8 @@
 @using AccountManager.Infrastructure.Services
 @using Microsoft.Extensions.Caching.Distributed
 @inherits LayoutComponentBase
-@inject AuthService _authService; 
-@inject AlertService _alertService; 
+@inject IAuthService _authService; 
+@inject IAlertService _alertService; 
 @inject IDistributedCache _persistantCache
 @inject IJSRuntime _jsRuntime
 @inject IAppUpdateService _appUpdateService
@@ -24,17 +24,17 @@
 		</div>
 	}
 
-	@foreach(var errorMessage in _alertService.GetErrorMessages()){
+	@foreach(var errorMessage in _alertService.GetErrorAlerts()){
 		<div class="alert alert-danger" role="alert">
 			<a @onclick="() => _alertService.RemoveErrorMessage(errorMessage)" class="close">X</a>
-			@errorMessage
+			@errorMessage.DisplayMessage
 		</div>
 	}
 
-	@foreach(var infoMessage in _alertService.GetInfoMessages()){
+	@foreach(var infoMessage in _alertService.GetInfoAlerts()){
 		<div class="alert alert-info" role="alert">
 			<a @onclick="() => _alertService.RemoveInfoMessage(infoMessage)" class="close">X</a>
-			@infoMessage
+			@infoMessage.DisplayMessage
 		</div>
 	}
 </div>

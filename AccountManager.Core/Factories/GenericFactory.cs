@@ -3,9 +3,9 @@ using AccountManager.Core.Interfaces;
 
 namespace AccountManager.Core.Factories
 {
-    public class GenericFactory<TKey, TInterface> : IFactory<TKey, TInterface> where TKey : notnull, new()
+    public class GenericFactory<TKey, TInterface> : IFactory<TKey, TInterface>, IGenericFactory<TKey, TInterface> where TKey : notnull, new()
     {
-        private readonly Dictionary<TKey, Type>  _implementations;
+        private readonly Dictionary<TKey, Type> _implementations;
         private readonly IServiceProvider _serviceProvider;
         public GenericFactory(Dictionary<TKey, Type> implementations, IServiceProvider serviceProvider)
         {

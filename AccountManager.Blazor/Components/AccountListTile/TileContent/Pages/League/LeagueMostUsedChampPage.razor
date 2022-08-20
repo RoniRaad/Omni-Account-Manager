@@ -5,8 +5,7 @@
 @using Blazorise.Charts
 @inject IAppState _state
 @inject ILeagueGraphService _leagueGraphService
-@inject AlertService _alertService
-@implements ILeaguePage
+@inject IAlertService _alertService
 
 @if (displayGraph is null)
 {

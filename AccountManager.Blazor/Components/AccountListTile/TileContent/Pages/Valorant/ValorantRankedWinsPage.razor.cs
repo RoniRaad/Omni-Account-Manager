@@ -18,9 +18,11 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Services;
 using Blazorise.Charts;
 using System.Security.Principal;
+using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Valorant, 3)]
     public partial class ValorantRankedWinsPage
     {
         public static int OrderNumber = 3;
@@ -131,7 +133,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
                 catch
                 {
-                    _alertService.AddErrorMessage($"Unable to display ranked win graph account {Account.Id}.");
+                    _alertService.AddErrorAlert($"Unable to display ranked win graph account {Account.Id}.");
                 }
 
                 await HandleRedraw();
