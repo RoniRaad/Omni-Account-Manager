@@ -18,9 +18,12 @@
 
 <div class="container-fluid">
     <div class="row" style="--bs-gutter-x: 0rem">
-        <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
-                <AccountListTile AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}" ></AccountListTile>
-        </Dropzone>
+        @try{
+            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
+                <AccountListTile AccountService="_accountService" Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
+            </Dropzone>
+        }
+        catch{}
 
         <div id="new-account-placeholder" class="placeholder-account-tile">
             <div class="card card-placeholder">
