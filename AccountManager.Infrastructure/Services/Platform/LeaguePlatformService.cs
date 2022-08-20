@@ -43,7 +43,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             _alertService = alertService;
             _memoryCache = memoryCache;
             _settingsService = settingsService;
-        } 
             _riotTokenClient = riotTokenClient;
             _logger = logger;
         }
