@@ -59,22 +59,14 @@ namespace AccountManager.Core.Services
 
         public async Task UpdateAccounts()
         {
-            var minAccounts = _accountService.GetAllAccountsMin();
-
-            Accounts.RemoveAll(acc =>
-                !minAccounts.Any(minAcc => minAcc.Guid == acc.Guid));
-
-            minAccounts.RemoveAll(
-                acc => Accounts.Any(minAcc => minAcc.Guid == acc.Guid));
-
-            Accounts.AddRange(minAccounts);
+            Accounts = _accountService.GetAllAccountsMin();
 
             var fullAccounts = new List<Account>(await _accountService.GetAllAccounts());
-
-            Accounts.ForEach((currentAccount) => {
-                currentAccount.Rank = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.Rank ?? currentAccount.Rank;
-                currentAccount.PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => currentAccount.Guid == updatedAccount.Guid)?.PlatformId ?? currentAccount.PlatformId;
-            });
+            for (int i = 0; i < Accounts.Count; i++)
+            {
+                Accounts[i].Rank = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.Rank ?? Accounts[i].Rank;
+                Accounts[i].PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.PlatformId ?? Accounts[i].PlatformId;
+            }
 
             SaveAccounts();
 
@@ -83,7 +75,7 @@ namespace AccountManager.Core.Services
 
         public void SaveAccounts()
         {
-            _accountService.WriteAllAccounts(Accounts.ToList());
+            _accountService.WriteAllAccounts(Accounts);
         }
 
         public class IpcLoginParameter
