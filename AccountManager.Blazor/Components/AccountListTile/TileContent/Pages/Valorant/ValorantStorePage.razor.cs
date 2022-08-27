@@ -30,7 +30,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                     }
                     catch
                     {
-                        _alertService.AddErrorAlert($"Unable to display valorant store page for account {Account.Id}.");
+                        storeFrontSkins = new();
                     }
 
                     await InvokeAsync(() => StateHasChanged());

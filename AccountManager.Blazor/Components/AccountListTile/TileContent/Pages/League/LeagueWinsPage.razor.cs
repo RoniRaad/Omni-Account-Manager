@@ -116,7 +116,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 catch
                 {
-                    _alertService.AddErrorAlert($"Unable to display league wins for account {Account.Id}");
+                    displayGraph = new();
                 }
 
                 await HandleRedraw();
