@@ -45,6 +45,12 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
+			// Initialize datapath
+			if (!Directory.Exists(IOService.DataPath))
+            {
+				Directory.CreateDirectory(IOService.DataPath);
+            }
+
             // This file acts as a flag to delete the cache file before initializing
             if (File.Exists(@$"{IOService.DataPath}\deletecache"))
             {
