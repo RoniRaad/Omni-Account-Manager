@@ -31,6 +31,7 @@ using System;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using Microsoft.Extensions.Logging;
 using System.Configuration;
+using AccountManager.UI.Services;
 
 namespace AccountManager.UI
 {
@@ -89,9 +90,10 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
             serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
-			
-			// Cached Objects
-			serviceCollection.AddSingleton<RiotClient>();
+            serviceCollection.AddSingleton<IEpicGamesTokenService, EpicGamesTokenService>();
+
+            // Cached Objects
+            serviceCollection.AddSingleton<RiotClient>();
 			serviceCollection.AddSingleton<LeagueClient>();
             serviceCollection.AddSingleton<ValorantClient>();
             serviceCollection.AddTransient<LeagueClient>();
