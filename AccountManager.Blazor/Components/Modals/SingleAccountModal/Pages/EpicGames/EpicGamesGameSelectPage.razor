@@ -1,0 +1,66 @@
+﻿@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models
+@using AccountManager.Core.Models.RiotGames.Valorant.Responses
+@using AccountManager.Core.Models.UserSettings
+@using AccountManager.Infrastructure.CachedClients
+@using AccountManager.Infrastructure.Clients
+@using AccountManager.Infrastructure.Services
+@using Microsoft.Extensions.Caching.Distributed
+@inject IEpicGamesLibraryService _epicLibraryService
+@inject IUserSettingsService<GeneralSettings> _generalSettings
+@inject IUserSettingsService<SteamSettings> _steamSettings
+@inject IDistributedCache _persistantCache
+
+<div class="container" style="">
+    <div class="list-container">
+        @if (epicInstallNotFound)
+        {
+            <div class="col-5 placeholder-container">
+                <h3 class="placeholder-text">Steam install directory not found. Please set the correct steam install directory on the settings page.</h3>
+            </div>
+        }
+        else if (games is null)
+        {
+            <div class="col-5 placeholder-container">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (games?.Any() is not true)
+        {
+            <div class="col-5 placeholder-container">
+                <h3 class="placeholder-text">No games found</h3>
+            </div>
+        }
+        else
+        {
+            <div class="steam-game-list-item">
+                @if (SelectedEpicGame == "none")
+                {
+                    <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" name="steam-game-@Account?.Guid" id="steam-game-none" value="none" checked="checked" />
+                }
+                else
+                {
+                    <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" name="steam-game-@Account?.Guid" id="steam-game-none" value="none" />
+                }
+                <label class="list-item-name" for="steam-game-none">None</label>
+            </div>
+            @foreach (var game in games)
+            {
+                <div class="steam-game-list-item">
+                    @if (SelectedEpicGame == game.AppId)
+                    {
+                        <input @onchange="(args) => OnRadioClicked(args)" value="@game.AppId" class="form-check-input" type="radio" name="steam-game-@Account?.Guid" id="steam-game-@game.AppId" checked="checked" />
+                    }
+                    else
+                    {
+                        <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" name="steam-game-@Account?.Guid" id="steam-game-@game.AppId" value="@game.AppId" />
+                    }
+                    <label class="list-item-name" for="steam-game-@game.AppId">@game.Name</label>
+                </div>
+            }
+        }
+    </div>
+</div>
+

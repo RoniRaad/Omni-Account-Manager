@@ -23,18 +23,7 @@
                 <InfoPanel Account="Account" Pages="GetPages(Account.AccountType).ToList()"></InfoPanel>
             </div>
             <div class="account-details-panel">
-                @if (Account.AccountType == Core.Enums.AccountType.League)
-                {
-                    <LeagueAccountDetailsPanel Account="Account"></LeagueAccountDetailsPanel>
-                }
-                else if (Account.AccountType == Core.Enums.AccountType.Valorant)
-                {
-                    <ValorantAccountDetailsPanel Account="Account"></ValorantAccountDetailsPanel>
-                }
-                else if (Account.AccountType == Core.Enums.AccountType.Steam)
-                {
-                    <SteamAccountDetailsPanel Account="Account"></SteamAccountDetailsPanel>
-                }
+                <DynamicComponent Type="GetAccountDetailsPanel(Account.AccountType)" Parameters="@(new Dictionary<string, object>(){ {"Account", Account} })"></DynamicComponent>
             </div>
 	    </div>
 	</div>
@@ -95,5 +84,15 @@
                         .Select((kvp) => kvp.Value)
                         .ToList();
         }) ?? new();
+    }
+
+    public Type? GetAccountDetailsPanel(AccountType accountType)
+    {
+        return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.AccountDetailsPanel", (entry) =>
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountInfoPanelAttribute), true)))
+                        .FirstOrDefault((type) => (Attribute.GetCustomAttribute(type, typeof(SingleAccountInfoPanelAttribute)) as SingleAccountInfoPanelAttribute)?.AccountType == Account.AccountType);
+        }) ?? null;
     }
 }
