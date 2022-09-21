@@ -1,4 +1,4 @@
-﻿namespace AccountManager.Core.Models
+﻿namespace AccountManager.Core.Models.EpicGames
 {
     public class EpicGamesLoginInfo
     {

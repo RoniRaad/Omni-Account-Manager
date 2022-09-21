@@ -15,6 +15,7 @@ using AutoMapper;
 using System.Web;
 using KeyedSemaphores;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -28,7 +29,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
-        public static Dictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
+        public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
                         {
                             {"na", "usw" },
                             {"latam", "usw" },
@@ -36,7 +37,7 @@ namespace AccountManager.Infrastructure.Clients
                             {"eu", "euc" },
                             {"ap", "apse" },
                             {"kr", "apse" }
-                        };
+                        }.ToImmutableDictionary();
         public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IMemoryCache memoryCache,
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, ILogger<RiotTokenClient> logger)
         {
@@ -267,12 +268,12 @@ namespace AccountManager.Infrastructure.Clients
             return response;
         }
 
-        public async Task<string?> GetEntitlementToken(string token)
+        public async Task<string?> GetEntitlementToken(string accessToken)
         {
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
             .SetContent(new { })
-            .SetBearerToken(token)
+            .SetBearerToken(accessToken)
             .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
             .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
             .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")

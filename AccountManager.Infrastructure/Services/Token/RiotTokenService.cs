@@ -23,8 +23,8 @@ namespace AccountManager.Infrastructure.Services.Token
             if (!_iOService.IsFileLocked(fileName))
                 return false;
 
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (StreamReader fileReader = new StreamReader(fileStream))
+            using (FileStream fileStream = new(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader fileReader = new(fileStream))
             {
                 if (!fileReader.EndOfStream)
                 {

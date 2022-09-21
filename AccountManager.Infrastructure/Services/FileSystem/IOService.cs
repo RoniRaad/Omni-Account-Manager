@@ -8,6 +8,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 {
     public class IOService : IIOService
     {
+        public static string DataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         private readonly IMemoryCache _memoryCache;
         public IOService(IMemoryCache memoryCache)
         {
@@ -15,7 +16,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             _memoryCache = memoryCache;
         }
 
-        public static string DataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         public bool ValidateData()
         {
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
@@ -55,10 +55,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
                 try
                 {
-                    using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {
-                        return inputStream.Length <= 0;
-                    }
+                    using FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                    return inputStream.Length <= 0;
                 }
                 catch (Exception)
                 {

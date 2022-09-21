@@ -58,7 +58,7 @@ namespace AccountManager.Infrastructure.Services
                     var fileContents = File.ReadAllText(file);
                     installedGameManifests.Add(fileContents);
                 }
-            };
+            }
 
             return true;
         }
@@ -88,7 +88,7 @@ namespace AccountManager.Infrastructure.Services
                 return false;
             }
 
-            foreach (var folder in libraryDirectories.LibraryFolders)
+            foreach (var folder in libraryDirectories?.LibraryFolders ?? new Dictionary<string, LibraryFolder>())
             {
                 if (!TryGetInstalledGamesManifest(Path.Combine(folder.Value.Path, "steamapps"), out var gameManifestData))
                 {

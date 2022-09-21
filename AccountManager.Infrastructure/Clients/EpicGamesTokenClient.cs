@@ -8,6 +8,8 @@ namespace AccountManager.Infrastructure.Clients
 {
     public class EpicGamesTokenClient : IEpicGamesTokenClient
     {
+        private static string BasicAuthToken = "MzRhMDJjZjhmNDQxNGUyOWIxNTkyMTg3NmRhMzZmOWE6ZGFhZmJjY2M3Mzc3NDUwMzlkZmZlNTNkOTRmYzc2Y2Y=";
+
         private readonly ILogger<RiotClient> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMapper _autoMapper;
@@ -25,7 +27,7 @@ namespace AccountManager.Infrastructure.Clients
             HttpClient tokenExchanceClient = _httpClientFactory.CreateClient("EpicTokenExchanceApi");
             tokenExchanceClient.DefaultRequestHeaders.Add("X-XSRF-TOKEN", xsrfToken);
             tokenExchanceClient.DefaultRequestHeaders.Add("Cookie", cookies);
-            var exchangeTokenResponse = await tokenExchanceClient.PostAsync("https://www.epicgames.com/id/api/exchange/generate", null);
+            var exchangeTokenResponse = await tokenExchanceClient.PostAsync("/id/api/exchange/generate", null);
             var code = await exchangeTokenResponse.Content.ReadFromJsonAsync<ExchangeCodeResponse>();
 
             return code?.ExchangeCode;
@@ -35,8 +37,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             HttpClient accountApiClient = _httpClientFactory.CreateClient("EpicAccountApi");
 
-            accountApiClient.DefaultRequestHeaders.Clear();
-            accountApiClient.DefaultRequestHeaders.Add("Authorization", "basic MzRhMDJjZjhmNDQxNGUyOWIxNTkyMTg3NmRhMzZmOWE6ZGFhZmJjY2M3Mzc3NDUwMzlkZmZlNTNkOTRmYzc2Y2Y=");
+            accountApiClient.DefaultRequestHeaders.Add("Authorization", $"basic {BasicAuthToken}");
             var dict = new Dictionary<string, string>()
                             {
                                 { "token_type", "eg1"},
@@ -44,7 +45,7 @@ namespace AccountManager.Infrastructure.Clients
                                 { "exchange_code", exchangeCode},
                             };
             var content = new FormUrlEncodedContent(dict);
-            var tokenResponseMessage = await accountApiClient.PostAsync("https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token", content);
+            var tokenResponseMessage = await accountApiClient.PostAsync("/account/api/oauth/token", content);
             var tokenResponse = await tokenResponseMessage.Content.ReadFromJsonAsync<AccessTokenResponse>();
 
             return tokenResponse;
@@ -54,7 +55,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             HttpClient accountApiClient = _httpClientFactory.CreateClient("EpicAccountApi");
             accountApiClient.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
-            var accountResponse = await accountApiClient.GetFromJsonAsync<AccountInfo>($"https://account-public-service-prod03.ol.epicgames.com/account/api/public/account/{accountId}");
+            var accountResponse = await accountApiClient.GetFromJsonAsync<AccountInfo>($"/account/api/public/account/{accountId}");
             return accountResponse;
         }
     }

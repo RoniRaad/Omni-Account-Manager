@@ -133,7 +133,7 @@ namespace AccountManager.Tests.Core.Services
         public void ChangePassword_DoesNotChangePassword_WhenOldPasswordIsNull()
         {
             // Arrange
-            string? testInitialPassword = null;
+            string? testInitialPassword = "";
             var testUpdatedPassword = "updatePassword";
             _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == null))).Throws(new Exception("Should not be called. initial password was empty"));
@@ -151,7 +151,7 @@ namespace AccountManager.Tests.Core.Services
         {
             // Arrange
             var testInitialPassword = "password";
-            string? testUpdatedPassword = null;
+            string testUpdatedPassword = "";
             _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == null))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);

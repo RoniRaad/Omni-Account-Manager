@@ -2,8 +2,6 @@
 {
     public class LeagueFileSystemService
     {
-        public event EventHandler ClientOpened = delegate { };
-
         public LeagueFileSystemService()
         {
         }

@@ -1,19 +1,16 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
-using Blazorise.Charts;
-using AccountManager.Core.Models.Steam;
 using Microsoft.Extensions.Caching.Distributed;
 using AccountManager.Core.Static;
 using AccountManager.Core.Attributes;
 using NuGet;
-using static AccountManager.Infrastructure.Services.EpicGamesLibraryService;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.EpicGames
 {
     [AccountTilePage(Core.Enums.AccountType.EpicGames, 0)]
     public partial class EpicGamesFrontPage
     {
-        public static int OrderNumber = 0;
         private Account _account = new();
         private bool epicInstallNotFound = false;
         [Parameter]

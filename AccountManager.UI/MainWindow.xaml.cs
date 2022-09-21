@@ -32,13 +32,14 @@ using AccountManager.Core.Models.RiotGames.Valorant;
 using Microsoft.Extensions.Logging;
 using System.Configuration;
 using AccountManager.UI.Services;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
 

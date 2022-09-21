@@ -6,7 +6,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -208,11 +207,24 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync();
         }
 
+        public async Task<IHttpRequestBuilderResponse<T>> Delete<T>() where T : new()
+        {
+            _argumentsBuilder.Add("-i -X DELETE", false);
+
+            return await ExecuteAsync<T>();
+        }
+
         public async Task<IHttpRequestBuilderResponse<string>> Get()
         {
             _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync();
+        }
+        public async Task<IHttpRequestBuilderResponse<T>> Get<T>() where T : new()
+        {
+            _argumentsBuilder.Add("-i -X GET", false);
+
+            return await ExecuteAsync<T>();
         }
 
         public async Task<IHttpRequestBuilderResponse<string>> Post()
@@ -222,32 +234,18 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync();
         }
 
-        public async Task<IHttpRequestBuilderResponse<string>> Put()
-        {
-            _argumentsBuilder.Add("-i -X PUT", false);
-
-            return await ExecuteAsync();
-        }
-
-        public async Task<IHttpRequestBuilderResponse<T>> Delete<T>() where T : new()
-        {
-            _argumentsBuilder.Add("-i -X DELETE", false);
-
-            return await ExecuteAsync<T>();
-        }
-
-        public async Task<IHttpRequestBuilderResponse<T>> Get<T>() where T : new()
-        {
-            _argumentsBuilder.Add("-i -X GET", false);
-
-            return await ExecuteAsync<T>();
-        }
-
         public async Task<IHttpRequestBuilderResponse<T>> Post<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync<T>();
+        }
+
+        public async Task<IHttpRequestBuilderResponse<string>> Put()
+        {
+            _argumentsBuilder.Add("-i -X PUT", false);
+
+            return await ExecuteAsync();
         }
 
         public async Task<IHttpRequestBuilderResponse<T>> Put<T>() where T : new()

@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.Steam;
 using Microsoft.Extensions.Caching.Distributed;
 using AccountManager.Core.Attributes;
-using static AccountManager.Infrastructure.Services.EpicGamesLibraryService;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicGames
 {
@@ -19,8 +18,8 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicG
         [Parameter, EditorRequired]
         public Action? DecrementPage { get; set; }
 
-        List<EpicGamesInstalledGame> games = new();
-        bool epicInstallNotFound = false;
+        private List<EpicGamesInstalledGame> games = new();
+        private bool epicInstallNotFound = false;
         public string SelectedEpicGame = "none";
 
         protected override async Task OnInitializedAsync()
@@ -45,7 +44,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicG
         {
             games.Clear();
 
-            SelectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
+            SelectedEpicGame = await _persistantCache.GetStringAsync($"{Account?.Guid}.SelectedEpicGame") ?? "none";
 
             if (!_epicLibraryService.TryGetInstalledGames(out var gameManifests))
                 return;

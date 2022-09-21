@@ -94,7 +94,7 @@ namespace AccountManager.Tests.Core.Services
             var value = await _sut.GetAllAccounts();
 
             // Assert
-            Assert.True(value.TrueForAll((x) => x.Rank.Tier == "TestTier"));
+            Assert.True(value.TrueForAll((x) => x?.Rank?.Tier == "TestTier"));
         }
 
         [Fact]

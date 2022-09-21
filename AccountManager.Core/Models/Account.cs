@@ -9,7 +9,7 @@ namespace AccountManager.Core.Models
         public string? PlatformId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public Rank? Rank { get; set; }
+        public Rank Rank { get; set; } = new();
         public AccountType AccountType { get; set; }
     }
 }

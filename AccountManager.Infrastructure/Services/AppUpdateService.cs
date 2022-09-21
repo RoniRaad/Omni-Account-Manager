@@ -22,16 +22,14 @@ namespace AccountManager.Infrastructure.Services
                 #if DEBUG
                     return false;
                 #endif
-                using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var updateInfo = await manager.CheckForUpdate();
+                if (updateInfo.ReleasesToApply.Count > 0)
                 {
-                    var updateInfo = await manager.CheckForUpdate();
-                    if (updateInfo.ReleasesToApply.Count > 0)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return true;
                 }
+
+                return false;
             }
             catch
             {
@@ -44,11 +42,9 @@ namespace AccountManager.Infrastructure.Services
         {
             try
             {
-                using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
-                {
-                    await manager.UpdateApp();
-                    UpdateManager.RestartApp();
-                }
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                await manager.UpdateApp();
+                UpdateManager.RestartApp();
             }
             catch
             {

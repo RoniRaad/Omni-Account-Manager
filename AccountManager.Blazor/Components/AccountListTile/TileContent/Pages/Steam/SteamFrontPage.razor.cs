@@ -11,7 +11,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
     [AccountTilePage(Core.Enums.AccountType.Steam, 0)]
     public partial class SteamFrontPage
     {
-        public static int OrderNumber = 0;
         private Account _account = new();
         private bool steamInstallNotFound = false;
         [Parameter]
@@ -62,7 +61,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
             Games.RemoveAll(game => game.Name == "Steamworks Common Redistributables" || (game.LastOwner != Account.PlatformId && _steamSettings.Settings.OnlyShowOwnedSteamGames));
         }
 
-        protected async override Task OnAfterRenderAsync(bool first)
+        protected async override Task OnAfterRenderAsync(bool firstRender)
         {
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
             if (cachedSelectedGame != SelectedSteamGame)
@@ -70,7 +69,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
                 SelectedSteamGame = cachedSelectedGame;
                 StateHasChanged();
             }
-            await base.OnAfterRenderAsync(first);
+            await base.OnAfterRenderAsync(firstRender);
         }
 
         protected async override Task OnInitializedAsync()

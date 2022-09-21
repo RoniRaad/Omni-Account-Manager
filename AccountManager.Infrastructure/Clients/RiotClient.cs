@@ -12,6 +12,7 @@ using AutoMapper;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -37,7 +38,7 @@ namespace AccountManager.Infrastructure.Clients
                 ResponseType = "token id_token",
                 Scope = "openid link ban lol_region"
             };
-        public static Dictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
+        public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = (new Dictionary<string, string>()
             {
                 {"na", "usw" },
                 {"latam", "usw" },
@@ -45,7 +46,7 @@ namespace AccountManager.Infrastructure.Clients
                 {"eu", "euc" },
                 {"ap", "apse" },
                 {"kr", "apse" }
-            };
+            }).ToImmutableDictionary();
         public RiotClient(IHttpClientFactory httpClientFactory, IOptions<RiotApiUri> riotApiOptions,
             IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotClient> logger)
         {

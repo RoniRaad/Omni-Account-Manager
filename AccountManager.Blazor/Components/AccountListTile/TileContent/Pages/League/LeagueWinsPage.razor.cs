@@ -8,7 +8,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     [AccountTilePage(Core.Enums.AccountType.League, 0)]
     public partial class LeagueWinsPage
     {
-        public static int OrderNumber = 0;
         private Account _account = new();
         [Parameter]
         public Account Account { get; set; } = new();
@@ -98,9 +97,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
         
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 
