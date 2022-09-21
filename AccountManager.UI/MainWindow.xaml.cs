@@ -90,7 +90,9 @@ namespace AccountManager.UI
             serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
             serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
             serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
-            serviceCollection.AddSingleton<IEpicGamesTokenService, EpicGamesTokenService>();
+            serviceCollection.AddSingleton<IEpicGamesExternalAuthService, EpicGamesExternalAuthService>();
+            serviceCollection.AddTransient<IEpicGamesTokenClient, EpicGamesTokenClient>();
+            serviceCollection.AddTransient<IEpicGamesLibraryService, EpicGamesLibraryService>();
 
             // Cached Objects
             serviceCollection.AddSingleton<RiotClient>();
@@ -130,7 +132,8 @@ namespace AccountManager.UI
 				.AddImplementation<LeaguePlatformService>(AccountType.League)
 				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TeamFightTactics)
 				.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
-				.Build();
+				.AddImplementation<EpicGamesPlatformService>(AccountType.EpicGames)
+                .Build();
 			serviceCollection.AddFactory<AccountType, ITokenService>()
 				.AddImplementation<LeagueTokenService>(AccountType.League)
 				.AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)

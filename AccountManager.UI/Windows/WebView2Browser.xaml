@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AccountManager.UI.Windows"
         xmlns:Wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" x:Class="AccountManager.UI.Windows.WebView2Browser"
         mc:Ignorable="d"
-        Title="WebView2Browser" Height="450" Width="800">
+        Title="WebView2Browser" Height="731" Width="800">
     <Grid>
         <Wpf:WebView2 x:Name="webv2"/>
     </Grid>
