@@ -1,4 +1,4 @@
-﻿using AccountManager.Core.Models;
+﻿using AccountManager.Core.Models.EpicGames;
 using System;
 using static AccountManager.UI.Services.EpicGamesExternalAuthService;
 

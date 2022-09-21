@@ -8,8 +8,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     [AccountTilePage(Core.Enums.AccountType.Valorant, 4)]
     public partial class ValorantMostUsedOpPage
     {
-        public static int OrderNumber = 4;
-
         [Parameter]
         public Account Account { get; set; } = new();
 

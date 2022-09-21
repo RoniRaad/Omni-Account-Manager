@@ -19,14 +19,14 @@ namespace AccountManager.Infrastructure.CachedClients
             _riotTokenClient = riotTokenClient;
         }
 
-        public async Task<string?> GetEntitlementToken(string token)
+        public async Task<string?> GetEntitlementToken(string accessToken)
         {
-            var cacheKey = $"{token}.{nameof(GetEntitlementToken)}";
+            var cacheKey = $"{accessToken}.{nameof(GetEntitlementToken)}";
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55);
-                    return await _riotTokenClient.GetEntitlementToken(token);
+                    return await _riotTokenClient.GetEntitlementToken(accessToken);
                 });
         }
 

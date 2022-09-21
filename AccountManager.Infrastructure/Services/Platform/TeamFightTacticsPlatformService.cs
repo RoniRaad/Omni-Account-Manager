@@ -26,8 +26,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IRiotTokenClient _riotTokenClient;
-        public static string WebIconFilePath = Path.Combine("logos", "tft-logo.png");
-        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+        public static readonly string WebIconFilePath = Path.Combine("logos", "tft-logo.png");
+        public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "tft-logo.ico");
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IRiotTokenClient riotTokenClient)
@@ -68,7 +68,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
                 await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
 
-                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
+                await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
                 {
                     LoginStrategy = "riot_identity",
                     PersistLogin = true,
@@ -85,7 +85,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                         "account"
                     }
                 });
-
 
                 var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
                 {

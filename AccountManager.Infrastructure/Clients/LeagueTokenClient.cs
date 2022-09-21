@@ -134,12 +134,11 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
-            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
             var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(leagueToken);
             jwtToken.Payload.TryGetValue("region", out object? regionCode);
 
-            if (regionCode is null)
-                regionCode = "NA1";
+            regionCode ??= "NA1";
 
             var sessionResponse = await client.PostAsJsonAsync($"/session-external/v1/session/create", new PostSessionsRequest
             {
@@ -243,7 +242,7 @@ namespace AccountManager.Infrastructure.Clients
             if (leagueInfoJson?.ToString() is null)
                 return null;
 
-            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString());
+            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString() ?? "{}");
 
             return leagueInfo?.FirstOrDefault();
         }

@@ -8,7 +8,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
     [AccountTilePage(Core.Enums.AccountType.TeamFightTactics, 0)]
     public partial class TeamFightTacticsWinsPage
     {
-        public static int OrderNumber = 0;
         private Account _account = new();
         [Parameter]
         public Account Account { get; set; } = new();
@@ -101,9 +100,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
             _account = Account;
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
             {
                 displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
                 await HandleRedraw();

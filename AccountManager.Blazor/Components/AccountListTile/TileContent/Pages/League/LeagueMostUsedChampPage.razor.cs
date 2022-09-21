@@ -54,9 +54,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 

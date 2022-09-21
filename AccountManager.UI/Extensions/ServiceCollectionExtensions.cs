@@ -37,7 +37,7 @@ namespace AccountManager.UI.Extensions
         {
             var args = Environment.GetCommandLineArgs();
 
-            if (args.Length > 1 & Array.Exists(args, element => element == "/login"))
+            if (args.Length > 1 && Array.Exists(args, element => element == "/login"))
             {
                 var parsedArgs = ParseCommandLineArgs(args);
 
@@ -190,25 +190,12 @@ namespace AccountManager.UI.Extensions
             return services;
         }
 
-        public static IServiceCollection AddNamedClients(this ServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddNamedClients(this IServiceCollection services, IConfiguration configuration)
         {
             var riotApiUri = configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
-
-            services.AddRiotClient("RiotAuth", new Uri(riotApiUri?.Auth ?? ""));
-            services.AddRiotClient("Valorant3rdParty", new Uri(riotApiUri?.Valorant3rdParty ?? ""));
-            services.AddRiotClient("ValorantNA", new Uri(riotApiUri?.ValorantNA ?? ""));
-            services.AddRiotClient("ValorantAP", new Uri(riotApiUri?.ValorantAP ?? ""));
-            services.AddRiotClient("ValorantEU", new Uri(riotApiUri?.ValorantEU ?? ""));
-            services.AddRiotClient("RiotEntitlement", new Uri(riotApiUri?.Entitlement ?? ""));
-            services.AddRiotClient("LeagueNA", new Uri(riotApiUri?.LeagueNA ?? ""));
-            services.AddRiotClient("LeagueAP", new Uri(riotApiUri?.LeagueAP ?? ""));
-            services.AddRiotClient("LeagueEU", new Uri(riotApiUri?.LeagueEU ?? ""));
-            services.AddRiotClient("LeagueKR", new Uri(riotApiUri?.LeagueKR ?? ""));
-            services.AddRiotClient("LeagueBR", new Uri(riotApiUri?.LeagueBR ?? ""));
-            services.AddRiotClient("LeagueSessionUSW", new Uri(riotApiUri?.LeagueSessionUSW ?? ""));
-            services.AddRiotClient("LeagueSessionEUC", new Uri(riotApiUri?.LeagueSessionEUC ?? ""));
-            services.AddRiotClient("LeagueSessionAPSE", new Uri(riotApiUri?.LeagueSessionAPSE ?? ""));
-            services.AddRiotClient("RiotCDN", new Uri(riotApiUri?.RiotCDN ?? ""));
+            var epicGamesApiUri = configuration.GetSection("EpicGamesApiUri").Get<EpicGamesApiUri>();
+            AddRiotNamedClients(services, riotApiUri);
+            AddEpicGamesNamedClients(services, epicGamesApiUri);
 
             services.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
             {
@@ -224,7 +211,7 @@ namespace AccountManager.UI.Extensions
             return services;
         }
 
-        public static IServiceCollection AddRiotClient(this ServiceCollection services, string name, Uri baseUri )
+        public static IServiceCollection AddRiotClient(this IServiceCollection services, string name, Uri baseUri )
         {
             services.AddHttpClient(name, (httpClient) =>
             {
@@ -240,6 +227,38 @@ namespace AccountManager.UI.Extensions
             });
 
             return services;
+        }
+
+        private static void AddRiotNamedClients(IServiceCollection services, RiotApiUri apiUri)
+        {
+            services.AddRiotClient("RiotAuth", new Uri(apiUri?.Auth ?? ""));
+            services.AddRiotClient("Valorant3rdParty", new Uri(apiUri?.Valorant3rdParty ?? ""));
+            services.AddRiotClient("ValorantNA", new Uri(apiUri?.ValorantNA ?? ""));
+            services.AddRiotClient("ValorantAP", new Uri(apiUri?.ValorantAP ?? ""));
+            services.AddRiotClient("ValorantEU", new Uri(apiUri?.ValorantEU ?? ""));
+            services.AddRiotClient("RiotEntitlement", new Uri(apiUri?.Entitlement ?? ""));
+            services.AddRiotClient("LeagueNA", new Uri(apiUri?.LeagueNA ?? ""));
+            services.AddRiotClient("LeagueAP", new Uri(apiUri?.LeagueAP ?? ""));
+            services.AddRiotClient("LeagueEU", new Uri(apiUri?.LeagueEU ?? ""));
+            services.AddRiotClient("LeagueKR", new Uri(apiUri?.LeagueKR ?? ""));
+            services.AddRiotClient("LeagueBR", new Uri(apiUri?.LeagueBR ?? ""));
+            services.AddRiotClient("LeagueSessionUSW", new Uri(apiUri?.LeagueSessionUSW ?? ""));
+            services.AddRiotClient("LeagueSessionEUC", new Uri(apiUri?.LeagueSessionEUC ?? ""));
+            services.AddRiotClient("LeagueSessionAPSE", new Uri(apiUri?.LeagueSessionAPSE ?? ""));
+            services.AddRiotClient("RiotCDN", new Uri(apiUri?.RiotCDN ?? ""));
+        }
+
+        private static void AddEpicGamesNamedClients(IServiceCollection services, EpicGamesApiUri apiUri)
+        {
+            services.AddHttpClient("EpicTokenExchanceApi", (httpClient) =>
+            {
+                httpClient.BaseAddress = new Uri(apiUri?.TokenExchange ?? "");
+            });
+
+            services.AddHttpClient("EpicAccountApi", (httpClient) =>
+            {
+                httpClient.BaseAddress = new Uri(apiUri?.Account ?? "");
+            });
         }
 
         private static Dictionary<string, string> ParseCommandLineArgs(string[] args)

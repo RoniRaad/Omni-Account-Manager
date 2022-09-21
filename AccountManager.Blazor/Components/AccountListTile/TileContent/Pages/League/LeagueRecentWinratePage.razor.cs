@@ -12,7 +12,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         public Account Account { get; set; } = new();
 
         private Account _account = new();
-        public static int OrderNumber = 1;
         BarChart<double?>? barChart;
         BarChartOptions barChartOptions = new()
         {
@@ -69,9 +68,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await HandleRedraw();
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 

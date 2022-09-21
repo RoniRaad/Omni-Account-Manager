@@ -1,14 +1,12 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.UserSettings;
-using AccountManager.Core.Services;
+using AccountManager.Core.Static;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -22,14 +20,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IEpicGamesLibraryService _epicGamesLibraryService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IEpicGamesExternalAuthService _epicGamesExternalAuthService;
-        private readonly AppState _state;
-        public static string WebIconFilePath = Path.Combine("logos", "epic-games-logo.png");
-        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+        public readonly static string WebIconFilePath = Path.Combine("logos", "epic-games-logo.png");
+        public readonly static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "epic-logo.ico");
         public EpicGamesPlatformService( IAlertService alertService,
             IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
             ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
-            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, AppState state)
+            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService)
         {
             _alertService = alertService;
             _memoryCache = memoryCache;
@@ -38,7 +35,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             _epicGamesExternalAuthService = epicGamesExternalAuthService;
             _persistantCache = persistantCache;
             _epicGamesLibraryService = epicGamesLibraryService;
-            _state = state;
         }
 
         public async Task Login(Account account)
@@ -55,6 +51,8 @@ namespace AccountManager.Infrastructure.Services.Platform
 
             CloseEpicGamesClient();
             await SetEpicGamesTokenFile(tokens.Username ?? "", tokens.Name ?? "", tokens.LastName ?? "", tokens.DisplayName ?? "", tokens.RefreshToken);
+            await Task.Delay(2000);
+
             var gameId = await _persistantCache.GetStringAsync($"{account.Guid}.SelectedEpicGame");
             if (!string.IsNullOrEmpty(gameId) && gameId != "none")
             {
@@ -67,61 +65,59 @@ namespace AccountManager.Infrastructure.Services.Platform
                     return;
             }
 
-            LaunchEpicGamesClient();
+            if (!TryLaunchEpicGamesClient())
+            {
+                _alertService.AddErrorAlert("Epic games client was not found. Aborting.");
+                _logger.LogError("Epic games client was not found. Aborting.");
+            }
         }
 
-        public async Task<(bool, Rank)> TryFetchRank(Account account)
+        public Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.epicgames.rank";
             if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
-                return (true, rank);
+                return Task.FromResult((true, rank));
 
             rank = new Rank();
             try
             {
-               // if (string.IsNullOrEmpty(account.PlatformId))
-                   // account.PlatformId = await _riotClient.GetPuuId(account);
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    return (false, rank);
-
-               // rank = await _valorantClient.GetValorantRank(account);
+                    return Task.FromResult((false, rank));
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
                     _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return (false, new Rank());
+                    return Task.FromResult((false, new Rank()));
 
-                return new(true, rank);
+                return Task.FromResult((true, rank));
             }
             catch
             {
-                return new(false, new Rank());
+                return Task.FromResult((false, new Rank()));
             }
         }
 
-        public async Task<(bool, string)> TryFetchId(Account account)
+        public Task<(bool, string)> TryFetchId(Account account)
         {
             try
             {
                 if (!string.IsNullOrEmpty(account.PlatformId))
                 {
-                    return new (true, account.PlatformId);
+                    return Task.FromResult((true, account.PlatformId));
                 }
 
-                //var id = await _riotClient.GetPuuId(account);
-                return new(false, string.Empty);
+                return Task.FromResult((false, string.Empty));
             }
             catch
             {
-                return new (false, string.Empty);
+                return Task.FromResult((false, string.Empty));
             }
         }
 
-
         private async Task SetEpicGamesTokenFile(string email, string fName, string lName, string dName, string token)
         {
-            var launcherTokenString = Encrypt(GenerateLoginJson(email, fName, lName, dName, token), EncryptionKey);
+            var launcherTokenString = StringEncryption.EncryptEpicGamesData(GenerateLoginJson(email, fName, lName, dName, token), EncryptionKey);
             var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var path = System.IO.Path.Combine(localAppDataPath, "EpicGamesLauncher", "Saved", "Config", "Windows", "GameUserSettings.ini");
             if (File.Exists(path))
@@ -143,14 +139,22 @@ namespace AccountManager.Infrastructure.Services.Platform
 
         private void CloseEpicGamesClient()
         {
-            foreach (var process in Process.GetProcesses())
-                if (process.ProcessName.Contains("EpicGamesLauncher"))
-                    process.Kill();
+            foreach (var process in Process.GetProcesses()
+                .Where((process) => process.ProcessName.ToLower().Contains("epicgames")))
+            {
+                process.Kill();
+            }
         }
 
-        private void LaunchEpicGamesClient()
+        private bool TryLaunchEpicGamesClient()
         {
-            Process.Start("C:\\Program Files (x86)\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe");
+            var epicInstallPath = _settingsService.Settings.EpicGamesInstallDirectory;
+            string defaultEpicPath = Path.Combine(epicInstallPath, "Launcher", "Portal", "Binaries", "Win32", "EpicGamesLauncher.exe");
+            if (!File.Exists(defaultEpicPath))
+                return false;
+
+            Process.Start(defaultEpicPath);
+            return true;
         }
 
         private bool TryLaunchEpicGamesGame(string appId)
@@ -165,52 +169,11 @@ namespace AccountManager.Infrastructure.Services.Platform
                 processStart.WorkingDirectory = game.InstallLocation;
                 processStart.FileName = Path.Combine(game.InstallLocation, game.LaunchExecutable);
                 Process.Start(processStart);
-
             }
             else
                 return false;
 
             return true;
-        }
-
-        static string Decrypt(string toDecrypt, string key)
-        {
-            byte[] keyArray = UTF8Encoding.UTF8.GetBytes(key); // AES-256 key
-            PadToMultipleOf(ref keyArray, 8);
-            byte[] toEncryptArray = Convert.FromBase64String(toDecrypt);
-            //byte[] toEncryptArray = ConvertHexStringToByteArray(toDecrypt);
-
-            Aes rDel = Aes.Create();
-            rDel.KeySize = (keyArray.Length * 8);
-            rDel.Key = keyArray;          // in bits
-            rDel.Mode = CipherMode.ECB; // http://msdn.microsoft.com/en-us/library/system.security.cryptography.ciphermode.aspx
-            rDel.Padding = PaddingMode.PKCS7;  // better lang support
-            ICryptoTransform cTransform = rDel.CreateDecryptor();
-            byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
-            return UTF8Encoding.UTF8.GetString(resultArray);
-        }
-
-        static string Encrypt(string toEncrypt, string key)
-        {
-            byte[] keyArray = UTF8Encoding.UTF8.GetBytes(key); // AES-256 key
-            PadToMultipleOf(ref keyArray, 8);
-            byte[] toEncryptArray = UTF8Encoding.UTF8.GetBytes(toEncrypt);
-            //byte[] toEncryptArray = ConvertHexStringToByteArray(toDecrypt);
-
-            Aes rDel = Aes.Create();
-            rDel.KeySize = (keyArray.Length * 8);
-            rDel.Key = keyArray;          // in bits
-            rDel.Mode = CipherMode.ECB; // http://msdn.microsoft.com/en-us/library/system.security.cryptography.ciphermode.aspx
-            rDel.Padding = PaddingMode.PKCS7;  // better lang support
-            ICryptoTransform cTransform = rDel.CreateEncryptor();
-            byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
-            return Convert.ToBase64String(resultArray);
-        }
-
-        static void PadToMultipleOf(ref byte[] src, int pad)
-        {
-            int len = (src.Length + pad - 1) / pad * pad;
-            Array.Resize(ref src, len);
         }
 
         public string GenerateLoginJson(string email, string fName, string lName, string dName, string token)

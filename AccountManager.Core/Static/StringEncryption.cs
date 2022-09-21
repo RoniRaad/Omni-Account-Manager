@@ -5,6 +5,9 @@ namespace AccountManager.Core.Static
 {
     public static class StringEncryption
     {
+        private static int KeySize = 32; // 256 bit
+        private static byte[] Salt = new byte[] { 10, 20, 30, 40, 50, 60, 70, 80 };
+
         public static string EncryptString(string key, string plainText)
         {
             byte[] iv;
@@ -60,66 +63,6 @@ namespace AccountManager.Core.Static
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", "S3329:Cipher Block Chaining IVs should be unpredictable", 
-            Justification = "This method is marked obsolete and is only used for migrating older data.")]
-        [Obsolete("This method is less safe for encryption as it uses a fixed IV. Prefer the method EncryptString")]
-        public static string EncryptStringFixedIV(string key, string plainText)
-        {
-            byte[] iv = new byte[16];
-            byte[] array;
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Convert.FromBase64String(key);
-                aes.IV = iv;
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
-                        {
-                            streamWriter.Write(plainText);
-                        }
-
-                        array = memoryStream.ToArray();
-                    }
-                }
-            }
-
-            return Convert.ToBase64String(array);
-        }
-
-        [Obsolete("This method is less safe for encryption as it uses a fixed IV. Prefer the method DecryptString")]
-        public static string DecryptStringFixedIV(string key, string cipherText)
-        {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(cipherText);
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Convert.FromBase64String(key);
-                aes.IV = iv;
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
-                        {
-                            return streamReader.ReadToEnd();
-                        }
-                    }
-                }
-            }
-        }
-
-        private static  int KeySize = 32; // 256 bit
-        private static byte[] Salt = new byte[] { 10, 20, 30, 40, 50, 60, 70, 80 };
-
         public static string Hash(string password)
         {
             using (var algorithm = new Rfc2898DeriveBytes(
@@ -132,6 +75,42 @@ namespace AccountManager.Core.Static
 
                 return key;
             }
+        }
+
+        public static string DecryptEpicGamesData(string toDecrypt, string key)
+        {
+            byte[] keyArray = UTF8Encoding.UTF8.GetBytes(key);
+            PadToMultipleOf(ref keyArray, 8);
+            byte[] toEncryptArray = Convert.FromBase64String(toDecrypt);
+            Aes rDel = Aes.Create();
+            rDel.KeySize = (keyArray.Length * 8);
+            rDel.Key = keyArray;
+            rDel.Mode = CipherMode.ECB;
+            rDel.Padding = PaddingMode.PKCS7; 
+            ICryptoTransform cTransform = rDel.CreateDecryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+            return UTF8Encoding.UTF8.GetString(resultArray);
+        }
+
+        public static string EncryptEpicGamesData(string toEncrypt, string key)
+        {
+            byte[] keyArray = UTF8Encoding.UTF8.GetBytes(key);
+            PadToMultipleOf(ref keyArray, 8);
+            byte[] toEncryptArray = UTF8Encoding.UTF8.GetBytes(toEncrypt);
+            Aes rDel = Aes.Create();
+            rDel.KeySize = (keyArray.Length * 8);
+            rDel.Key = keyArray;
+            rDel.Mode = CipherMode.ECB;
+            rDel.Padding = PaddingMode.PKCS7;
+            ICryptoTransform cTransform = rDel.CreateEncryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+            return Convert.ToBase64String(resultArray);
+        }
+
+        private static void PadToMultipleOf(ref byte[] src, int pad)
+        {
+            int len = (src.Length + pad - 1) / pad * pad;
+            Array.Resize(ref src, len);
         }
     }
 }

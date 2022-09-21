@@ -16,7 +16,7 @@ namespace AccountManager.Core.Services.Cached
         private readonly AccountService _accountService;
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
-        private readonly SemaphoreSlim accountWriteSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim accountWriteSemaphore = new(1, 1);
         public event Action OnAccountListChanged = delegate { };
         public CachedAccountService(IIOService iOService, AuthService authService, GenericFactory<AccountType, IPlatformService> platformServiceFactory
             , IMemoryCache memoryCache, IDistributedCache persistantCache)

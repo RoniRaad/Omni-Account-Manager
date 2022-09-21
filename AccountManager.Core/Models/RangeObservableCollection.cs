@@ -21,7 +21,7 @@ namespace AccountManager.Core.Models
         public void AddRange(IEnumerable<T> list)
         {
             if (list == null)
-                throw new ArgumentNullException("list");
+                throw new ArgumentNullException(nameof(list));
 
             _suppressNotification = true;
 

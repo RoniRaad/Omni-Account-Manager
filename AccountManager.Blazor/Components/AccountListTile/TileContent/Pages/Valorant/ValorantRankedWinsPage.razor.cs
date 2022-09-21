@@ -1,32 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using AccountManager.Blazor.Shared;
-using AccountManager.Blazor;
-using Plk.Blazor.DragDrop;
 using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
 using Blazorise.Charts;
-using System.Security.Principal;
 using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
-    [AccountTilePage(Core.Enums.AccountType.Valorant, 3)]
+    [AccountTilePage(AccountType.Valorant, 3)]
     public partial class ValorantRankedWinsPage
     {
-        public static int OrderNumber = 3;
-
         [Parameter]
         public Account Account { get; set; } = new();
 
