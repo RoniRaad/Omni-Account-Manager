@@ -20,13 +20,14 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IEpicGamesLibraryService _epicGamesLibraryService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IEpicGamesExternalAuthService _epicGamesExternalAuthService;
+        private readonly IAppState _appState;
         public readonly static string WebIconFilePath = Path.Combine("logos", "epic-games-logo.png");
         public readonly static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "epic-logo.ico");
         public EpicGamesPlatformService( IAlertService alertService,
             IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
             ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
-            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService)
+            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, IAppState appState)
         {
             _alertService = alertService;
             _memoryCache = memoryCache;
@@ -35,6 +36,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _epicGamesExternalAuthService = epicGamesExternalAuthService;
             _persistantCache = persistantCache;
             _epicGamesLibraryService = epicGamesLibraryService;
+            _appState = appState;
         }
 
         public async Task Login(Account account)
@@ -47,7 +49,11 @@ namespace AccountManager.Infrastructure.Services.Platform
                 return;
             }
 
-            account.PlatformId = tokens.Id;
+            if (string.IsNullOrEmpty(account.PlatformId))
+            {
+                account.PlatformId = tokens.Id;
+                _appState.SaveAccounts();
+            }
 
             CloseEpicGamesClient();
             await SetEpicGamesTokenFile(tokens.Username ?? "", tokens.Name ?? "", tokens.LastName ?? "", tokens.DisplayName ?? "", tokens.RefreshToken);
@@ -119,7 +125,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         {
             var launcherTokenString = StringEncryption.EncryptEpicGamesData(GenerateLoginJson(email, fName, lName, dName, token), EncryptionKey);
             var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = System.IO.Path.Combine(localAppDataPath, "EpicGamesLauncher", "Saved", "Config", "Windows", "GameUserSettings.ini");
+            var path = Path.Combine(localAppDataPath, "EpicGamesLauncher", "Saved", "Config", "Windows", "GameUserSettings.ini");
             if (File.Exists(path))
             {
                 var lines = File.ReadAllLines(path);
