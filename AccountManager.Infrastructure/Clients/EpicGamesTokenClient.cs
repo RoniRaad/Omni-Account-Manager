@@ -6,7 +6,7 @@ using AccountManager.Core.Interfaces;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class EpicGamesTokenClient : IEpicGamesTokenClient
+    public sealed class EpicGamesTokenClient : IEpicGamesTokenClient
     {
         private static readonly string BasicAuthToken = 
             "MzRhMDJjZjhmNDQxNGUyOWIxNTkyMTg3NmRhMzZmOWE6ZGFhZmJjY2M3Mzc3NDUwMzlkZmZlNTNkOTRmYzc2Y2Y=";

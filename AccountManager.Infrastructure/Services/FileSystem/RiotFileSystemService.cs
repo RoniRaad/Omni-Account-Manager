@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class RiotFileSystemService : IRiotFileSystemService
+    public sealed class RiotFileSystemService : IRiotFileSystemService
     {
         private readonly IIOService _iOService;
         private readonly string appDataPath;

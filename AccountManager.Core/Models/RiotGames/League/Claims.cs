@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class Claims
+    public sealed class Claims
     {
         [JsonPropertyName("cname")]
         public string? CName { get; set; }

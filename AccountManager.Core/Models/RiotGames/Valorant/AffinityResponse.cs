@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant
 {
-    public class AffinityResponse
+    public sealed class AffinityResponse
     {
         [JsonPropertyName("token")]
         public string Token { get; set; } = string.Empty;
@@ -10,7 +10,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant
         [JsonPropertyName("affinities")]
         public Affinities? Afinity { get; set; }
 
-        public class Affinities
+        public sealed class Affinities
         {
             [JsonPropertyName("pbe")]
             public string Pbe { get; set; } = string.Empty;

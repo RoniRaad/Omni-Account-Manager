@@ -11,7 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices.Cached
 {
-    public class CachedValorantGraphService : IValorantGraphService
+    public sealed class CachedValorantGraphService : IValorantGraphService
     {
         private readonly IDistributedCache _persistantCache;
         private readonly IValorantGraphService _valorantGraphService;

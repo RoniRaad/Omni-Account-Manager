@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class LeagueFileSystemService
+    public sealed class LeagueFileSystemService
     {
         public LeagueFileSystemService()
         {

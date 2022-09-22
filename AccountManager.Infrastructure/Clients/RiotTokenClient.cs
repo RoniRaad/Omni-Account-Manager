@@ -19,7 +19,7 @@ using System.Collections.Immutable;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class RiotTokenClient : IRiotTokenClient
+    public sealed class RiotTokenClient : IRiotTokenClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAlertService _alertService;

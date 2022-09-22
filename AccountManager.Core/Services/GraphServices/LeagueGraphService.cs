@@ -5,7 +5,7 @@ using AccountManager.Core.Models.RiotGames.League;
 
 namespace AccountManager.Core.Services.GraphServices
 {
-    public class LeagueGraphService : ILeagueGraphService
+    public sealed class LeagueGraphService : ILeagueGraphService
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;

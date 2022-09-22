@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models
 {
-    public class ExchangeCodeResponse
+    public sealed class ExchangeCodeResponse
     {
         [JsonPropertyName("code")]
         public string ExchangeCode { get; set; } = "";

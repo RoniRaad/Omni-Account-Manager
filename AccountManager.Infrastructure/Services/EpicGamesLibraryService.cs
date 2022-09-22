@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class EpicGamesLibraryService : IEpicGamesLibraryService
+    public sealed class EpicGamesLibraryService : IEpicGamesLibraryService
     {
         private readonly IUserSettingsService<GeneralSettings> _userSettings;
         private readonly string EpicGamesManifestPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),

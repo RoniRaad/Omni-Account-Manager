@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models.UserSettings
 {
-    public class GeneralSettings
+    public sealed class GeneralSettings
     {
         public GeneralSettings()
         {

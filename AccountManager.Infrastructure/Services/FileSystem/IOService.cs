@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class IOService : IIOService
+    public sealed class IOService : IIOService
     {
         public static string DataPath { get; set; } = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\Multi-Account-Manager";
         private readonly IMemoryCache _memoryCache;

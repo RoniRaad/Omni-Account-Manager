@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.Cached
 {
-    public class CachedAccountService : IAccountService
+    public sealed class CachedAccountService : IAccountService
     {
         private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
         private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";

@@ -6,7 +6,7 @@ using Moq;
 
 namespace AccountManager.Tests.Core.Services
 {
-    public class AppStateTests
+    public sealed class AppStateTests
     {
         private readonly Mock<IAccountService> _accountService;
         private readonly Mock<IIpcService> _ipcService;

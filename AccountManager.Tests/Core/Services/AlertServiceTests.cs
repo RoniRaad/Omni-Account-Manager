@@ -2,7 +2,7 @@
 
 namespace AccountManager.Tests.Core.Services
 {
-    public class AlertServiceTests
+    public sealed class AlertServiceTests
     {
         private readonly AlertService _sut;
 

@@ -1,11 +1,4 @@
-﻿using AccountManager.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AccountManager.Core.Models
+﻿namespace AccountManager.Core.Models
 {
     public class Rank
     {

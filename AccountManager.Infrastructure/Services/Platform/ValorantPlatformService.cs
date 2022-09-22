@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class ValorantPlatformService : IPlatformService
+    public sealed class ValorantPlatformService : IPlatformService
     {
         private readonly ITokenService _riotService;
         private readonly IValorantClient _valorantClient;

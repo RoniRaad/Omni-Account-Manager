@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models.AppSettings
 {
-    public class RiotApiUri
+    public sealed class RiotApiUri
     {
         public string? Auth { get; set; }
         public string? Valorant3rdParty { get; set; }

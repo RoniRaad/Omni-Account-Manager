@@ -3,7 +3,7 @@
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
 
-    public class ValorantRankedHistoryResponse
+    public sealed class ValorantRankedHistoryResponse
     {
         [JsonPropertyName("Version")]
         public int Version { get; set; }
@@ -14,7 +14,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         [JsonPropertyName("Matches")]
         public List<Match>? Matches { get; set; }
 
-        public class Match
+        public sealed class Match
         {
             [JsonPropertyName("MatchID")]
             public string? MatchID { get; set; }

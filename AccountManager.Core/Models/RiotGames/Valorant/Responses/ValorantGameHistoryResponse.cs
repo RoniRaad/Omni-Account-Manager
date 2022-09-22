@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class Ability
+    public sealed class Ability
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -28,7 +28,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public object? UltimateEffects { get; set; }
     }
 
-    public class AbilityCasts
+    public sealed class AbilityCasts
     {
         [JsonPropertyName("grenadeCasts")]
         public double GrenadeCasts { get; set; }
@@ -43,7 +43,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double UltimateCasts { get; set; }
     }
 
-    public class AdaptiveBots
+    public sealed class AdaptiveBots
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -61,7 +61,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public object? KillDetailsFirstAttempt { get; set; }
     }
 
-    public class BasicGunSkill
+    public sealed class BasicGunSkill
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -70,7 +70,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
-    public class BasicMovement
+    public sealed class BasicMovement
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -79,7 +79,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
-    public class BehaviorFactors
+    public sealed class BehaviorFactors
     {
         [JsonPropertyName("afkRounds")]
         public double AfkRounds { get; set; }
@@ -100,7 +100,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double StayedInSpawnRounds { get; set; }
     }
 
-    public class BombPlant
+    public sealed class BombPlant
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -109,7 +109,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double ObjectiveCompleteTimeMillis { get; set; }
     }
 
-    public class Damage
+    public sealed class Damage
     {
         [JsonPropertyName("receiver")]
         public string Receiver { get; set; } = string.Empty;
@@ -127,7 +127,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Headshots { get; set; }
     }
 
-    public class DefendBombSite
+    public sealed class DefendBombSite
     {
         [JsonPropertyName("idleTimeMillis")]
         public double IdleTimeMillis { get; set; }
@@ -139,7 +139,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool Success { get; set; }
     }
 
-    public class DefuseLocation
+    public sealed class DefuseLocation
     {
         [JsonPropertyName("x")]
         public double X { get; set; }
@@ -148,7 +148,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Y { get; set; }
     }
 
-    public class DefusePlayerLocation
+    public sealed class DefusePlayerLocation
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -160,7 +160,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public Location Location { get; set; } = new();
     }
 
-    public class Economy
+    public sealed class Economy
     {
         [JsonPropertyName("loadoutValue")]
         public double LoadoutValue { get; set; }
@@ -178,7 +178,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Spent { get; set; }
     }
 
-    public class FinishingDamage
+    public sealed class FinishingDamage
     {
         [JsonPropertyName("damageType")]
         public string DamageType { get; set; } = string.Empty;
@@ -190,7 +190,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool IsSecondaryFireMode { get; set; }
     }
 
-    public class Kill
+    public sealed class Kill
     {
         [JsonPropertyName("gameTime")]
         public double GameTime { get; set; }
@@ -220,7 +220,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Round { get; set; }
     }
 
-    public class Location
+    public sealed class Location
     {
         [JsonPropertyName("x")]
         public double X { get; set; }
@@ -229,7 +229,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Y { get; set; }
     }
 
-    public class MatchInfo
+    public sealed class MatchInfo
     {
         [JsonPropertyName("matchId")]
         public string MatchId { get; set; } = string.Empty;
@@ -295,7 +295,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool ShouldMatchDisablePenalties { get; set; }
     }
 
-    public class NewPlayerExperienceDetails
+    public sealed class NewPlayerExperienceDetails
     {
         [JsonPropertyName("basicMovement")]
         public BasicMovement BasicMovement { get; set; } = new();
@@ -319,7 +319,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public SettingStatus SettingStatus { get; set; } = new();
     }
 
-    public class PartyRRPenalties
+    public sealed class PartyRRPenalties
     {
         [JsonPropertyName("12a93e78-9158-4500-8e5e-2fcfc6da9e59")]
         public double _12a93e78915845008e5e2fcfc6da9e59 { get; set; }
@@ -340,7 +340,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double E4bb60a8728344c6A17f0bc21b0a0230 { get; set; }
     }
 
-    public class PlantLocation
+    public sealed class PlantLocation
     {
         [JsonPropertyName("x")]
         public double X { get; set; }
@@ -349,7 +349,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Y { get; set; }
     }
 
-    public class PlantPlayerLocation
+    public sealed class PlantPlayerLocation
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -361,7 +361,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public Location Location { get; set; } = new();
     }
 
-    public class PlatformInfo
+    public sealed class PlatformInfo
     {
         [JsonPropertyName("platformType")]
         public string PlatformType { get; set; } = string.Empty;
@@ -376,7 +376,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string PlatformChipset { get; set; } = string.Empty;
     }
 
-    public class Player
+    public sealed class Player
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -433,7 +433,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<XpModification> XpModifications { get; set; } = new();
     }
 
-    public class PlayerEconomy
+    public sealed class PlayerEconomy
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -454,7 +454,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Spent { get; set; } = 0;
     }
 
-    public class PlayerLocation
+    public sealed class PlayerLocation
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -466,7 +466,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public Location Location { get; set; } = new();
     }
 
-    public class PlayerScore
+    public sealed class PlayerScore
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -475,7 +475,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Score { get; set; } = 0;
     }
 
-    public class PlayerStat
+    public sealed class PlayerStat
     {
         [JsonPropertyName("subject")]
         public string Subject { get; set; } = string.Empty;
@@ -505,7 +505,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool StayedInSpawn { get; set; } = false;
     }
 
-    public class ValorantMatch
+    public sealed class ValorantMatch
     {
         [JsonPropertyName("matchInfo")]
         public MatchInfo MatchInfo { get; set; } = new();
@@ -529,7 +529,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<Kill> Kills { get; set; } = new();
     }
 
-    public class RoundDamage
+    public sealed class RoundDamage
     {
         [JsonPropertyName("round")]
         public double Round { get; set; } = 0;
@@ -541,7 +541,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Damage { get; set; } = 0;
     }
 
-    public class RoundResult
+    public sealed class RoundResult
     {
         [JsonPropertyName("roundNum")]
         public double RoundNum { get; set; } = 0;
@@ -595,7 +595,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string BombDefuser { get; set; } = string.Empty;
     }
 
-    public class SettingStatus
+    public sealed class SettingStatus
     {
         [JsonPropertyName("isMouseSensitivityDefault")]
         public bool IsMouseSensitivityDefault { get; set; }
@@ -604,7 +604,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public bool IsCrosshairDefault { get; set; }
     }
 
-    public class Stats
+    public sealed class Stats
     {
         [JsonPropertyName("score")]
         public double Score { get; set; }
@@ -628,7 +628,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public AbilityCasts AbilityCasts { get; set; } = new();
     }
 
-    public class Team
+    public sealed class Team
     {
         [JsonPropertyName("teamId")]
         public string TeamId { get; set; } = string.Empty;
@@ -646,7 +646,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double NumPodoubles { get; set; }
     }
 
-    public class VictimLocation
+    public sealed class VictimLocation
     {
         [JsonPropertyName("x")]
         public double X { get; set; }
@@ -655,7 +655,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public double Y { get; set; }
     }
 
-    public class XpModification
+    public sealed class XpModification
     {
         [JsonPropertyName("Value")]
         public double Value { get; set; } = 0;

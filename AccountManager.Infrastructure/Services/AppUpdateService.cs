@@ -5,7 +5,7 @@ using Squirrel;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class SquirrelAppUpdateService : IAppUpdateService
+    public sealed class SquirrelAppUpdateService : IAppUpdateService
     {
         private readonly AboutEndpoints _endpoints;
         private readonly ILogger<SquirrelAppUpdateService> _logger;
