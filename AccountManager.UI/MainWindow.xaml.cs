@@ -80,6 +80,7 @@ namespace AccountManager.UI
 			serviceCollection.AddNamedClients(Configuration);
             serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
 			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
+			serviceCollection.Configure<EpicGamesApiUri>(Configuration.GetSection("EpicGamesApiUri"));
 			serviceCollection.AddSingleton<IIOService, IOService>();
 			serviceCollection.AddSingleton<IAlertService, AlertService>();
 			serviceCollection.AddSingleton<IAccountFilterService, AccountFilterService>();

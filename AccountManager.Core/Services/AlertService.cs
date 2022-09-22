@@ -85,7 +85,7 @@ namespace AccountManager.Core.Services
         public Account? Account { get; set; }
         public string EmailHint { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
-        public Action<string>? Callback { get; set; }
+        public Action<string> Callback { get; set; } = delegate { };
     }
 
     public class Alert
