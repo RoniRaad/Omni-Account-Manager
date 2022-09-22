@@ -13,10 +13,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static AccountManager.Core.Services.AppState;
 using AccountManager.Core.Models.AppSettings;
 using System.Net.Http;
-using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Distributed;
 using AccountManager.Core.Static;
@@ -28,12 +26,12 @@ namespace AccountManager.UI.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IGenericFactoryBuilder<TKey, TInterface> AddFactory<TKey, TInterface>(this ServiceCollection services) where TKey : notnull, new()
+        public static IGenericFactoryBuilder<TKey, TInterface> AddFactory<TKey, TInterface>(this IServiceCollection services) where TKey : notnull, new()
         {
             return new GenericFactoryBuilder<TKey, TInterface>(services);
         }
 
-        public static IServiceCollection AddAuth(this ServiceCollection services)
+        public static IServiceCollection AddAuth(this IServiceCollection services)
         {
             var args = Environment.GetCommandLineArgs();
 
@@ -44,7 +42,7 @@ namespace AccountManager.UI.Extensions
                 services.AddSingleton<IAuthService>((services) =>
                 {
                     var persistantCache = services.GetRequiredService<IDistributedCache>();
-                    var authService = new AuthService(services.GetRequiredService<IIOService>(), services.GetRequiredService<AlertService>(), persistantCache);
+                    var authService = new AuthService(services.GetRequiredService<IGeneralFileSystemService>(), services.GetRequiredService<AlertService>(), persistantCache);
 
                     Task.Run(async () =>
                     {
@@ -71,7 +69,7 @@ namespace AccountManager.UI.Extensions
             return services;
         }
 
-        public static IServiceCollection AddState(this ServiceCollection services)
+        public static IServiceCollection AddState(this IServiceCollection services)
         {
             string LoginCommand = "login";
             var args = Environment.GetCommandLineArgs();
@@ -87,7 +85,7 @@ namespace AccountManager.UI.Extensions
                     {
                         Node node = new("omni-account-manager", "omni-account-manager", "localhost", (arg) => { });
                         node.Start();
-                        var argument = JsonSerializer.Serialize(new IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
+                        var argument = JsonSerializer.Serialize(new AppState.IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
                         node.Send($"IpcLogin:{argument}");
                         Environment.Exit(0);
                     }
@@ -98,7 +96,7 @@ namespace AccountManager.UI.Extensions
                             var appState = new AppState(services.GetRequiredService<IAccountService>(), services.GetRequiredService<IIpcService>());
                             Task.Run(async () =>
                             {
-                                await appState.IpcLogin(new IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
+                                await appState.IpcLogin(new AppState.IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });
                                 Environment.Exit(0);
                             });
 
@@ -115,7 +113,7 @@ namespace AccountManager.UI.Extensions
             return services;
         }
 
-        public static IServiceCollection AddAutoMapperMappings(this ServiceCollection services)
+        public static IServiceCollection AddAutoMapperMappings(this IServiceCollection services)
         {
             services.AddAutoMapper((cfg) =>
             {

@@ -10,10 +10,10 @@ namespace AccountManager.Infrastructure.Services
     {
         public T Settings { get; set; }
         public event Action OnSettingsSaved = delegate { };
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly IAuthService _authService;
         private readonly IAlertService _alertService;
-        public UserSettingsService(IIOService iOService, IAuthService authService, IAlertService alertService)
+        public UserSettingsService(IGeneralFileSystemService iOService, IAuthService authService, IAlertService alertService)
         {
             _iOService = iOService;
             Settings = _iOService.ReadData<T>();

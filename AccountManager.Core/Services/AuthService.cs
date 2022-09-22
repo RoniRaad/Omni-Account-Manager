@@ -7,13 +7,13 @@ namespace AccountManager.Core.Services
 {
     public sealed class AuthService : IAuthService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly IAlertService _alertService;
         private readonly IDistributedCache _persistantCache;
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
-        public AuthService(IIOService iOService, IAlertService alertService, IDistributedCache persistantCache)
+        public AuthService(IGeneralFileSystemService iOService, IAlertService alertService, IDistributedCache persistantCache)
         {
             _iOService = iOService;
             AuthInitialized = _iOService.ValidateData();

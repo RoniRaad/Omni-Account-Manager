@@ -9,14 +9,14 @@ namespace AccountManager.Tests.Core.Services
 {
     public sealed class AuthServiceTests
     {
-        private readonly Mock<IIOService> _iOService;
+        private readonly Mock<IGeneralFileSystemService> _iOService;
         private readonly Mock<IAlertService> _alertService;
         private readonly Mock<IDistributedCache> _persistantCache;
         private readonly AuthService _sut;
 
         public AuthServiceTests()
         {
-            _iOService = new Mock<IIOService>();
+            _iOService = new Mock<IGeneralFileSystemService>();
             _alertService = new Mock<IAlertService>();
             _persistantCache = new Mock<IDistributedCache>();
             _sut = new(_iOService.Object, _alertService.Object, _persistantCache.Object);

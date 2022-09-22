@@ -9,7 +9,7 @@ namespace AccountManager.Tests.Core.Services
 {
     public sealed class AccountServiceTests
     {
-        private readonly Mock<IIOService> _iOService;
+        private readonly Mock<IGeneralFileSystemService> _iOService;
         private readonly Mock<IAuthService> _authService;
         private readonly Mock<IGenericFactory<AccountType, IPlatformService>> _platformServiceFactory;
         private readonly Mock<IPlatformService> _platformService;
@@ -17,7 +17,7 @@ namespace AccountManager.Tests.Core.Services
 
         public AccountServiceTests()
         {
-            _iOService = new Mock<IIOService>();
+            _iOService = new Mock<IGeneralFileSystemService>();
             _authService = new Mock<IAuthService>();
             _platformServiceFactory = new Mock<IGenericFactory<AccountType, IPlatformService>>();
             _sut = new AccountService(_iOService.Object, _authService.Object, _platformServiceFactory.Object);

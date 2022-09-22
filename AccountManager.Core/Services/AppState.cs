@@ -78,7 +78,7 @@ namespace AccountManager.Core.Services
             _accountService.WriteAllAccounts(Accounts);
         }
 
-        public sealed class IpcLoginParameter
+        public class IpcLoginParameter
         {
             public Guid Guid { get; set; }
         }

@@ -12,7 +12,10 @@ namespace AccountManager.Infrastructure.Services.Platform
 {
     public sealed class EpicGamesPlatformService : IPlatformService
     {
-        private static string EncryptionKey = "A09C853C9E95409BB94D707EADEFA52E";
+        private static readonly string EncryptionKey = "A09C853C9E95409BB94D707EADEFA52E";
+        public readonly static string WebIconFilePath = Path.Combine("logos", "epic-games-logo.png");
+        public readonly static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+            ?? ".", "ShortcutIcons", "epic-logo.ico");
         private readonly IAlertService _alertService;
         private readonly ILogger<EpicGamesPlatformService> _logger;
         private readonly IMemoryCache _memoryCache;
@@ -21,9 +24,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IEpicGamesExternalAuthService _epicGamesExternalAuthService;
         private readonly IAppState _appState;
-        public readonly static string WebIconFilePath = Path.Combine("logos", "epic-games-logo.png");
-        public readonly static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
-            ?? ".", "ShortcutIcons", "epic-logo.ico");
+
         public EpicGamesPlatformService( IAlertService alertService,
             IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
             ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
@@ -182,7 +183,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             return true;
         }
 
-        public string GenerateLoginJson(string email, string fName, string lName, string dName, string token)
+        private string GenerateLoginJson(string email, string fName, string lName, string dName, string token)
         {
             return $"[{{\"Region\":\"Prod\",\"Email\":\"{email}\",\"Name\":\"{fName}\",\"LastName\":\"{lName}\",\"DisplayName\":\"{dName}\",\"Token\":\"{token}\",\"bHasPasswordAuth\":true}}]\0";
         }
