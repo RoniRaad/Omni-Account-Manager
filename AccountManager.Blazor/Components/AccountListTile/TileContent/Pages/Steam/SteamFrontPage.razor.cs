@@ -11,6 +11,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
     [AccountTilePage(Core.Enums.AccountType.Steam, 0)]
     public partial class SteamFrontPage
     {
+        private string selectedSteamGame = "none";
         private Account _account = new();
         private bool steamInstallNotFound = false;
         [Parameter]
@@ -24,14 +25,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
-            {
-                _account = Account;
-            }
+            _account = Account;
 
             await base.OnParametersSetAsync();
         }
-        public string SelectedSteamGame = "none";
 
         public void SetGame(string appId)
         {
@@ -41,13 +38,13 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         public void OnRadioClicked(ChangeEventArgs args)
         {
             SetGame(args?.Value?.ToString() ?? "none");
-            SelectedSteamGame = args?.Value?.ToString() ?? "none";
+            selectedSteamGame = args?.Value?.ToString() ?? "none";
         }
         public async Task RefreshGamesAsync()
         {
             Games.Clear();
 
-            SelectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            selectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
             if (!File.Exists(Path.Combine(_generalSettings.Settings.SteamInstallDirectory, "steam.exe")))
             {
                 steamInstallNotFound = true;
@@ -64,9 +61,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
-            if (cachedSelectedGame != SelectedSteamGame)
+            if (cachedSelectedGame != selectedSteamGame)
             {
-                SelectedSteamGame = cachedSelectedGame;
+                selectedSteamGame = cachedSelectedGame;
                 StateHasChanged();
             }
             await base.OnAfterRenderAsync(firstRender);

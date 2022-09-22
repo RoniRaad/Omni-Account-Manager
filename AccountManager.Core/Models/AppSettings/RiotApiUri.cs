@@ -17,5 +17,6 @@
         public string? LeagueSessionEUC { get; set; }
         public string? LeagueSessionAPSE { get; set; }
         public string? RiotCDN { get; set; }
+        public string? RiotGeo { get; set; }
     }
 }

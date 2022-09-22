@@ -59,8 +59,10 @@ namespace AccountManager.UI.Services
             if (WebView is not null)
                 return;
 
-            WebView = new WebView2Browser();
-            WebView.Title = "Epic Games Browser";
+            WebView = new WebView2Browser
+            {
+                Title = "Epic Games Browser"
+            };
             WebView.Show();
             WebView.webv2.Source = new Uri(_epicGamesApiUri.LoginUri);
             WebView.webv2.CoreWebView2InitializationCompleted += async (_, e) =>

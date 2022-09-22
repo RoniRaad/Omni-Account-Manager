@@ -24,14 +24,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
-            {
-                _account = Account;
-            }
+             _account = Account;
 
             await base.OnParametersSetAsync();
         }
-        public string SelectedEpicGame = "none";
+        private string selectedEpicGame = "none";
 
         public void SetGame(string appId)
         {
@@ -41,13 +38,13 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
         public void OnRadioClicked(ChangeEventArgs args)
         {
             SetGame(args?.Value?.ToString() ?? "none");
-            SelectedEpicGame = args?.Value?.ToString() ?? "none";
+            selectedEpicGame = args?.Value?.ToString() ?? "none";
         }
         public async Task RefreshGamesAsync()
         {
             Games.Clear();
 
-            SelectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
+            selectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
 
             if (!_steamLibraryService.TryGetInstalledGames(out var gameManifests))
                 return;
@@ -55,15 +52,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
             Games.AddRange(gameManifests);
         }
 
-        protected async override Task OnAfterRenderAsync(bool first)
+        protected async override Task OnAfterRenderAsync(bool firstRender)
         {
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
-            if (cachedSelectedGame != SelectedEpicGame)
+            if (cachedSelectedGame != selectedEpicGame)
             {
-                SelectedEpicGame = cachedSelectedGame;
+                selectedEpicGame = cachedSelectedGame;
                 StateHasChanged();
             }
-            await base.OnAfterRenderAsync(first);
+            await base.OnAfterRenderAsync(firstRender);
         }
 
         protected async override Task OnInitializedAsync()

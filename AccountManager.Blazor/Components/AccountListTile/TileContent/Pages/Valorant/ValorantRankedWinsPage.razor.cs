@@ -97,9 +97,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 

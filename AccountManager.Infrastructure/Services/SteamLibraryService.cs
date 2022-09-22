@@ -50,15 +50,8 @@ namespace AccountManager.Infrastructure.Services
                 return new();
             }
 
-
-            foreach (var file in steamAppFiles.ToList())
-            {
-                if (file.Contains("appmanifest"))
-                {
-                    var fileContents = File.ReadAllText(file);
-                    installedGameManifests.Add(fileContents);
-                }
-            }
+            installedGameManifests.AddRange(steamAppFiles.Where((file) => file.Contains("appmanifest"))
+                .Select((file) => File.ReadAllText(file)));
 
             return true;
         }

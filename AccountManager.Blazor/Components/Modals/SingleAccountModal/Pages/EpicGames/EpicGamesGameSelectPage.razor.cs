@@ -20,7 +20,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicG
 
         private List<EpicGamesInstalledGame> games = new();
         private bool epicInstallNotFound = false;
-        public string SelectedEpicGame = "none";
+        private string selectedEpicGame = "none";
 
         protected override async Task OnInitializedAsync()
         {
@@ -38,13 +38,13 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicG
         public void OnRadioClicked(ChangeEventArgs args)
         {
             SetGame(args?.Value?.ToString() ?? "none");
-            SelectedEpicGame = args?.Value?.ToString() ?? "none";
+            selectedEpicGame = args?.Value?.ToString() ?? "none";
         }
         public async Task RefreshGame()
         {
             games.Clear();
 
-            SelectedEpicGame = await _persistantCache.GetStringAsync($"{Account?.Guid}.SelectedEpicGame") ?? "none";
+            selectedEpicGame = await _persistantCache.GetStringAsync($"{Account?.Guid}.SelectedEpicGame") ?? "none";
 
             if (!_epicLibraryService.TryGetInstalledGames(out var gameManifests))
                 return;

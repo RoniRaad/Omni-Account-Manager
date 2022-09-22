@@ -22,6 +22,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMapper _autoMapper;
         private readonly IRiotTokenClient _riotTokenClient;
+        private readonly RiotApiUri _riotApiUri;
         private readonly RiotTokenRequest valorantRequest = new RiotTokenRequest
         {
             Id = "play-valorant-web-prod",
@@ -54,6 +55,7 @@ namespace AccountManager.Infrastructure.Clients
             _autoMapper = autoMapper;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
+            _riotApiUri = riotApiOptions.Value;
         }
 
         public async Task<string?> GetExpectedClientVersion()
@@ -91,7 +93,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             var riotTokens = await _riotTokenClient.GetRiotTokens(valorantRequest, account);
             var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri("https://riot-geo.pas.si.riotgames.com/");
+            client.BaseAddress = new Uri(_riotApiUri?.RiotGeo ?? "");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             var affinityResponse = await client.PutAsJsonAsync<AffinityRequest>("/pas/v1/product/valorant", new() { IdToken = riotTokens.IdToken });
             
