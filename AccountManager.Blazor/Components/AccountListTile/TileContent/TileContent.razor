@@ -12,7 +12,7 @@
     <span class="oi oi-reload" @onclick="RefreshData" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph" />
     <div>
         <p class="account-title">@Account?.Username</p>
-        @if (Account?.Rank?.Tier is null && Account?.Rank?.Ranking is null)
+        @if (string.IsNullOrEmpty(Account?.Rank?.Tier) && string.IsNullOrEmpty(Account?.Rank?.Ranking))
         {
             <p class="account-rank">N/A</p>
         }

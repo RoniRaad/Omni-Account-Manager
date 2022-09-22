@@ -5,8 +5,8 @@ namespace AccountManager.Core.Static
 {
     public static class StringEncryption
     {
-        private static int KeySize = 32; // 256 bit
-        private static byte[] Salt = new byte[] { 10, 20, 30, 40, 50, 60, 70, 80 };
+        private static readonly int KeySize = 32; // 256 bit
+        private static readonly byte[] Salt = new byte[] { 10, 20, 30, 40, 50, 60, 70, 80 };
 
         public static string EncryptString(string key, string plainText)
         {

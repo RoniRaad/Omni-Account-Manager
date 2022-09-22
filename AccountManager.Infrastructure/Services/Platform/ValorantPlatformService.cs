@@ -30,8 +30,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly IRiotTokenClient _riotTokenClient;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
-        public static string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
-        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+        public static readonly string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
+        public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "valorant-logo.ico");
         public ValorantPlatformService(IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, IRiotFileSystemService riotLockFileService, IAlertService alertService,

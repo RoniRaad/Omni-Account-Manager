@@ -137,7 +137,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        private void CloseEpicGamesClient()
+        private static void CloseEpicGamesClient()
         {
             foreach (var process in Process.GetProcesses()
                 .Where((process) => process.ProcessName.ToLower().Contains("epicgames")))
