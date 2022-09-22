@@ -5,9 +5,9 @@ namespace AccountManager.Infrastructure.Services.Token
 {
     public sealed class LeagueTokenService : ITokenService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly LeagueFileSystemService _leagueFileSystemService;
-        public LeagueTokenService(IIOService iOService, LeagueFileSystemService leagueFileSystemService)
+        public LeagueTokenService(IGeneralFileSystemService iOService, LeagueFileSystemService leagueFileSystemService)
         {
             _iOService = iOService;
             _leagueFileSystemService = leagueFileSystemService;

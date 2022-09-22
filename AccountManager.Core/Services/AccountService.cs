@@ -6,11 +6,11 @@ namespace AccountManager.Core.Services
 {
     public sealed class AccountService : IAccountService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly IAuthService _authService;
         private readonly IGenericFactory<AccountType, IPlatformService> _platformServiceFactory;
         public event Action OnAccountListChanged = delegate { };
-        public AccountService(IIOService iOService, IAuthService authService, IGenericFactory<AccountType, IPlatformService> platformServiceFactory)
+        public AccountService(IGeneralFileSystemService iOService, IAuthService authService, IGenericFactory<AccountType, IPlatformService> platformServiceFactory)
         {
             _iOService = iOService;
             _authService = authService;

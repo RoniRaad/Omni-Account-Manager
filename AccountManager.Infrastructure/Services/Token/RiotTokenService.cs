@@ -7,9 +7,9 @@ namespace AccountManager.Infrastructure.Services.Token
 {
     public sealed class RiotTokenService : ITokenService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
 
-        public RiotTokenService(IIOService iOService)
+        public RiotTokenService(IGeneralFileSystemService iOService)
         {
             _iOService = iOService;
         }
