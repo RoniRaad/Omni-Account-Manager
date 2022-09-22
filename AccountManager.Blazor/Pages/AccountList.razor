@@ -41,10 +41,10 @@
 
 @if (addAccountPrompt)
 {
-    <NewAccountModal AccountService="_accountService" Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountModal>
+    <NewAccountModal Close="() => {addAccountPrompt=false; InvokeAsync(()=>StateHasChanged()); LoadList();}"></NewAccountModal>
 }
 
 @if (editAccountTarget is not null)
 {
-    <AccountEditModal Account="editAccountTarget" AccountService="_accountService" Close="() => {editAccountTarget = null; InvokeAsync(() => StateHasChanged());}"></AccountEditModal>
+    <AccountEditModal Account="editAccountTarget" Close="() => {editAccountTarget = null; InvokeAsync(() => StateHasChanged());}"></AccountEditModal>
 }

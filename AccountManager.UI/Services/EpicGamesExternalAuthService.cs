@@ -1,19 +1,15 @@
-﻿using AccountManager.Core.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Models.EpicGames;
 using AccountManager.Core.Static;
 using AccountManager.UI.Windows;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using Microsoft.Web.WebView2.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-
 
 namespace AccountManager.UI.Services
 {
@@ -152,6 +148,7 @@ namespace AccountManager.UI.Services
 
         public void CloseBrowser()
         {
+            WebView?.webv2?.Dispose();
             WebView?.Close();
             WebView = null;
         }
