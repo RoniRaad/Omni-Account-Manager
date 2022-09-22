@@ -6,7 +6,7 @@ using AccountManager.Core.Static;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class UserSettingsService<T> : IUserSettingsService<T> where T : new()
+    public sealed class UserSettingsService<T> : IUserSettingsService<T> where T : new()
     {
         public T Settings { get; set; }
         public event Action OnSettingsSaved = delegate { };

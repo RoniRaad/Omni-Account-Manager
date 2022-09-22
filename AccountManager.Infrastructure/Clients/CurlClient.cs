@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
+    public sealed class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
     {
         private string uri = "";
         private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
@@ -255,7 +255,7 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync<T>();
         }
 
-        public class CurlResponse<T> : IHttpRequestBuilderResponse<T>
+        public sealed class CurlResponse<T> : IHttpRequestBuilderResponse<T>
         {
             public HttpStatusCode StatusCode { get; set; }
             public Dictionary<string, string>? Headers { get; set; }

@@ -3,7 +3,7 @@ using AccountManager.Infrastructure.Services.FileSystem;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
-    public class LeagueTokenService : ITokenService
+    public sealed class LeagueTokenService : ITokenService
     {
         private readonly IIOService _iOService;
         private readonly LeagueFileSystemService _leagueFileSystemService;

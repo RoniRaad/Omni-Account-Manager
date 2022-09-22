@@ -7,7 +7,7 @@ using Moq;
 
 namespace AccountManager.Tests.Core.Services
 {
-    public class AuthServiceTests
+    public sealed class AuthServiceTests
     {
         private readonly Mock<IIOService> _iOService;
         private readonly Mock<IAlertService> _alertService;

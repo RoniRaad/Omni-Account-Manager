@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class SteamLibraryService : ISteamLibraryService
+    public sealed class SteamLibraryService : ISteamLibraryService
     {
         private readonly IUserSettingsService<GeneralSettings> _userSettings;
         public SteamLibraryService(IUserSettingsService<GeneralSettings> userSettings)

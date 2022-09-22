@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class LeagueTokenClient : ILeagueTokenClient
+    public sealed class LeagueTokenClient : ILeagueTokenClient
     {
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;

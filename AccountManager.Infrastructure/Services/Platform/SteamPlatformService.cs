@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class SteamPlatformService : IPlatformService
+    public sealed class SteamPlatformService : IPlatformService
     {
         private readonly IDistributedCache _persistantCache;
         private readonly IUserSettingsService<GeneralSettings> _userSettings;

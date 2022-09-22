@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedLeagueClient : ILeagueClient
+    public sealed class CachedLeagueClient : ILeagueClient
     {
         private readonly IMemoryCache _memoryCache;
         private readonly ILeagueClient _leagueClient;

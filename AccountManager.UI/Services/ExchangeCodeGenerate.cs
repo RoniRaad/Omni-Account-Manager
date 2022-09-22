@@ -2,7 +2,7 @@
 
 namespace AccountManager.UI.Services
 {
-    public class ExchangeCodeGenerate
+    public sealed class ExchangeCodeGenerate
     {
         [JsonPropertyName("code")]
         public string ExchangeCode { get; set; } = "";

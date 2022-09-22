@@ -4,7 +4,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 {
     public partial class RiotClientApi
     {
-        public class LoginRequest
+        public sealed class LoginRequest
         {
             [JsonPropertyName("password")]
             public string? Password { get; set; }

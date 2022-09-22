@@ -5,7 +5,7 @@ using System.IO.Pipes;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
-    public class RiotTokenService : ITokenService
+    public sealed class RiotTokenService : ITokenService
     {
         private readonly IIOService _iOService;
 

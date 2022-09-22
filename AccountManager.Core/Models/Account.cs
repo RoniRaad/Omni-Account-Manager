@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models
 {
-    public class Account
+    public sealed class Account
     {
         public Guid Guid { get; set; } = Guid.NewGuid();
         public string? Id { get; set; } // Non-Unique ID

@@ -4,7 +4,7 @@ using AccountManager.Core.Models;
 
 namespace AccountManager.Core.Services
 {
-    public class AccountService : IAccountService
+    public sealed class AccountService : IAccountService
     {
         private readonly IIOService _iOService;
         private readonly IAuthService _authService;

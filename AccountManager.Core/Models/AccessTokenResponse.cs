@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models
 {
-    public class AccessTokenResponse
+    public sealed class AccessTokenResponse
     {
         [JsonPropertyName("access_token")]
         public string? AccessToken { get; set; }

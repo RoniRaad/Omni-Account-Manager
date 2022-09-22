@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class EpicGamesPlatformService : IPlatformService
+    public sealed class EpicGamesPlatformService : IPlatformService
     {
         private static string EncryptionKey = "A09C853C9E95409BB94D707EADEFA52E";
         private readonly IAlertService _alertService;

@@ -15,7 +15,7 @@ using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class TeamFightTacticsPlatformService : IPlatformService
+    public sealed class TeamFightTacticsPlatformService : IPlatformService
     {
         private readonly ITokenService _riotService;
         private readonly ILeagueClient _leagueClient;

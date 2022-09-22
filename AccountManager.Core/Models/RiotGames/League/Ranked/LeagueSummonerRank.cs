@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class LeagueSummonerRank
+    public sealed class LeagueSummonerRank
     {
         [JsonPropertyName("queueMap")]
         public QueueMap? QueueMap { get; set; }

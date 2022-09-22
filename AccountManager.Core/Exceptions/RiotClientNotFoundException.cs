@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Exceptions
 {
-    public class RiotClientNotFoundException : Exception
+    public sealed class RiotClientNotFoundException : Exception
     {
         public RiotClientNotFoundException()
         {

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models
 {
-    public class AccountInfo
+    public sealed class AccountInfo
     {
         [JsonPropertyName("id")]
         public string? Id { get; set; }

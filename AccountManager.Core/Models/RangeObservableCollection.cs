@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models
 {
-    public class RangeObservableCollection<T> : ObservableCollection<T>
+    public sealed class RangeObservableCollection<T> : ObservableCollection<T>
     {
         private bool _suppressNotification = false;
 

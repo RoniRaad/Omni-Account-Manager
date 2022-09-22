@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class IpcService : IIpcService
+    public sealed class IpcService : IIpcService
     {
         public event EventHandler<IpcReceivedEventArgs> IpcReceived = delegate { };
         public IpcService()

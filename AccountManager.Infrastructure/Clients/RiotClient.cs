@@ -16,7 +16,7 @@ using System.Collections.Immutable;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class RiotClient : IRiotClient
+    public sealed class RiotClient : IRiotClient
     {
         private readonly ILogger<RiotClient> _logger;
         private readonly IHttpClientFactory _httpClientFactory;

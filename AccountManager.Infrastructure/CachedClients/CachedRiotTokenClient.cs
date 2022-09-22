@@ -9,7 +9,7 @@ using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedRiotTokenClient : IRiotTokenClient
+    public sealed class CachedRiotTokenClient : IRiotTokenClient
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IRiotTokenClient _riotTokenClient;

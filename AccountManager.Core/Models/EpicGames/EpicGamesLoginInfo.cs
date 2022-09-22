@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models.EpicGames
 {
-    public class EpicGamesLoginInfo
+    public sealed class EpicGamesLoginInfo
     {
         public string? Username { get; set; }
         public string? Name { get; set; }

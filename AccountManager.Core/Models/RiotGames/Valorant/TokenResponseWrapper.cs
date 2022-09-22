@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models.RiotGames.Valorant
 {
-    public class TokenResponseWrapper
+    public sealed class TokenResponseWrapper
     {
         [JsonPropertyName("type")]
         public string? Type { get; set; }

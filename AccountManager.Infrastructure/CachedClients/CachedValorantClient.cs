@@ -10,7 +10,7 @@ using System.Security.Principal;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedValorantClient : IValorantClient
+    public sealed class CachedValorantClient : IValorantClient
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;

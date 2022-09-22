@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.EpicGames
 {
-    public class EpicGamesInstalledGame
+    public sealed class EpicGamesInstalledGame
     {
         [JsonPropertyName("DisplayName")]
         public string? Name { get; set; }

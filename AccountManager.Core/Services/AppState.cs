@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace AccountManager.Core.Services
 {
-    public class AppState : IAppState
+    public sealed class AppState : IAppState
     {
         private readonly IAccountService _accountService;
         public List<Account> Accounts { get; set; }
@@ -78,7 +78,7 @@ namespace AccountManager.Core.Services
             _accountService.WriteAllAccounts(Accounts);
         }
 
-        public class IpcLoginParameter
+        public sealed class IpcLoginParameter
         {
             public Guid Guid { get; set; }
         }

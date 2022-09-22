@@ -15,7 +15,7 @@ using AccountManager.Core.Models.RiotGames;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class LeaguePlatformService : IPlatformService
+    public sealed class LeaguePlatformService : IPlatformService
     {
         private readonly ITokenService _riotService;
         private readonly ILeagueClient _leagueClient;
