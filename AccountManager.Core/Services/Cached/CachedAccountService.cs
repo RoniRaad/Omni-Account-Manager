@@ -27,41 +27,41 @@ namespace AccountManager.Core.Services.Cached
             _accountService.OnAccountListChanged += () => OnAccountListChanged.Invoke();
         }
 
-        public void RemoveAccount(Account account)
+        public async Task RemoveAccountAsync(Account account)
         {
             _memoryCache.Remove(minAccountCacheKey);
             _memoryCache.Remove(accountCacheKey);
-            _accountService.RemoveAccount(account);
+            await _accountService.RemoveAccountAsync(account);
         }
 
-        public async Task<List<Account>> GetAllAccounts()
+        public async Task<List<Account>> GetAllAccountsAsync()
         {
             return await _memoryCache.GetOrCreateAsync(accountCacheKey, async (entry) =>
             {
-                return await _accountService.GetAllAccounts();
+                return await _accountService.GetAllAccountsAsync();
             }) ?? new();
         }
 
-        public List<Account> GetAllAccountsMin()
+        public async Task<List<Account>> GetAllAccountsMinAsync()
         {
-            return _memoryCache.GetOrCreate(minAccountCacheKey, (entry) =>
+            return await _memoryCache.GetOrCreateAsync(minAccountCacheKey, async (entry) =>
             {
-                return _accountService.GetAllAccountsMin();
+                return await _accountService.GetAllAccountsMinAsync();
             }) ?? new();
         }
 
-        public async Task Login(Account account)
+        public async Task LoginAsync(Account account)
         {
             await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", false);
-            await _accountService.Login(account);
+            await _accountService.LoginAsync(account);
         }
 
-        public void WriteAllAccounts(List<Account> accounts)
+        public async Task WriteAllAccountsAsync(List<Account> accounts)
         {
             accountWriteSemaphore.Wait();
             _memoryCache.Remove(accountCacheKey);
             _memoryCache.Remove(minAccountCacheKey);
-            _accountService.WriteAllAccounts(accounts);
+            await _accountService.WriteAllAccountsAsync(accounts);
             accountWriteSemaphore.Release();
         }
     }

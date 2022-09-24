@@ -21,7 +21,7 @@
                         <div class="form-check">
                             <input type="checkbox" @onchange="(ChangeEventArgs e) => {
                                 _settings.Settings.OnlyShowOwnedSteamGames = (bool)(e?.Value ?? true); 
-                                _settings.Save();
+                                _settings.SaveAsync();
                             }" id="steamGamesCheckbox" checked="@_settings.Settings.OnlyShowOwnedSteamGames"></input>
                             <label class="form-check-label" for="steamGamesCheckbox"></label>
                         </div>

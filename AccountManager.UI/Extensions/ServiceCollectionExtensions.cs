@@ -51,10 +51,10 @@ namespace AccountManager.UI.Extensions
                             var password = await persistantCache.GetAsync<string>(CacheKeys.LoginCacheKeys.RememberedPassword);
                             if (!string.IsNullOrEmpty(password))
                             {
-                                authService.Login(password);
+                                await authService.LoginAsync(password);
                                 var accountService = services.GetRequiredService<IAccountService>();
-                                var accounts = accountService.GetAllAccountsMin();
-                                await accountService.Login(accounts.FirstOrDefault((acc) => acc?.Guid.ToString() == parsedArgs["login"]) ?? new());
+                                var accounts = await accountService.GetAllAccountsMinAsync();
+                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Guid.ToString() == parsedArgs["login"]) ?? new());
                                 Environment.Exit(0);
                             }
                         }
@@ -215,7 +215,7 @@ namespace AccountManager.UI.Extensions
             {
                 httpClient.BaseAddress = baseUri;
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/46.0.0.4265023.4253280 rso-auth (Windows;10;;Enterprise, x64)");
             }).ConfigureHttpMessageHandlerBuilder(x =>
             {
                 x.PrimaryHandler = new HttpClientHandler

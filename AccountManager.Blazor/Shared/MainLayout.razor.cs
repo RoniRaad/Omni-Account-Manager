@@ -35,15 +35,15 @@ namespace AccountManager.Blazor.Shared
                 filterSidebarStyle = "transform: translate(-188px); animation: popin-translate .3s ease; width: 0px";
         }
 
-        public async Task Login()
+        public async Task LoginAsync()
         {
-            _authService.Login(Password);
+            await _authService.LoginAsync(Password);
             await InvokeAsync(() => StateHasChanged());
         }
 
-        public async Task Register()
+        public async Task RegisterAsync()
         {
-            _authService.Register(Password);
+            await _authService.RegisterAsync(Password);
             await InvokeAsync(() => StateHasChanged());
         }
 

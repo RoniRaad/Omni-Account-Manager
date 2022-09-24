@@ -130,7 +130,14 @@ namespace AccountManager.Infrastructure.Clients
                 var cookieHeader = _requestCookies.GetCookieHeader(new Uri(uri));
 
                 if (!cookieHeader.Contains("tdid"))
-                    cookieHeader += $";tdid={Guid.NewGuid()}";
+                {
+                    if (!string.IsNullOrEmpty(cookieHeader))
+                        cookieHeader += $";tdid={Guid.NewGuid()}";
+                    else
+                        cookieHeader = $"tdid={Guid.NewGuid()}";
+                }
+
+
 
                 _argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
                 _argumentsBuilder.Add($"{uri}");

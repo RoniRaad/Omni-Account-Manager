@@ -22,7 +22,7 @@
                         <div class="form-check">
                             <input type="checkbox" @onchange="(ChangeEventArgs e) => {
                                 _settings.Settings.UseAccountCredentials = (bool)(e?.Value ?? true); 
-                                _settings.Save();
+                                _settings.SaveAsync();
                             }" id="credentialsCheckBox" checked="@_settings.Settings.UseAccountCredentials"></input>
                             <label class="form-check-label" for="credentialsCheckBox">
                                 Use credentials
@@ -61,12 +61,12 @@
         return base.OnInitializedAsync();
     }
 
-    public void AccountCredentialsChanged(ChangeEventArgs args)
+    public async Task AccountCredentialsChanged(ChangeEventArgs args)
     {
         if (args.Value is string)
             if (Guid.TryParse(args.Value as string, out Guid selectedGuid))
                 _settings.Settings.AccountToUseCredentials = selectedGuid;
 
-        _settings.Save();
+        await _settings.SaveAsync();
     }
 }

@@ -8,8 +8,8 @@ namespace AccountManager.Core.Interfaces
 
         event Action OnSettingsSaved;
 
-        bool ChangePassword(PasswordChangeRequest changeRequest);
+        Task<bool> ChangePasswordAsync(PasswordChangeRequest changeRequest);
         void ClearCookies();
-        void Save();
+        Task SaveAsync();
     }
 }

@@ -49,7 +49,7 @@
             return;
 
         loginDisabled = true;
-        await _accountService.Login(Account);
+        await _accountService.LoginAsync(Account);
         loginDisabled = false;
     }
 

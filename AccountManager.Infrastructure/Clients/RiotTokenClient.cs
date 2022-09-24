@@ -77,7 +77,7 @@ namespace AccountManager.Infrastructure.Clients
                 cookieCollection.Add(sessionCookie);
 
             var authResponse = await _curlRequestBuilder.CreateBuilder()
-                .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                 .SetContent(request)
                 .AddCookies(cookieCollection)
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
@@ -132,7 +132,7 @@ namespace AccountManager.Infrastructure.Clients
                     }
 
                     var authResponse = await _curlRequestBuilder.CreateBuilder()
-                    .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                    .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                     .SetContent(new AuthRequest
                     {
                         Type = "auth",
@@ -164,7 +164,7 @@ namespace AccountManager.Infrastructure.Clients
                         }
 
                         authResponse = await _curlRequestBuilder.CreateBuilder()
-                        .SetUri($"{_riotApiUri.Auth}/api/v1/authorization")
+                        .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                         .SetContent(new MultifactorRequest()
                         {
                             Code = mfCode,
@@ -210,7 +210,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             var uriParameters = $"redirect_uri={HttpUtility.UrlEncode(request.RedirectUri)}&client_id={HttpUtility.UrlEncode(request.Id)}&response_type={HttpUtility.UrlEncode(request.ResponseType)}&nonce={HttpUtility.UrlEncode(request.Nonce)}&scope={HttpUtility.UrlEncode(request.Scope)}";
             var tokenResponse = await _curlRequestBuilder.CreateBuilder()
-                .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}")
+                .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}/")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
                 .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
                 .AddCookies(cookies.GetCookies() ?? new())
@@ -271,7 +271,7 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<string?> GetEntitlementToken(string accessToken)
         {
             var response = await _curlRequestBuilder.CreateBuilder()
-            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
+            .SetUri($"{_riotApiUri.Entitlement}/api/token/v1/")
             .SetContent(new { })
             .SetBearerToken(accessToken)
             .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")

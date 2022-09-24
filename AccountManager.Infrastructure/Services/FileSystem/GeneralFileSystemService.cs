@@ -239,7 +239,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         private string ReadFile(string filePath)
         {
+            if (!File.Exists(filePath))
+                return "";
+
             var cacheKey = $"{filePath}.FileContent";
+
             return _memoryCache.GetOrCreate(cacheKey, (entry) =>
             {
                 return File.ReadAllText(filePath);
@@ -248,6 +252,9 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         private async Task<string> ReadFileAsync(string filePath)
         {
+            if (!File.Exists(filePath))
+                return "";
+
             var cacheKey = $"{filePath}.FileContent";
             return await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
             {
@@ -257,6 +264,15 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         private void WriteFile(string filePath, string content)
         {
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir is null)
+                return;
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             var cacheKey = $"{filePath}.FileContent";
             _memoryCache.Remove(cacheKey);
 
@@ -265,8 +281,17 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         private async Task WriteFileAsync(string filePath, string content)
         {
+            var dir = Path.GetDirectoryName(filePath);
             var cacheKey = $"{filePath}.FileContent";
             _memoryCache.Remove(cacheKey);
+
+            if (dir is null)
+                return;
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
 
             await File.WriteAllTextAsync(filePath, content);
         }

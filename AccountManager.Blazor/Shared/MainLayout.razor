@@ -85,7 +85,7 @@ else if (_authService.AuthInitialized)
 				</label>
 			</div>
 
-			<button type="submit" class="btn btn-dark" @onclick=Login>
+			<button type="submit" class="btn btn-dark" @onclick=LoginAsync>
 				Login
 			</button>
 		</div>
@@ -99,7 +99,7 @@ else {
 			<div class="form-group">
 				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
 			</div>
-			<button type="submit" class="btn btn-dark" @onclick=Register>Register</button>
+			<button type="submit" class="btn btn-dark" @onclick=RegisterAsync>Register</button>
 		</div>
 	</form>
 }

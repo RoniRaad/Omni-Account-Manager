@@ -21,12 +21,12 @@ namespace AccountManager.Infrastructure.Services
             _alertService = alertService;
         }
 
-        public void Save() {
-            _iOService.UpdateData(Settings);
+        public async Task SaveAsync() {
+            await _iOService.UpdateDataAsync(Settings);
             OnSettingsSaved.Invoke();
         }
 
-        public bool ChangePassword(PasswordChangeRequest changeRequest)
+        public async Task<bool> ChangePasswordAsync(PasswordChangeRequest changeRequest)
         {
             if (changeRequest.NewPassword != changeRequest.NewPasswordConfirm)
             {
@@ -39,7 +39,7 @@ namespace AccountManager.Infrastructure.Services
                 return false;
             }
 
-            _authService.ChangePassword(changeRequest.OldPassword, changeRequest.NewPassword);
+            await _authService.ChangePasswordAsync(changeRequest.OldPassword, changeRequest.NewPassword);
             return true;
         }
 

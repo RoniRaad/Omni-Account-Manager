@@ -21,7 +21,7 @@ namespace AccountManager.Core.Services
             _persistantCache = persistantCache;
         }
 
-        public void Login(string password)
+        public async Task LoginAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = _iOService.TryReadEncryptedData(PasswordHash);
@@ -30,21 +30,18 @@ namespace AccountManager.Core.Services
                 _alertService.AddErrorAlert("Error incorrect password!");
             }
 
-            Task.Run(async () =>
-            {
-                if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
-                    await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
-            });
+            if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
+                await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
         }
 
-        public void Register(string password)
+        public async Task RegisterAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
-            _iOService.UpdateData<List<object>>(new(), PasswordHash);
+            await _iOService.UpdateDataAsync<List<object>>(new(), PasswordHash);
             LoggedIn = true;
         }
 
-        public void ChangePassword(string oldPassword, string newPassword)
+        public async Task ChangePasswordAsync(string oldPassword, string newPassword)
         {
             if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || !_iOService.TryReadEncryptedData(oldPassword))
                 return;
@@ -52,8 +49,8 @@ namespace AccountManager.Core.Services
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);
 
-            var currentData = _iOService.ReadData<List<Account>>(oldPassword);
-            _iOService.UpdateData(currentData, newPassword);
+            var currentData = await _iOService.ReadDataAsync<List<Account>>(oldPassword);
+            await _iOService.UpdateDataAsync(currentData, newPassword);
             PasswordHash = newPassword;
         }
     }

@@ -35,7 +35,7 @@
                             <span @onclick="() => ShowRiotFolderPicker = true" class="btn oi-folder" type="button"></span>
                         </div>
                     </div>
-                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
                 </td>
             </tr>
             <tr>
@@ -49,7 +49,7 @@
                             <span @onclick="() => ShowSteamFolderPicker = true" class="btn oi-folder" type="button"></span>
                         </div>
                     </div>
-                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
                 </td>
             </tr>
             <tr>
@@ -63,7 +63,7 @@
                             <span @onclick="() => ShowEpicFolderPicker = true" class="btn oi-folder" type="button"></span>
                         </div>
                     </div>
-                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
                 </td>
             </tr>
         </tbody>
