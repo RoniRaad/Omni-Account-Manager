@@ -213,7 +213,7 @@ namespace AccountManager.Infrastructure.Clients
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Auth}/userinfo")
             .SetBearerToken(riotToken)
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .SetUserAgent(_riotApiUri.UserAgent)
             .Get();
 
             return response?.ResponseContent ?? "";
@@ -226,7 +226,7 @@ namespace AccountManager.Infrastructure.Clients
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
             .SetContent(new { urn = "urn:entitlement" })
             .SetBearerToken(riotToken)
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .SetUserAgent(_riotApiUri.UserAgent)
             .Post<EntitlementResponse>();
 
             entitlement = response?.ResponseContent?.EntitlementToken ?? "";

@@ -43,8 +43,11 @@ namespace AccountManager.Infrastructure.Services
             try
             {
                 using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
-                await manager.UpdateApp();
-                UpdateManager.RestartApp();
+                var releaseEntry = await manager.UpdateApp();
+                var version = releaseEntry.Version;
+                var latestExePath = Path.Combine(manager.RootAppDirectory, string.Concat("app-", version.Version.Major, ".", version.Version.Minor, ".", version.Version.Build), "OmniAccountManager.exe");
+
+                UpdateManager.RestartApp(latestExePath);
             }
             catch
             {

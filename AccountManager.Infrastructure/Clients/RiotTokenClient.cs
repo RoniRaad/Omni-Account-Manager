@@ -81,7 +81,7 @@ namespace AccountManager.Infrastructure.Clients
                 .SetContent(request)
                 .AddCookies(cookieCollection)
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent("RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .SetUserAgent(_riotApiUri.UserAgent)
                 .Post<TokenResponseWrapper>();
 
             var authResponseDeserialized = authResponse.ResponseContent;
@@ -141,7 +141,7 @@ namespace AccountManager.Infrastructure.Clients
                         Remember = true
                     })
                     .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                    .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                    .SetUserAgent(_riotApiUri.UserAgent)
                     .AddCookies(initialCookies.GetCookies())
                     .Put<TokenResponseWrapper>();
 
@@ -172,7 +172,7 @@ namespace AccountManager.Infrastructure.Clients
                             RememberDevice = true
                         })
                         .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                        .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                        .SetUserAgent(_riotApiUri.UserAgent)
                         .AddCookies(responseCookies?.GetCookies() ?? new())
                         .Put<TokenResponseWrapper>();
 
@@ -212,7 +212,7 @@ namespace AccountManager.Infrastructure.Clients
             var tokenResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}/")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+                .SetUserAgent(_riotApiUri.UserAgent)
                 .AddCookies(cookies.GetCookies() ?? new())
                 .Get();
 
@@ -275,7 +275,7 @@ namespace AccountManager.Infrastructure.Clients
             .SetContent(new { })
             .SetBearerToken(accessToken)
             .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .SetUserAgent(_riotApiUri.UserAgent)
             .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")
             .Post<EntitlementTokenResponse>();
 
