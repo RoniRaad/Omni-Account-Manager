@@ -17,18 +17,18 @@ namespace AccountManager.Core.Services
             _platformServiceFactory = platformServiceFactory;
         }
 
-        public void RemoveAccount(Account account)
+        public async Task RemoveAccountAsync(Account account)
         {
-            var accounts = GetAllAccountsMin();
+            var accounts = await GetAllAccountsMinAsync();
             accounts.RemoveAll((acc) => acc?.Guid == account.Guid);
-            WriteAllAccounts(accounts);
+            await WriteAllAccountsAsync(accounts);
             OnAccountListChanged.Invoke();
         }
 
-        public async Task<List<Account>> GetAllAccounts()
+        public async Task<List<Account>> GetAllAccountsAsync()
         {
             List<Task> accountTasks = new();
-            var accounts = GetAllAccountsMin();
+            var accounts = await GetAllAccountsMinAsync();
 
             var accountsCount = accounts.Count;
             for (int i = 0; i < accountsCount; i++)
@@ -54,21 +54,21 @@ namespace AccountManager.Core.Services
             return accounts;
         }
 
-        public List<Account> GetAllAccountsMin()
+        public async Task<List<Account>> GetAllAccountsMinAsync()
         {
-            var accounts = _iOService.ReadData<List<Account>>(_authService.PasswordHash);
+            var accounts = await _iOService.ReadDataAsync<List<Account>>(_authService.PasswordHash);
             return accounts;
         }
 
-        public async Task Login(Account account)
+        public async Task LoginAsync(Account account)
         {
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
             await platformService.Login(account);
         }
 
-        public void WriteAllAccounts(List<Account> accounts)
+        public async Task WriteAllAccountsAsync(List<Account> accounts)
         {
-            _iOService.UpdateData(accounts, _authService.PasswordHash);
+            await _iOService.UpdateDataAsync(accounts, _authService.PasswordHash);
         }
     }
 }

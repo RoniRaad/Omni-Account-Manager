@@ -6,8 +6,8 @@
         bool LoggedIn { get; set; }
         string PasswordHash { get; set; }
 
-        void ChangePassword(string oldPassword, string newPassword);
-        void Login(string password);
-        void Register(string password);
+        Task ChangePasswordAsync(string oldPassword, string newPassword);
+        Task LoginAsync(string password);
+        Task RegisterAsync(string password);
     }
 }

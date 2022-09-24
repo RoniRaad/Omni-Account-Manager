@@ -27,7 +27,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
             if (loginDisabled)
                 return;
             loginDisabled = true;
-            await _accountService.Login(Account);
+            await _accountService.LoginAsync(Account);
             loginDisabled = false;
         }
 
@@ -66,10 +66,10 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
         }
 
-        public void ToggleContentView()
+        public async Task ToggleContentViewAsync()
         {
             Settings.ShowAccountDetails = !Settings.ShowAccountDetails;
-            _accountItemSettings.Save();
+            await _accountItemSettings.SaveAsync();
         }
     }
 }
