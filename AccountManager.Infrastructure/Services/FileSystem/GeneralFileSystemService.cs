@@ -13,7 +13,6 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         private readonly IMemoryCache _memoryCache;
         public GeneralFileSystemService(IMemoryCache memoryCache)
         {
-            ValidateData();
             _memoryCache = memoryCache;
         }
 
@@ -40,11 +39,22 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
+            AddAccountDataToCache();
 
             if (!File.Exists(filePath))
                 return false;
             else
                 return true;
+
+        }
+
+        private void AddAccountDataToCache()
+        {
+            var name = typeof(List<Account>).Name;
+            var fileName = StringEncryption.Hash(name);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+            var filePath = Path.Combine(DataPath, $"{fileName}.dat");
+            ReadFile(filePath);
         }
 
         public bool TryReadEncryptedData(string password)
@@ -62,23 +72,20 @@ namespace AccountManager.Infrastructure.Services.FileSystem
        
         public bool IsFileLocked(string filePath)
         {
-            var cacheKey = $"{filePath}.{nameof(IsFileLocked)}";
-            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
-                if (!File.Exists(filePath))
-                    return false;
 
-                try
-                {
-                    using FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
-                    return inputStream.Length <= 0;
-                }
-                catch (Exception)
-                {
-                    return true;
-                }
-            });
+            if (!File.Exists(filePath))
+                return false;
+
+            try
+            {
+                using FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                return inputStream.Length <= 0;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+
         }
 
         public void UpdateData<T>(T data, string password)
@@ -90,7 +97,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             var serializedData = JsonSerializer.Serialize(data);
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
-            File.WriteAllText(filePath, encryptedData);
+            WriteFile(filePath, encryptedData);
         }
 
         public void UpdateData<T>(T data)
@@ -103,7 +110,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
 
-            File.WriteAllText(filePath, JsonSerializer.Serialize(data));
+            WriteFile(filePath, JsonSerializer.Serialize(data));
         }
 
         public async Task UpdateDataAsync<T>(T data)
@@ -116,7 +123,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
 
-            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(data));
+            await WriteFileAsync(filePath, JsonSerializer.Serialize(data));
         }
 
         public async Task UpdateDataAsync<T>(T data, string password)
@@ -128,7 +135,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             var serializedData = JsonSerializer.Serialize(data);
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
-            await File.WriteAllTextAsync(filePath, encryptedData);
+            await WriteFileAsync(filePath, encryptedData);
         }
 
         public T ReadData<T>(string password) where T : new()
@@ -141,11 +148,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
+                WriteFile(filePath, StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
                 return new T();
             }
 
-            string encryptedData = File.ReadAllText(filePath);
+            string encryptedData = ReadFile(filePath);
             try
             {
                 decryptedData = StringEncryption.DecryptString(password, encryptedData);
@@ -169,11 +176,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, JsonSerializer.Serialize(new T()));
+                WriteFile(filePath, JsonSerializer.Serialize(new T()));
                 return new T();
             }
 
-            string data = File.ReadAllText(filePath);
+            string data = ReadFile(filePath);
             return JsonSerializer.Deserialize<T>(data) ?? new T();
         }
 
@@ -189,11 +196,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, JsonSerializer.Serialize(new T()));
+                await WriteFileAsync(filePath, JsonSerializer.Serialize(new T()));
                 return new T();
             }
 
-            string data = await File.ReadAllTextAsync(filePath);
+            string data = await ReadFileAsync(filePath);
             return JsonSerializer.Deserialize<T>(data) ?? new T();
         }
 
@@ -207,11 +214,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
+                await WriteFileAsync(filePath, StringEncryption.EncryptString(password, JsonSerializer.Serialize(new T())));
                 return new T();
             }
 
-            string encryptedData = await File.ReadAllTextAsync(filePath);
+            string encryptedData = await ReadFileAsync(filePath);
             try
             {
                 decryptedData = StringEncryption.DecryptString(password, encryptedData);
@@ -228,6 +235,40 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var filePath = Path.Combine(DataPath, "deletecache");
 
             File.Create(filePath);
+        }
+
+        private string ReadFile(string filePath)
+        {
+            var cacheKey = $"{filePath}.FileContent";
+            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            {
+                return File.ReadAllText(filePath);
+            }) ?? "";
+        }
+
+        private async Task<string> ReadFileAsync(string filePath)
+        {
+            var cacheKey = $"{filePath}.FileContent";
+            return await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            {
+                return await File.ReadAllTextAsync(filePath);
+            }) ?? "";
+        }
+
+        private void WriteFile(string filePath, string content)
+        {
+            var cacheKey = $"{filePath}.FileContent";
+            _memoryCache.Remove(cacheKey);
+
+            File.WriteAllText(filePath, content);
+        }
+
+        private async Task WriteFileAsync(string filePath, string content)
+        {
+            var cacheKey = $"{filePath}.FileContent";
+            _memoryCache.Remove(cacheKey);
+
+            await File.WriteAllTextAsync(filePath, content);
         }
     }
 }

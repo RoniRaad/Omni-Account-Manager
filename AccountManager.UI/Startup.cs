@@ -50,7 +50,6 @@ namespace AccountManager.UI
             services.Configure<RiotApiUri>(configuration.GetSection("RiotApiUri"));
             services.Configure<AboutEndpoints>(configuration.GetSection("AboutEndpoints"));
             services.Configure<EpicGamesApiUri>(configuration.GetSection("EpicGamesApiUri"));
-            services.AddSingleton<IGeneralFileSystemService, GeneralFileSystemService>();
             services.AddSingleton<IAlertService, AlertService>();
             services.AddSingleton<IAccountFilterService, AccountFilterService>();
             services.AddState();
@@ -64,6 +63,7 @@ namespace AccountManager.UI
             services.AddSingleton<IEpicGamesExternalAuthService, EpicGamesExternalAuthService>();
             services.AddTransient<IEpicGamesTokenClient, EpicGamesTokenClient>();
             services.AddTransient<IEpicGamesLibraryService, EpicGamesLibraryService>();
+            services.AddSingleton<IGeneralFileSystemService, CachedGeneralFileSystemService>();
 
             // Cached Objects
             services.AddSingleton<RiotClient>();
@@ -74,6 +74,7 @@ namespace AccountManager.UI
             services.AddSingleton<ValorantGraphService>();
             services.AddSingleton<LeagueGraphService>();
             services.AddSingleton<RiotTokenClient>();
+            services.AddSingleton<GeneralFileSystemService>(); 
 
             services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
             services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
