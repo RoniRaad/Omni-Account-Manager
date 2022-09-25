@@ -1,7 +1,9 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using KeyedSemaphores;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Principal;
 using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
@@ -39,7 +41,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
-            AddAccountDataToCache();
+            //AddAccountDataToCache();
 
             if (!File.Exists(filePath))
                 return false;
@@ -241,13 +243,15 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             if (!File.Exists(filePath))
                 return "";
-
             var cacheKey = $"{filePath}.FileContent";
 
-            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            using (KeyedSemaphore.Lock(cacheKey))
             {
-                return File.ReadAllText(filePath);
-            }) ?? "";
+                return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+                {
+                    return File.ReadAllText(filePath);
+                }) ?? "";
+            }
         }
 
         private async Task<string> ReadFileAsync(string filePath)
@@ -256,10 +260,14 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return "";
 
             var cacheKey = $"{filePath}.FileContent";
-            return await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+
+            using (await KeyedSemaphore.LockAsync(cacheKey))
             {
-                return await File.ReadAllTextAsync(filePath);
-            }) ?? "";
+                return await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+                {
+                    return await File.ReadAllTextAsync(filePath);
+                }) ?? "";
+            }
         }
 
         private void WriteFile(string filePath, string content)
@@ -276,7 +284,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileContent";
             _memoryCache.Remove(cacheKey);
 
-            File.WriteAllText(filePath, content);
+            using (KeyedSemaphore.Lock(cacheKey))
+            { 
+                File.WriteAllText(filePath, content);
+            }
         }
 
         private async Task WriteFileAsync(string filePath, string content)
@@ -293,7 +304,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 Directory.CreateDirectory(dir);
             }
 
-            await File.WriteAllTextAsync(filePath, content);
+            using (await KeyedSemaphore.LockAsync(cacheKey))
+            {
+                await File.WriteAllTextAsync(filePath, content);
+            }
         }
     }
 }
