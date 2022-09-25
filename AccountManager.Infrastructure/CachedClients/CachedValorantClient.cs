@@ -75,7 +75,7 @@ namespace AccountManager.Infrastructure.CachedClients
                 {
                     var value = await _valorantClient.GetValorantRank(account);
                     if (value is null)
-                        entry.SetAbsoluteExpiration(DateTimeOffset.Now);
+                        entry.SetAbsoluteExpiration(DateTimeOffset.Now.AddSeconds(1));
 
                     return value;
                 }) ?? new();

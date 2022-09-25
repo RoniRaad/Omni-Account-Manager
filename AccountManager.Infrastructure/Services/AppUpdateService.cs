@@ -38,7 +38,7 @@ namespace AccountManager.Infrastructure.Services
             }
         }
 
-        public async Task Update()
+        public async Task UpdateAndRestart()
         {
             try
             {
@@ -52,18 +52,6 @@ namespace AccountManager.Infrastructure.Services
             catch
             {
                 _logger.LogError("Unable to update Omni Account Manager.");
-            }
-        }
-
-        public void Restart()
-        {
-            try
-            {
-                UpdateManager.RestartApp();
-            }
-            catch
-            {
-                _logger.LogError("Unable to restart Omni Account Manager.");
             }
         }
     }

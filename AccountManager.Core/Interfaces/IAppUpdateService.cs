@@ -3,7 +3,6 @@
     public interface IAppUpdateService
     {
         Task<bool> CheckForUpdate();
-        Task Update();
-        void Restart();
+        Task UpdateAndRestart();
     }
 }

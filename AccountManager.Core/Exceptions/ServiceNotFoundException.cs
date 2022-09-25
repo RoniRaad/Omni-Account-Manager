@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace AccountManager.Core.Exceptions
 {
     [Serializable]
-    public sealed class ServiceNotFoundException : Exception
+    public class ServiceNotFoundException : Exception
     {
         public ServiceNotFoundException()
         {
