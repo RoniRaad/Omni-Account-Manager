@@ -43,7 +43,7 @@ namespace AccountManager.Core.Services
 
         public async Task ChangePasswordAsync(string oldPassword, string newPassword)
         {
-            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || !_iOService.TryReadEncryptedData(oldPassword))
+            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || !_iOService.TryReadEncryptedData(StringEncryption.Hash(oldPassword)))
                 return;
 
             oldPassword = StringEncryption.Hash(oldPassword);

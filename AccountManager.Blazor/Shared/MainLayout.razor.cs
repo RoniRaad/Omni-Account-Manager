@@ -38,13 +38,11 @@ namespace AccountManager.Blazor.Shared
         public async Task LoginAsync()
         {
             await _authService.LoginAsync(Password);
-            await InvokeAsync(() => StateHasChanged());
         }
 
         public async Task RegisterAsync()
         {
             await _authService.RegisterAsync(Password);
-            await InvokeAsync(() => StateHasChanged());
         }
 
         public async Task RememberMeChanged(ChangeEventArgs e)
