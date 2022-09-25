@@ -20,7 +20,7 @@
 		<div class="alert alert-info" style="animation: inherit;" role="alert">
 			<a @onclick="() => updateAvailable = !updateAvailable" class="close">X</a>
 			There is an update available. Click restart to open the new version.
-			<a style="margin-left: 10px" href="" @onclick="async () => { await _appUpdateService.Update(); }">Restart</a>
+			<a style="margin-left: 10px" href="" @onclick="async () => { await _appUpdateService.UpdateAndRestart(); }">Restart</a>
 		</div>
 	}
 

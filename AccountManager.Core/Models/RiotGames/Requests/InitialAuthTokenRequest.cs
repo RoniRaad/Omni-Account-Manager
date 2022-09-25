@@ -7,7 +7,8 @@ namespace AccountManager.Core.Models.RiotGames.Requests
     {
         [JsonPropertyName("client_id")]
         public string? Id { get; set; }
-        public string? Nonce { get; set; }
+        [JsonPropertyName("nonce")]
+        public string? Nonce { get; set; } = "1";
         [JsonPropertyName("redirect_uri")]
         public string? RedirectUri { get; set; }
         [JsonPropertyName("response_type")]
