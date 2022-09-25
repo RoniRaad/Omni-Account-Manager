@@ -72,24 +72,6 @@ namespace AccountManager.Infrastructure.Services.Platform
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
                 await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
 
-                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
-                {
-                    LoginStrategy = "riot_identity",
-                    PersistLogin = true,
-                    RequireRiotID = true,
-                    Scopes = new()
-                    {
-                        "openid",
-                        "offline_access",
-                        "lol",
-                        "ban",
-                        "profile",
-                        "email",
-                        "phone",
-                        "account"
-                    }
-                });
-
                 var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
                 {
                     Username = account.Username,
