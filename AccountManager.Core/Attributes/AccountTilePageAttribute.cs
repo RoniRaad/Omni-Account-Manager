@@ -3,7 +3,7 @@
 namespace AccountManager.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class AccountTilePageAttribute : Attribute
+    public sealed class AccountTilePageAttribute : Attribute
     {
         public readonly int OrderNumber = 0;
         public readonly AccountType AccountType;

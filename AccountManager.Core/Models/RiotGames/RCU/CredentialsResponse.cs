@@ -4,7 +4,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 {
     public partial class RiotClientApi
     {
-        public class CredentialsResponse
+        public sealed class CredentialsResponse
         {
             [JsonPropertyName("authenticationType")]
             public string? AuthenticationType { get; set; }

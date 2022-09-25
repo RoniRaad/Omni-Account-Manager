@@ -11,7 +11,7 @@ using System.Net.Http.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class ValorantClient : IValorantClient
+    public sealed class ValorantClient : IValorantClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<RiotTokenClient> _logger;

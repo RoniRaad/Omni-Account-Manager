@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class UserInfoResponse
+    public sealed class UserInfoResponse
     {
         [JsonPropertyName("sub")]
         public string? PuuId { get; set; }

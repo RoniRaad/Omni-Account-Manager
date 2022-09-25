@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class LeagueTokenClient : ILeagueTokenClient
+    public sealed class LeagueTokenClient : ILeagueTokenClient
     {
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -121,10 +121,13 @@ namespace AccountManager.Infrastructure.Clients
                 account = _state.Accounts.FirstOrDefault((acc) => acc.Guid == _leagueSettings.Settings.AccountToUseCredentials);
             }
 
-            if (account is null || account?.PlatformId is null)
+            if ( account is null )
                 return string.Empty;
 
-            var puuId = account.PlatformId;
+            var puuId = account?.PlatformId ?? await _riotClient.GetPuuId(account);
+
+            if (puuId is null)
+                return string.Empty;
 
             var leagueToken = await GetLeagueLoginToken(account);
             if (string.IsNullOrEmpty(leagueToken))
@@ -134,12 +137,11 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
-            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
             var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(leagueToken);
             jwtToken.Payload.TryGetValue("region", out object? regionCode);
 
-            if (regionCode is null)
-                regionCode = "NA1";
+            regionCode ??= "NA1";
 
             var sessionResponse = await client.PostAsJsonAsync($"/session-external/v1/session/create", new PostSessionsRequest
             {
@@ -214,7 +216,7 @@ namespace AccountManager.Infrastructure.Clients
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Auth}/userinfo")
             .SetBearerToken(riotToken)
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .SetUserAgent(_riotApiUri.UserAgent)
             .Get();
 
             return response?.ResponseContent ?? "";
@@ -227,7 +229,7 @@ namespace AccountManager.Infrastructure.Clients
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
             .SetContent(new { urn = "urn:entitlement" })
             .SetBearerToken(riotToken)
-            .SetUserAgent("RiotClient/50.0.0.4396195.4381201 rso-auth (Windows;10;;Professional, x64)")
+            .SetUserAgent(_riotApiUri.UserAgent)
             .Post<EntitlementResponse>();
 
             entitlement = response?.ResponseContent?.EntitlementToken ?? "";
@@ -243,7 +245,7 @@ namespace AccountManager.Infrastructure.Clients
             if (leagueInfoJson?.ToString() is null)
                 return null;
 
-            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString());
+            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString() ?? "{}");
 
             return leagueInfo?.FirstOrDefault();
         }

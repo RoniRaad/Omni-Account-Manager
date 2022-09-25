@@ -1,7 +1,7 @@
 ﻿namespace AccountManager.Core.Models.RiotGames.Valorant;
 using System.Text.Json.Serialization;
 
-public class Ability
+public sealed class Ability
 {
     [JsonPropertyName("slot")]
     public string? Slot { get; set; }
@@ -16,7 +16,7 @@ public class Ability
     public string? DisplayIcon { get; set; }
 }
 
-public class Datum
+public sealed class Datum
 {
     [JsonPropertyName("uuid")]
     public string? Uuid { get; set; }
@@ -82,7 +82,7 @@ public class Datum
     public VoiceLine? VoiceLine { get; set; }
 }
 
-public class MediaList
+public sealed class MediaList
 {
     [JsonPropertyName("id")]
     public int? Id { get; set; }
@@ -94,7 +94,7 @@ public class MediaList
     public string? Wave { get; set; }
 }
 
-public class Role
+public sealed class Role
 {
     [JsonPropertyName("uuid")]
     public string? Uuid { get; set; }
@@ -112,7 +112,7 @@ public class Role
     public string? AssetPath { get; set; }
 }
 
-public class ValorantOperatorsResponse
+public sealed class ValorantOperatorsResponse
 {
     [JsonPropertyName("status")]
     public int? Status { get; set; }
@@ -121,7 +121,7 @@ public class ValorantOperatorsResponse
     public List<Datum>? Data { get; set; }
 }
 
-public class VoiceLine
+public sealed class VoiceLine
 {
     [JsonPropertyName("minDuration")]
     public double? MinDuration { get; set; }

@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class LeagueRank : Rank {
+    public sealed class LeagueRank : Rank {
 		public static readonly IDictionary<string, string> RankedColorMap = new Dictionary<string, string>()
 		{
 			{"unranked", "#ffffff"},
@@ -19,7 +19,7 @@ namespace AccountManager.Core.Models.RiotGames.League
 			{"challenger", "#4ee1ff"},
 		}.ToImmutableDictionary();
 	}
-    public class TeamFightTacticsRank : Rank 
+    public sealed class TeamFightTacticsRank : Rank 
     {
 		public static readonly IDictionary<string, string> RankedColorMap = new Dictionary<string, string>()
 		{

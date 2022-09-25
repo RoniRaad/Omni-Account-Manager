@@ -18,5 +18,5 @@ else if (displayGraph?.Data?.Any() is not true)
     <h5 class="no-data-label">No data available</h5>
 }
 
-<PieChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")"  @ref="pieChart" Options="pieChartOptions" TItem="PieChartData"></PieChart>
+<PieChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")"  @ref="pieChart" Options="PieChartOptions" TItem="PieChartData"></PieChart>
 

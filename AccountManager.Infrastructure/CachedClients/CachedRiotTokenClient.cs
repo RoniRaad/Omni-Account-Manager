@@ -9,7 +9,7 @@ using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedRiotTokenClient : IRiotTokenClient
+    public sealed class CachedRiotTokenClient : IRiotTokenClient
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IRiotTokenClient _riotTokenClient;
@@ -19,14 +19,14 @@ namespace AccountManager.Infrastructure.CachedClients
             _riotTokenClient = riotTokenClient;
         }
 
-        public async Task<string?> GetEntitlementToken(string token)
+        public async Task<string?> GetEntitlementToken(string accessToken)
         {
-            var cacheKey = $"{token}.{nameof(GetEntitlementToken)}";
+            var cacheKey = $"{accessToken}.{nameof(GetEntitlementToken)}";
             return await _memoryCache.GetOrCreateAsync(cacheKey,
                 async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55);
-                    return await _riotTokenClient.GetEntitlementToken(token);
+                    return await _riotTokenClient.GetEntitlementToken(accessToken);
                 });
         }
 
@@ -47,7 +47,7 @@ namespace AccountManager.Infrastructure.CachedClients
                 async (entry) =>
                 {
                     var riotTokens = await _riotTokenClient.GetRiotTokens(request, account);
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(riotTokens.ExpiresIn - 5);
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(riotTokens.ExpiresIn == 0 ? .1 : riotTokens.ExpiresIn - 5);
                     return riotTokens;
                 }) ?? new();
         }

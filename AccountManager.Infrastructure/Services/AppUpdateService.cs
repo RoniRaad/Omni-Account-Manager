@@ -5,7 +5,7 @@ using Squirrel;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class SquirrelAppUpdateService : IAppUpdateService
+    public sealed class SquirrelAppUpdateService : IAppUpdateService
     {
         private readonly AboutEndpoints _endpoints;
         private readonly ILogger<SquirrelAppUpdateService> _logger;
@@ -22,16 +22,14 @@ namespace AccountManager.Infrastructure.Services
                 #if DEBUG
                     return false;
                 #endif
-                using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var updateInfo = await manager.CheckForUpdate();
+                if (updateInfo.ReleasesToApply.Count > 0)
                 {
-                    var updateInfo = await manager.CheckForUpdate();
-                    if (updateInfo.ReleasesToApply.Count > 0)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return true;
                 }
+
+                return false;
             }
             catch
             {
@@ -40,15 +38,16 @@ namespace AccountManager.Infrastructure.Services
             }
         }
 
-        public async Task Update()
+        public async Task UpdateAndRestart()
         {
             try
             {
-                using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
-                {
-                    await manager.UpdateApp();
-                    UpdateManager.RestartApp();
-                }
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var releaseEntry = await manager.UpdateApp();
+                var version = releaseEntry.Version;
+                var latestExePath = Path.Combine(manager.RootAppDirectory, string.Concat("app-", version.Version.Major, ".", version.Version.Minor, ".", version.Version.Build), "OmniAccountManager.exe");
+
+                UpdateManager.RestartApp(latestExePath);
             }
             catch
             {
@@ -56,11 +55,15 @@ namespace AccountManager.Infrastructure.Services
             }
         }
 
-        public void Restart()
+        public async Task Restart()
         {
             try
             {
-                UpdateManager.RestartApp();
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var version = manager.CurrentlyInstalledVersion();
+                var latestExePath = Path.Combine(manager.RootAppDirectory, string.Concat("app-", version.Version.Major, ".", version.Version.Minor, ".", version.Version.Build), "OmniAccountManager.exe");
+                _logger.LogInformation("Attempting to restart app using path {path}", latestExePath);
+                UpdateManager.RestartApp(latestExePath);
             }
             catch
             {

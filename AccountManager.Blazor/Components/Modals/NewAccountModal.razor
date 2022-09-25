@@ -1,6 +1,8 @@
 ﻿@using AccountManager.Core.Enums;
 @using AccountManager.Core.Interfaces
+@using System.Text.RegularExpressions
 @inject IAppState _appState
+@inject IAccountService _accountService
 <div class="modal fade show d-block" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -25,7 +27,7 @@
                         <InputSelect id="accountTypeSelect" style="margin-bottom: 12px" class="form-select input-text" @bind-Value="NewAccount.AccountType">
                             @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
                             {
-                                <option value="@accountType">@accountType</option>
+                                <option value="@accountType">@Regex.Replace(accountType?.ToString() ?? "", "(\\B[A-Z])", " $1")</option>
                             }
                         </InputSelect>
                     </div>

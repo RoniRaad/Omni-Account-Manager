@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames
 {
-    public class RiotAuthTokenParameters
+    public sealed class RiotAuthTokenParameters
     {
         [JsonPropertyName("uri")]
         public string? Uri { get; set; }

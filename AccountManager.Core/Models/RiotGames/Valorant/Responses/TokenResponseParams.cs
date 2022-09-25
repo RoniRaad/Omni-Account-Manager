@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class TokenResponseParams
+    public sealed class TokenResponseParams
     {
         [JsonPropertyName("parameters")]
         public TokenParameters? Parameters { get; set; }

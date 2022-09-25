@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models
 {
-    public class Graphs
+    public sealed class Graphs
     {
         public List<LineGraph> LineGraphs { get; set; } = new List<LineGraph>();
         public List<PieChart> PieCharts { get; set; } = new List<PieChart>();

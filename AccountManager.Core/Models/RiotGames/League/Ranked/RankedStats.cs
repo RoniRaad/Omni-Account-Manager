@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class RankedStats
+    public sealed class RankedStats
     {
         [JsonPropertyName("tier")]
         public string? Tier { get; set; }
