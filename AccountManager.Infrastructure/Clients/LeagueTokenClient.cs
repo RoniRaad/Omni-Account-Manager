@@ -121,10 +121,13 @@ namespace AccountManager.Infrastructure.Clients
                 account = _state.Accounts.FirstOrDefault((acc) => acc.Guid == _leagueSettings.Settings.AccountToUseCredentials);
             }
 
-            if (account is null || account?.PlatformId is null)
+            if ( account is null )
                 return string.Empty;
 
-            var puuId = account.PlatformId;
+            var puuId = account?.PlatformId ?? await _riotClient.GetPuuId(account);
+
+            if (puuId is null)
+                return string.Empty;
 
             var leagueToken = await GetLeagueLoginToken(account);
             if (string.IsNullOrEmpty(leagueToken))
