@@ -54,5 +54,21 @@ namespace AccountManager.Infrastructure.Services
                 _logger.LogError("Unable to update Omni Account Manager.");
             }
         }
+
+        public async Task Restart()
+        {
+            try
+            {
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var version = manager.CurrentlyInstalledVersion();
+                var latestExePath = Path.Combine(manager.RootAppDirectory, string.Concat("app-", version.Version.Major, ".", version.Version.Minor, ".", version.Version.Build), "OmniAccountManager.exe");
+                _logger.LogInformation("Attempting to restart app using path {path}", latestExePath);
+                UpdateManager.RestartApp(latestExePath);
+            }
+            catch
+            {
+                _logger.LogError("Unable to restart Omni Account Manager.");
+            }
+        }
     }
 }

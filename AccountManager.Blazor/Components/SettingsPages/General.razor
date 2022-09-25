@@ -2,9 +2,10 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.UserSettings
+@using AccountManager.Infrastructure.Services
 @inject IAppState _authService
 @inject IUserSettingsService<GeneralSettings> _settings
-
+@inject IAppUpdateService _appUpdateService
 <EditForm Model="@_settings.Settings">
     <table>
         <tbody>
@@ -64,6 +65,14 @@
                         </div>
                     </div>
                     <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Restart Client</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick=_appUpdateService.Restart>Restart</button>
                 </td>
             </tr>
         </tbody>
