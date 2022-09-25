@@ -4,5 +4,6 @@
     {
         Task<bool> CheckForUpdate();
         Task UpdateAndRestart();
+        Task Restart();
     }
 }
