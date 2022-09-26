@@ -20,15 +20,18 @@ namespace AccountManager.Infrastructure.Services
             try
             {
                 #if DEBUG
-                    return false;
+                    _logger.LogError("Skipping update check due to the app running in debug mode.");
+                return false;
                 #endif
                 using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
                 var updateInfo = await manager.CheckForUpdate();
                 if (updateInfo.ReleasesToApply.Count > 0)
                 {
+                    _logger.LogError("Update found, showing update message.");
                     return true;
                 }
 
+                _logger.LogError("No updates found.");
                 return false;
             }
             catch
