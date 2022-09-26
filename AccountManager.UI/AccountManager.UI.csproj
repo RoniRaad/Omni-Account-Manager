@@ -10,7 +10,7 @@
 		<ApplicationIcon>icon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<Title>Omni Account Manager</Title>
-		<Version>1.11.4</Version>
+		<Version>1.12.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
