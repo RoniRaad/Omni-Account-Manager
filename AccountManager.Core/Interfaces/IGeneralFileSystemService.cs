@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Interfaces
 {
-    public interface IIOService
+    public interface IGeneralFileSystemService
     {
         bool IsFileLocked(string filePath);
         T ReadData<T>(string password) where T : new();
@@ -10,5 +10,9 @@
         void UpdateData<T>(T data);
         bool ValidateData();
         void AddCacheDeleteFlag();
+        Task<T> ReadDataAsync<T>(string password) where T : new();
+        Task<T> ReadDataAsync<T>() where T : new();
+        Task UpdateDataAsync<T>(T data, string password);
+        Task UpdateDataAsync<T>(T data);
     }
 }

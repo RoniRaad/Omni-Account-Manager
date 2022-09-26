@@ -12,15 +12,17 @@ using AutoMapper;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class RiotClient : IRiotClient
+    public sealed class RiotClient : IRiotClient
     {
         private readonly ILogger<RiotClient> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMapper _autoMapper;
         private readonly IRiotTokenClient _riotTokenClient;
+        private readonly RiotApiUri _riotApiUri;
         private readonly RiotTokenRequest valorantRequest = new RiotTokenRequest
         {
             Id = "play-valorant-web-prod",
@@ -37,7 +39,7 @@ namespace AccountManager.Infrastructure.Clients
                 ResponseType = "token id_token",
                 Scope = "openid link ban lol_region"
             };
-        public static Dictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
+        public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = (new Dictionary<string, string>()
             {
                 {"na", "usw" },
                 {"latam", "usw" },
@@ -45,7 +47,7 @@ namespace AccountManager.Infrastructure.Clients
                 {"eu", "euc" },
                 {"ap", "apse" },
                 {"kr", "apse" }
-            };
+            }).ToImmutableDictionary();
         public RiotClient(IHttpClientFactory httpClientFactory, IOptions<RiotApiUri> riotApiOptions,
             IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotClient> logger)
         {
@@ -53,6 +55,7 @@ namespace AccountManager.Infrastructure.Clients
             _autoMapper = autoMapper;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
+            _riotApiUri = riotApiOptions.Value;
         }
 
         public async Task<string?> GetExpectedClientVersion()
@@ -90,7 +93,7 @@ namespace AccountManager.Infrastructure.Clients
         {
             var riotTokens = await _riotTokenClient.GetRiotTokens(valorantRequest, account);
             var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri("https://riot-geo.pas.si.riotgames.com/");
+            client.BaseAddress = new Uri(_riotApiUri?.RiotGeo ?? "");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             var affinityResponse = await client.PutAsJsonAsync<AffinityRequest>("/pas/v1/product/valorant", new() { IdToken = riotTokens.IdToken });
             

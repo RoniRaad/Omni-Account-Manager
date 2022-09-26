@@ -14,6 +14,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="wwwroot\logos\epic-games-logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
 		<PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
@@ -36,6 +40,7 @@
 		<None Remove="curl\libcurl.def" />
 		<None Remove="curl\libcurl.dll" />
 		<None Remove="icon.ico" />
+		<None Remove="ShortcutIcons\epic-logo.ico" />
 		<None Remove="ShortcutIcons\league-logo.ico" />
 		<None Remove="ShortcutIcons\steam-logo.ico" />
 		<None Remove="ShortcutIcons\tft-logo.ico" />
@@ -101,6 +106,9 @@
 		<Content Include="icon.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<Content Include="ShortcutIcons\epic-logo.ico">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="ShortcutIcons\league-logo.ico">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -133,6 +141,7 @@
 		<None Include="wwwroot\fonts\Roboto-Regular.ttf" />
 		<None Include="wwwroot\fonts\roboto.woff2" />
 		<None Include="wwwroot\index.html" />
+		<None Include="wwwroot\logos\epic-games-logo.png" />
 		<None Include="wwwroot\logos\league-logo.png" />
 		<None Include="wwwroot\logos\steam-logo.svg" />
 		<None Include="wwwroot\logos\tft-logo.png" />

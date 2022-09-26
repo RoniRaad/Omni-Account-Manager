@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Requests
 {
-    public class MultifactorRequest
+    public sealed class MultifactorRequest
     {
         [JsonPropertyName("type")]
         public string? Type { get; set; }

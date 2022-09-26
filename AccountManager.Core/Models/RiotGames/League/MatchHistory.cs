@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class MatchHistory
+    public sealed class MatchHistory
     {
         
         public List<Game>? Games { get; set; }
 
-        public class Ban
+        public sealed class Ban
         {
             
             public int ChampionId { get; set; }
@@ -20,7 +20,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int PickTurn { get; set; }
         }
 
-        public class Baron
+        public sealed class Baron
         {
             
             public bool First { get; set; }
@@ -29,7 +29,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Kills { get; set; }
         }
 
-        public class Challenges
+        public sealed class Challenges
         {
             
             public double _12AssistStreakCount { get; set; }
@@ -413,7 +413,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public double? MejaisFullStackInTime { get; set; }
         }
 
-        public class Champion
+        public sealed class Champion
         {
             
             public bool First { get; set; }
@@ -422,7 +422,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Kills { get; set; }
         }
 
-        public class Dragon
+        public sealed class Dragon
         {
             
             public bool First { get; set; }
@@ -431,7 +431,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Kills { get; set; }
         }
 
-        public class Game
+        public sealed class Game
         {
             
             public Metadata? Metadata { get; set; }
@@ -440,7 +440,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public Json? Json { get; set; }
         }
 
-        public class Inhibitor
+        public sealed class Inhibitor
         {
             
             public bool First { get; set; }
@@ -449,7 +449,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Kills { get; set; }
         }
 
-        public class Json
+        public sealed class Json
         {
             
             public long? GameCreation { get; set; }
@@ -500,7 +500,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public string? TournamentCode { get; set; }
         }
 
-        public class Metadata
+        public sealed class Metadata
         {
             
             public string? Product { get; set; }
@@ -527,7 +527,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public bool Private { get; set; }
         }
 
-        public class Objectives
+        public sealed class Objectives
         {
             
             public Baron? Baron { get; set; }
@@ -548,7 +548,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public Tower? Tower { get; set; }
         }
 
-        public class Participant
+        public sealed class Participant
         {
             
             public int Assists { get; set; }
@@ -872,7 +872,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public bool Win { get; set; }
         }
 
-        public class Perks
+        public sealed class Perks
         {
             
             public StatPerks? StatPerks { get; set; }
@@ -881,7 +881,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public List<Style>? Styles { get; set; }
         }
 
-        public class RiftHerald
+        public sealed class RiftHerald
         {
             
             public bool First { get; set; }
@@ -890,7 +890,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Kills { get; set; }
         }
 
-        public class Selection
+        public sealed class Selection
         {
             
             public int Perk { get; set; }
@@ -905,7 +905,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Var3 { get; set; }
         }
 
-        public class StatPerks
+        public sealed class StatPerks
         {
             
             public int Defense { get; set; }
@@ -917,7 +917,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int Offense { get; set; }
         }
 
-        public class Style
+        public sealed class Style
         {
             
             public string? Description { get; set; }
@@ -929,7 +929,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public int InnerStyle { get; set; }
         }
 
-        public class Team
+        public sealed class Team
         {
             
             public List<Ban>? Bans { get; set; }
@@ -944,7 +944,7 @@ namespace AccountManager.Core.Models.RiotGames.League
             public bool Win { get; set; }
         }
 
-        public class Tower
+        public sealed class Tower
         {
             
             public bool First { get; set; }

@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant
 {
-    public class ValorantRank : Rank
+    public sealed class ValorantRank : Rank
 	{
 		public static readonly IDictionary<string, string> RankedColorMap = new Dictionary<string, string>()
 		{

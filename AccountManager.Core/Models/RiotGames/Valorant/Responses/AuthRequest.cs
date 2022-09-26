@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class AuthRequest
+    public sealed class AuthRequest
     {
         [JsonPropertyName("type")]
         public string? Type { get; set; }

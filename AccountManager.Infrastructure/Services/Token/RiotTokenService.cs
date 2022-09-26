@@ -5,11 +5,11 @@ using System.IO.Pipes;
 
 namespace AccountManager.Infrastructure.Services.Token
 {
-    public class RiotTokenService : ITokenService
+    public sealed class RiotTokenService : ITokenService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
 
-        public RiotTokenService(IIOService iOService)
+        public RiotTokenService(IGeneralFileSystemService iOService)
         {
             _iOService = iOService;
         }
@@ -23,8 +23,8 @@ namespace AccountManager.Infrastructure.Services.Token
             if (!_iOService.IsFileLocked(fileName))
                 return false;
 
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (StreamReader fileReader = new StreamReader(fileStream))
+            using (FileStream fileStream = new(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader fileReader = new(fileStream))
             {
                 if (!fileReader.EndOfStream)
                 {

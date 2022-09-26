@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models.AppSettings
 {
-    public class RiotApiUri
+    public sealed class RiotApiUri
     {
         public string? Auth { get; set; }
         public string? Valorant3rdParty { get; set; }
@@ -17,5 +17,7 @@
         public string? LeagueSessionEUC { get; set; }
         public string? LeagueSessionAPSE { get; set; }
         public string? RiotCDN { get; set; }
+        public string? RiotGeo { get; set; }
+        public string UserAgent { get; set; } = "";
     }
 }

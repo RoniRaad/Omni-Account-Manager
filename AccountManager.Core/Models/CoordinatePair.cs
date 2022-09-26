@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models
 {
-    public class CoordinatePair
+    public sealed class CoordinatePair
     {
         [JsonPropertyName("y")]
         public int? Y { get; set; }

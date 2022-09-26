@@ -4,7 +4,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 {
     public partial class RiotClientApi
     {
-        public class MultifactorLoginResponse
+        public sealed class MultifactorLoginResponse
         {
             [JsonPropertyName("code")]
             public string? Code { get; set; }

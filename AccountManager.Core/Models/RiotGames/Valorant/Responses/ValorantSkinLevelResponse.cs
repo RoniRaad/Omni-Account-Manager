@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class Data
+    public sealed class Data
     {
         [JsonPropertyName("uuid")]
         public string Uuid { get; set; } = string.Empty;
@@ -29,7 +29,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public int Price { get; set; } = 0;
     }
 
-    public class ValorantSkinLevelResponse
+    public sealed class ValorantSkinLevelResponse
     {
         [JsonPropertyName("status")]
         public int Status { get; set; }

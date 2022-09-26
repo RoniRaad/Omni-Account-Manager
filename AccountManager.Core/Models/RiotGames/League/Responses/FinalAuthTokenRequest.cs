@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League.Responses
 {
-    public class FinalAuthTokenRequest
+    public sealed class FinalAuthTokenRequest
     {
         [JsonPropertyName("type")]
         public string? Type { get; set; }

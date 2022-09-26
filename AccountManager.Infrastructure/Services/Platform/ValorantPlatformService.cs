@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class ValorantPlatformService : IPlatformService
+    public sealed class ValorantPlatformService : IPlatformService
     {
         private readonly ITokenService _riotService;
         private readonly IValorantClient _valorantClient;
@@ -30,12 +30,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly IRiotTokenClient _riotTokenClient;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
-        public static string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
-        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+        public static readonly string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
+        public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "valorant-logo.ico");
         public ValorantPlatformService(IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, IRiotFileSystemService riotLockFileService, IAlertService alertService,
-            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient, IRiotTokenClient riotTokenClient)
+            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient, 
+            IRiotTokenClient riotTokenClient, ILogger<ValorantPlatformService> logger)
         {
             _riotClient = riotClient;
             _riotService = tokenServiceFactory.CreateImplementation(AccountType.Valorant);
@@ -46,6 +47,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _settingsService = settingsService;
             _valorantClient = valorantClient;
             _riotTokenClient = riotTokenClient;
+            _logger = logger;
         }
         private async Task<bool> TryLoginUsingRCU(Account account)
         {
@@ -72,7 +74,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
                 await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
 
-                var lifeCycleResponse = await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
+                await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
                 {
                     LoginStrategy = "riot_identity",
                     PersistLogin = true,

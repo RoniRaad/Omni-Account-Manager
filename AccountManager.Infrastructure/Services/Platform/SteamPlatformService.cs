@@ -7,13 +7,13 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
-    public class SteamPlatformService : IPlatformService
+    public sealed class SteamPlatformService : IPlatformService
     {
         private readonly IDistributedCache _persistantCache;
         private readonly IUserSettingsService<GeneralSettings> _userSettings;
         private readonly ISteamLibraryService _steamLibraryService;
-        public static string WebIconFilePath = Path.Combine("logos", "steam-logo.svg");
-        public static string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+        public static readonly string WebIconFilePath = Path.Combine("logos", "steam-logo.svg");
+        public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "steam-logo.ico");
         public SteamPlatformService(IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> userSettings, ISteamLibraryService steamLibraryService)
         {

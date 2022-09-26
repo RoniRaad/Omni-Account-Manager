@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public class Cost
+    public sealed class Cost
     {
         [JsonPropertyName("85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741")]
         public int _85ad13f73d1b51289eb27cd8ee0b5741 { get; set; }
     }
 
-    public class Offer
+    public sealed class Offer
     {
         [JsonPropertyName("OfferID")]
         public string OfferID { get; set; } = string.Empty;
@@ -31,7 +31,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<Reward> Rewards { get; set; } = new();
     }
 
-    public class Reward
+    public sealed class Reward
     {
         [JsonPropertyName("ItemTypeID")]
         public string ItemTypeID { get; set; } = string.Empty;
@@ -43,7 +43,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public int Quantity { get; set; } = 0;
     }
 
-    public class ValorantStoreTotalOffers
+    public sealed class ValorantStoreTotalOffers
     {
         [JsonPropertyName("Offers")]
         public List<Offer> Offers { get; set; } = new();
@@ -52,7 +52,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public List<UpgradeCurrencyOffer> UpgradeCurrencyOffers { get; set; } = new();
     }
 
-    public class UpgradeCurrencyOffer
+    public sealed class UpgradeCurrencyOffer
     {
         [JsonPropertyName("OfferID")]
         public string OfferID { get; set; } = string.Empty;
