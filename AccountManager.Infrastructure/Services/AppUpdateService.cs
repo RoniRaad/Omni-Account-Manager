@@ -31,8 +31,7 @@ namespace AccountManager.Infrastructure.Services
                     return true;
                 }
 
-                    return false;
-                }
+                return false;
             }
             catch
             {
