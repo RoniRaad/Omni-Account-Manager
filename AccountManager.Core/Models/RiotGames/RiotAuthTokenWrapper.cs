@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models.RiotGames
 {
-    public class Multifactor
+    public sealed class Multifactor
     {
         [JsonPropertyName("email")]
         public string? Email { get; set; }
@@ -21,7 +21,7 @@ namespace AccountManager.Core.Models.RiotGames
         public string? MfaVersion { get; set; }
     }
 
-    public class RiotAuthTokenWrapper
+    public sealed class RiotAuthTokenWrapper
     {
         [JsonPropertyName("response")]
         public RiotAuthTokenResponse? Response { get; set; }

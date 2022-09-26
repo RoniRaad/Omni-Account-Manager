@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models
 {
-    public class LineGraph
+    public sealed class LineGraph
     {
         public string Title { get; set; } = string.Empty;
         public List<RankedGraphData> Data { get; set; } = new();

@@ -3,7 +3,7 @@ using AccountManager.Core.Interfaces;
 
 namespace AccountManager.Core.Factories
 {
-    public class GenericFactory<TKey, TInterface> : IFactory<TKey, TInterface>, IGenericFactory<TKey, TInterface> where TKey : notnull, new()
+    public sealed class GenericFactory<TKey, TInterface> : IFactory<TKey, TInterface>, IGenericFactory<TKey, TInterface> where TKey : notnull, new()
     {
         private readonly Dictionary<TKey, Type> _implementations;
         private readonly IServiceProvider _serviceProvider;

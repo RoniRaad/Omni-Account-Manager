@@ -11,15 +11,11 @@ namespace AccountManager.Blazor.Components.Modals
     public partial class TwoFactorAuthModal
     {
         [Parameter, EditorRequired]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public TwoFactorAuthenticationUserRequest Request { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public TwoFactorAuthenticationUserRequest Request { get; set; } = new();
 
         public void Submit()
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            Request.Callback(Request.Code);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            Request?.Callback(Request.Code);
         }
 
         public void Close()

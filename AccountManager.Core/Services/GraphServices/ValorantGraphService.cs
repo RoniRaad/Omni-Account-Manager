@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AccountManager.Core.Services.GraphServices
 {
-    public class ValorantGraphService : IValorantGraphService
+    public sealed class ValorantGraphService : IValorantGraphService
     {
         private readonly ILogger<ValorantGraphService> _logger;
         private readonly IValorantClient _valorantClient;

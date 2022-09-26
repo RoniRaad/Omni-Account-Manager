@@ -3,7 +3,7 @@
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
 
-    public class History
+    public sealed class History
     {
         [JsonPropertyName("MatchID")]
         public string MatchID { get; set; } = string.Empty;
@@ -15,7 +15,7 @@ namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
         public string QueueID { get; set; } = string.Empty;
     }
 
-    public class ValorantGameHistoryDataResponse
+    public sealed class ValorantGameHistoryDataResponse
     {
         [JsonPropertyName("Subject")]
         public string Subject { get; set; } = string.Empty;

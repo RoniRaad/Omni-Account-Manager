@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models
 {
-    public class RangeObservableCollection<T> : ObservableCollection<T>
+    public sealed class RangeObservableCollection<T> : ObservableCollection<T>
     {
         private bool _suppressNotification = false;
 
@@ -21,7 +21,7 @@ namespace AccountManager.Core.Models
         public void AddRange(IEnumerable<T> list)
         {
             if (list == null)
-                throw new ArgumentNullException("list");
+                throw new ArgumentNullException(nameof(list));
 
             _suppressNotification = true;
 

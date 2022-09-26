@@ -2,9 +2,10 @@
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Core.Models.UserSettings
+@using AccountManager.Infrastructure.Services
 @inject IAppState _authService
 @inject IUserSettingsService<GeneralSettings> _settings
-
+@inject IAppUpdateService _appUpdateService
 <EditForm Model="@_settings.Settings">
     <table>
         <tbody>
@@ -35,7 +36,7 @@
                             <span @onclick="() => ShowRiotFolderPicker = true" class="btn oi-folder" type="button"></span>
                         </div>
                     </div>
-                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
                 </td>
             </tr>
             <tr>
@@ -45,8 +46,33 @@
                 <td>
                     <div class="input-group">
                         <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam" @bind-Value="_settings.Settings.SteamInstallDirectory"></InputText>
+                        <div class="input-group-append">
+                            <span @onclick="() => ShowSteamFolderPicker = true" class="btn oi-folder" type="button"></span>
+                        </div>
                     </div>
-                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.Save()" type="button">Save</span>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Epic Games client install location</p>
+                </th>
+                <td>
+                    <div class="input-group">
+                        <InputText type="text" class="text-input form-control" placeholder="Ex: C:\Program Files (x86)\Steam" @bind-Value="_settings.Settings.EpicGamesInstallDirectory"></InputText>
+                        <div class="input-group-append">
+                            <span @onclick="() => ShowEpicFolderPicker = true" class="btn oi-folder" type="button"></span>
+                        </div>
+                    </div>
+                    <span class="btn-text-save btn btn-dark" @onclick="() => _settings.SaveAsync()" type="button">Save</span>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Restart Client</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick=_appUpdateService.Restart>Restart</button>
                 </td>
             </tr>
         </tbody>
@@ -62,8 +88,20 @@
     <FolderPickerModal CurrentDirectory="@_settings.Settings.RiotInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.RiotInstallDirectory = dir is not null ? dir : _settings.Settings.RiotInstallDirectory; ShowRiotFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
 }
 
+@if (ShowSteamFolderPicker)
+{
+    <FolderPickerModal CurrentDirectory="@_settings.Settings.SteamInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.SteamInstallDirectory = dir is not null ? dir : _settings.Settings.SteamInstallDirectory; ShowSteamFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
+}
+
+@if (ShowEpicFolderPicker)
+{
+    <FolderPickerModal CurrentDirectory="@_settings.Settings.EpicGamesInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.EpicGamesInstallDirectory = dir is not null ? dir : _settings.Settings.EpicGamesInstallDirectory; ShowEpicFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
+}
+
 @code
 {
     public bool ShowChangePasswordPrompt { get; set; } = false;
     public bool ShowRiotFolderPicker { get; set; } = false;
+    public bool ShowSteamFolderPicker { get; set; } = false;
+    public bool ShowEpicFolderPicker { get; set; } = false;
 }

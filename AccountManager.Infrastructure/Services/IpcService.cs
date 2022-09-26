@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class IpcService : IIpcService
+    public sealed class IpcService : IIpcService
     {
         public event EventHandler<IpcReceivedEventArgs> IpcReceived = delegate { };
-        private readonly Node _node;
         public IpcService()
         {
-            _node = new("omni-account-manager", "omni-account-manager", "localhost", OnReceived);
-            _node.Start();
+            var node = new Node("omni-account-manager", "omni-account-manager", "localhost", OnReceived);
+            node.Start();
         }
 
         private void OnReceived(PipeMessage recvMessage)

@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace AccountManager.Core.Services
 {
-    public class AppState : IAppState
+    public sealed class AppState : IAppState
     {
         private readonly IAccountService _accountService;
         public List<Account> Accounts { get; set; }
@@ -13,8 +13,6 @@ namespace AccountManager.Core.Services
         public AppState(IAccountService accountService, IIpcService ipcService)
         {
             _accountService = accountService;
-            Accounts = _accountService.GetAllAccountsMin();
-
             Task.Run(UpdateAccounts);
 
             StartUpdateTimer();
@@ -43,7 +41,7 @@ namespace AccountManager.Core.Services
             var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
 
             if (relevantAccount is not null)
-                await _accountService.Login(relevantAccount);
+                await _accountService.LoginAsync(relevantAccount);
         }
 
         public void StartUpdateTimer()
@@ -59,9 +57,9 @@ namespace AccountManager.Core.Services
 
         public async Task UpdateAccounts()
         {
-            Accounts = _accountService.GetAllAccountsMin();
+            Accounts = await _accountService.GetAllAccountsMinAsync();
 
-            var fullAccounts = new List<Account>(await _accountService.GetAllAccounts());
+            var fullAccounts = new List<Account>(await _accountService.GetAllAccountsAsync());
             for (int i = 0; i < Accounts.Count; i++)
             {
                 Accounts[i].Rank = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.Rank ?? Accounts[i].Rank;
@@ -75,7 +73,7 @@ namespace AccountManager.Core.Services
 
         public void SaveAccounts()
         {
-            _accountService.WriteAllAccounts(Accounts);
+            _accountService.WriteAllAccountsAsync(Accounts);
         }
 
         public class IpcLoginParameter

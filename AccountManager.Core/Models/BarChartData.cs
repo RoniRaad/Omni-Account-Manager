@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models
 {
-    public class BarChartData
+    public sealed class BarChartData
     {
         [JsonPropertyName("value")]
         public double? Value { get; set; }

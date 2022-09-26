@@ -20,7 +20,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
 
         List<SteamGameManifest> games = new();
         bool steamInstallNotFound = false;
-        public string SelectedSteamGame = "none";
+        public string SelectedSteamGame { get; set; } = "none";
 
         protected override async Task OnInitializedAsync()
         {

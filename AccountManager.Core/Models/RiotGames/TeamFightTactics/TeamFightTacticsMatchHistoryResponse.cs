@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 namespace AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 
-public class TeamFightTacticsMatchHistory
+public sealed class TeamFightTacticsMatchHistory
 {
     [JsonPropertyName("active_puuid")]
     public string? ActivePuuid { get; set; }
@@ -9,7 +9,7 @@ public class TeamFightTacticsMatchHistory
     [JsonPropertyName("games")]
     public List<Game>? Games { get; set; }
 
-    public class Companion
+    public sealed class Companion
     {
         [JsonPropertyName("content_ID")]
         public string? ContentID { get; set; }
@@ -21,7 +21,7 @@ public class TeamFightTacticsMatchHistory
         public string? Species { get; set; }
     }
 
-    public class Game
+    public sealed class Game
     {
         [JsonPropertyName("json")]
         public Json? Json { get; set; }
@@ -30,7 +30,7 @@ public class TeamFightTacticsMatchHistory
         public Metadata? Metadata { get; set; }
     }
 
-    public class Json
+    public sealed class Json
     {
         [JsonPropertyName("game_datetime")]
         public string? GameDatetime { get; set; }
@@ -57,7 +57,7 @@ public class TeamFightTacticsMatchHistory
         public int TftSetNumber { get; set; }
     }
 
-    public class Metadata
+    public sealed class Metadata
     {
         [JsonPropertyName("data_version")]
         public int DataVersion { get; set; }
@@ -84,7 +84,7 @@ public class TeamFightTacticsMatchHistory
         public long? Timestamp { get; set; }
     }
 
-    public class Participant
+    public sealed class Participant
     {
         [JsonPropertyName("augments")]
         public List<string>? Augments { get; set; }
@@ -124,7 +124,7 @@ public class TeamFightTacticsMatchHistory
     }
 
 
-    public class Trait
+    public sealed class Trait
     {
         [JsonPropertyName("name")]
         public string? Name { get; set; }
@@ -142,7 +142,7 @@ public class TeamFightTacticsMatchHistory
         public int TierTotal { get; set; }
     }
 
-    public class Unit
+    public sealed class Unit
     {
         [JsonPropertyName("character_id")]
         public string? CharacterId { get; set; }

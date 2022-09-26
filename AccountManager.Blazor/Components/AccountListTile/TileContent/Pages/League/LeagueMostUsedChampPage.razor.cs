@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
 using Blazorise.Charts;
-using System.Security.Principal;
 using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
@@ -14,9 +12,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         public Account Account { get; set; } = new();
         PieChart? displayGraph;
         private Account _account = new();
-        public static int OrderNumber = 3;
-        PieChart<PieChartData>? pieChart;
-        PieChartOptions pieChartOptions = new()
+        private PieChart<PieChartData>? pieChart;
+        private readonly PieChartOptions PieChartOptions = new()
         {
             MaintainAspectRatio = false,
             Plugins = new()
@@ -54,9 +51,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             await pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 
@@ -80,7 +77,23 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             }
         }
 
-        List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-        List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+        private readonly List<string> backgroundColors = new()
+        {
+            ChartColor.FromRgba(255, 99, 132, 0.2f),
+            ChartColor.FromRgba(54, 162, 235, 0.2f),
+            ChartColor.FromRgba(255, 206, 86, 0.2f),
+            ChartColor.FromRgba(75, 192, 192, 0.2f),
+            ChartColor.FromRgba(153, 102, 255, 0.2f),
+            ChartColor.FromRgba(255, 159, 64, 0.2f)
+        };
+        private readonly List<string> borderColors = new()
+        {
+            ChartColor.FromRgba(255, 99, 132, 1f),
+            ChartColor.FromRgba(54, 162, 235, 1f),
+            ChartColor.FromRgba(255, 206, 86, 1f),
+            ChartColor.FromRgba(75, 192, 192, 1f),
+            ChartColor.FromRgba(153, 102, 255, 1f),
+            ChartColor.FromRgba(255, 159, 64, 1f)
+        };
     }
 }

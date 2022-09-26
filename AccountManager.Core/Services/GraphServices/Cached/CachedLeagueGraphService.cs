@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
 {
-    public class CachedLeagueGraphService : ILeagueGraphService
+    public sealed class CachedLeagueGraphService : ILeagueGraphService
     {
         private readonly IDistributedCache _persistantCache;
         private readonly ILeagueGraphService _graphService;

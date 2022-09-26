@@ -1,5 +1,4 @@
 ﻿@using AccountManager.Blazor.Components.Modals
-@using AccountManager.Blazor.Components.Modals.ExportAccountModal
 @using AccountManager.Core.Enums
 @using AccountManager.Core.Factories
 @using AccountManager.Core.Interfaces
@@ -16,7 +15,7 @@
 @inject IAlertService _alertService
 @inject IAppState _appState
 @inject IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings
-
+@inject IAccountService _accountService
 <div class="row">
 	<div class="col">
         <span @onclick=Delete class="oi oi-trash" title="Delete" ></span>
@@ -34,7 +33,7 @@
 			<span class="oi oi-wrench" title="Configure" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
 			<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 				<a class="dropdown-item" @onclick="OpenEditModal">Edit account details</a>
-				<a class="dropdown-item" @onclick="ToggleContentView">Toggle content view</a>
+				<a class="dropdown-item" @onclick="ToggleContentViewAsync">Toggle content view</a>
 			</div>
 		</div>
 	</div>
