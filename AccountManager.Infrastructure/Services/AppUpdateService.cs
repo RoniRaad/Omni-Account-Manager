@@ -20,15 +20,16 @@ namespace AccountManager.Infrastructure.Services
             try
             {
                 #if DEBUG
+                    _logger.LogError("Checking for updates disable due to debug mode.");
                     return false;
                 #endif
-                using (var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github))
+                using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
+                var updateInfo = await manager.CheckForUpdate();
+                if (updateInfo.ReleasesToApply.Count > 0)
                 {
-                    var updateInfo = await manager.CheckForUpdate();
-                    if (updateInfo.ReleasesToApply.Count > 0)
-                    {
-                        return true;
-                    }
+                    _logger.LogError("Update found. Showing update message.");
+                    return true;
+                }
 
                     return false;
                 }
