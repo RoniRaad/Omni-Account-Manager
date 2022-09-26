@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class Queue
+    public sealed class Queue
     {
         [JsonPropertyName("queueType")]
         public string? QueueType { get; set; }

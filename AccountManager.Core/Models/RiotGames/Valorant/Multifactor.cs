@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.Valorant
 {
-    public class Multifactor
+    public sealed class Multifactor
     {
         [JsonPropertyName("email")]
         public string? Email { get; set; }

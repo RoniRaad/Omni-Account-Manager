@@ -3,7 +3,7 @@
 namespace AccountManager.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class SingleAccountInfoPanelAttribute : Attribute
+    public sealed class SingleAccountInfoPanelAttribute : Attribute
     {
         public readonly AccountType AccountType;
 

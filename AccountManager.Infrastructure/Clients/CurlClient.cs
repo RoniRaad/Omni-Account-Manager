@@ -6,11 +6,10 @@ using Microsoft.Extensions.Caching.Distributed;
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using System.Web;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
+    public sealed class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
     {
         private string uri = "";
         private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
@@ -131,7 +130,14 @@ namespace AccountManager.Infrastructure.Clients
                 var cookieHeader = _requestCookies.GetCookieHeader(new Uri(uri));
 
                 if (!cookieHeader.Contains("tdid"))
-                    cookieHeader += $";tdid={Guid.NewGuid()}";
+                {
+                    if (!string.IsNullOrEmpty(cookieHeader))
+                        cookieHeader += $";tdid={Guid.NewGuid()}";
+                    else
+                        cookieHeader = $"tdid={Guid.NewGuid()}";
+                }
+
+
 
                 _argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
                 _argumentsBuilder.Add($"{uri}");
@@ -208,11 +214,24 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync();
         }
 
+        public async Task<IHttpRequestBuilderResponse<T>> Delete<T>() where T : new()
+        {
+            _argumentsBuilder.Add("-i -X DELETE", false);
+
+            return await ExecuteAsync<T>();
+        }
+
         public async Task<IHttpRequestBuilderResponse<string>> Get()
         {
             _argumentsBuilder.Add("-i -X GET", false);
 
             return await ExecuteAsync();
+        }
+        public async Task<IHttpRequestBuilderResponse<T>> Get<T>() where T : new()
+        {
+            _argumentsBuilder.Add("-i -X GET", false);
+
+            return await ExecuteAsync<T>();
         }
 
         public async Task<IHttpRequestBuilderResponse<string>> Post()
@@ -222,32 +241,18 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync();
         }
 
-        public async Task<IHttpRequestBuilderResponse<string>> Put()
-        {
-            _argumentsBuilder.Add("-i -X PUT", false);
-
-            return await ExecuteAsync();
-        }
-
-        public async Task<IHttpRequestBuilderResponse<T>> Delete<T>() where T : new()
-        {
-            _argumentsBuilder.Add("-i -X DELETE", false);
-
-            return await ExecuteAsync<T>();
-        }
-
-        public async Task<IHttpRequestBuilderResponse<T>> Get<T>() where T : new()
-        {
-            _argumentsBuilder.Add("-i -X GET", false);
-
-            return await ExecuteAsync<T>();
-        }
-
         public async Task<IHttpRequestBuilderResponse<T>> Post<T>() where T : new()
         {
             _argumentsBuilder.Add("-i -X POST", false);
 
             return await ExecuteAsync<T>();
+        }
+
+        public async Task<IHttpRequestBuilderResponse<string>> Put()
+        {
+            _argumentsBuilder.Add("-i -X PUT", false);
+
+            return await ExecuteAsync();
         }
 
         public async Task<IHttpRequestBuilderResponse<T>> Put<T>() where T : new()
@@ -257,7 +262,7 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync<T>();
         }
 
-        public class CurlResponse<T> : IHttpRequestBuilderResponse<T>
+        public sealed class CurlResponse<T> : IHttpRequestBuilderResponse<T>
         {
             public HttpStatusCode StatusCode { get; set; }
             public Dictionary<string, string>? Headers { get; set; }

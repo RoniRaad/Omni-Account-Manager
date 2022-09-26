@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League.Requests
 {
-    public class LoginRequest
+    public sealed class LoginRequest
     {
         [JsonPropertyName("clientName")]
         public string Name { get; set; } = "lcu";

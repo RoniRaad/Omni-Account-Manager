@@ -4,7 +4,7 @@ using AccountManager.Infrastructure.Clients;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
-    public class CachedLeagueTokenClient : ILeagueTokenClient
+    public sealed class CachedLeagueTokenClient : ILeagueTokenClient
     {
         private readonly ILeagueTokenClient _tokenClient;
         private readonly IMemoryCache _memoryCache;

@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models
 {
-    public class GameMatch
+    public sealed class GameMatch
     {
         public string? Id { get; set; }
         public int GraphValueChange { get; set; }

@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services
 {
-    public class SteamLibraryService : ISteamLibraryService
+    public sealed class SteamLibraryService : ISteamLibraryService
     {
         private readonly IUserSettingsService<GeneralSettings> _userSettings;
         public SteamLibraryService(IUserSettingsService<GeneralSettings> userSettings)
@@ -50,15 +50,8 @@ namespace AccountManager.Infrastructure.Services
                 return new();
             }
 
-
-            foreach (var file in steamAppFiles.ToList())
-            {
-                if (file.Contains("appmanifest"))
-                {
-                    var fileContents = File.ReadAllText(file);
-                    installedGameManifests.Add(fileContents);
-                }
-            };
+            installedGameManifests.AddRange(steamAppFiles.Where((file) => file.Contains("appmanifest"))
+                .Select((file) => File.ReadAllText(file)));
 
             return true;
         }
@@ -88,7 +81,7 @@ namespace AccountManager.Infrastructure.Services
                 return false;
             }
 
-            foreach (var folder in libraryDirectories.LibraryFolders)
+            foreach (var folder in libraryDirectories?.LibraryFolders ?? new Dictionary<string, LibraryFolder>())
             {
                 if (!TryGetInstalledGamesManifest(Path.Combine(folder.Value.Path, "steamapps"), out var gameManifestData))
                 {

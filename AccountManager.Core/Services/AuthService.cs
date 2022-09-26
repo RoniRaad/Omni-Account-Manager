@@ -5,15 +5,15 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace AccountManager.Core.Services
 {
-    public class AuthService : IAuthService
+    public sealed class AuthService : IAuthService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly IAlertService _alertService;
         private readonly IDistributedCache _persistantCache;
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool AuthInitialized { get; set; }
-        public AuthService(IIOService iOService, IAlertService alertService, IDistributedCache persistantCache)
+        public AuthService(IGeneralFileSystemService iOService, IAlertService alertService, IDistributedCache persistantCache)
         {
             _iOService = iOService;
             AuthInitialized = _iOService.ValidateData();
@@ -21,7 +21,7 @@ namespace AccountManager.Core.Services
             _persistantCache = persistantCache;
         }
 
-        public void Login(string password)
+        public async Task LoginAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = _iOService.TryReadEncryptedData(PasswordHash);
@@ -30,30 +30,27 @@ namespace AccountManager.Core.Services
                 _alertService.AddErrorAlert("Error incorrect password!");
             }
 
-            Task.Run(async () =>
-            {
-                if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
-                    await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
-            });
+            if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
+                await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
         }
 
-        public void Register(string password)
+        public async Task RegisterAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
-            _iOService.UpdateData<List<object>>(new(), PasswordHash);
+            await _iOService.UpdateDataAsync<List<object>>(new(), PasswordHash);
             LoggedIn = true;
         }
 
-        public void ChangePassword(string oldPassword, string newPassword)
+        public async Task ChangePasswordAsync(string oldPassword, string newPassword)
         {
-            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || !_iOService.TryReadEncryptedData(oldPassword))
+            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || !_iOService.TryReadEncryptedData(StringEncryption.Hash(oldPassword)))
                 return;
 
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);
 
-            var currentData = _iOService.ReadData<List<Account>>(oldPassword);
-            _iOService.UpdateData(currentData, newPassword);
+            var currentData = await _iOService.ReadDataAsync<List<Account>>(oldPassword);
+            await _iOService.UpdateDataAsync(currentData, newPassword);
             PasswordHash = newPassword;
         }
     }

@@ -20,7 +20,7 @@ else{
 
 @code {
     [Parameter, EditorRequired]
-    public PieChart PieChart { get; set; }
+    public PieChart PieChart { get; set; } = new ();
 
 
     PieChart<PieChartData>? pieChart;
@@ -56,25 +56,27 @@ else{
         }
     };
 
-    async Task HandleRedraw()
+    Task HandleRedraw()
     {
         pieChart?.Clear();
 
         if (pieChart is null)
-            return;
+            return Task.CompletedTask;
 
         var datasets = PieChart;
         if (datasets is null)
-            return;
+            return Task.CompletedTask;
 
         var chartDatasets = new PieChartDataset<PieChartData>
         {
-            Data = datasets.Data.ToList(),
+            Data = datasets?.Data?.ToList(),
             BackgroundColor = backgroundColors,
             BorderColor = borderColors,
         };
 
-        pieChart.AddLabelsDatasetsAndUpdate(datasets.Labels, chartDatasets);
+        pieChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
+
+        return Task.CompletedTask;
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)

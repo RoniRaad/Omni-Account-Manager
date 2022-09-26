@@ -5,7 +5,7 @@ using AccountManager.Core.Enums;
 
 namespace AccountManager.Core.Services
 {
-	public class AccountFilterService : IAccountFilterService
+	public sealed class AccountFilterService : IAccountFilterService
 	{
 		private readonly IDistributedCache _persistantCache;
 		public event Action OnFilterChanged = delegate { };

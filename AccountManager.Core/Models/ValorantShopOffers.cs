@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models
 {
-    public class Bundle
+    public sealed class Bundle
     {
         [JsonPropertyName("ID")]
         public string ID { get; set; } = string.Empty;
@@ -23,7 +23,7 @@ namespace AccountManager.Core.Models
         public bool WholesaleOnly { get; set; } = false;
     }
 
-    public class Bundle2
+    public sealed class Bundle2
     {
         [JsonPropertyName("ID")]
         public string ID { get; set; } = string.Empty;
@@ -44,7 +44,7 @@ namespace AccountManager.Core.Models
         public bool WholesaleOnly { get; set; } = false;
     }
 
-    public class FeaturedBundle
+    public sealed class FeaturedBundle
     {
         [JsonPropertyName("Bundle")]
         public Bundle? Bundle { get; set; }
@@ -56,7 +56,7 @@ namespace AccountManager.Core.Models
         public int BundleRemainingDurationInSeconds { get; set; }
     }
 
-    public class ItemWrapper
+    public sealed class ItemWrapper
     {
         [JsonPropertyName("Item")]
         public ItemWrapper? Item { get; set; }
@@ -77,7 +77,7 @@ namespace AccountManager.Core.Models
         public bool IsPromoItem { get; set; } = false;
     }
 
-    public class Item2
+    public sealed class Item2
     {
         [JsonPropertyName("ItemTypeID")]
         public string ItemTypeID { get; set; } = string.Empty;
@@ -89,7 +89,7 @@ namespace AccountManager.Core.Models
         public int Amount { get; set; } = 0;
     }
 
-    public class ValorantShopOffers
+    public sealed class ValorantShopOffers
     {
         [JsonPropertyName("FeaturedBundle")]
         public FeaturedBundle FeaturedBundle { get; set; } = new();
@@ -98,7 +98,7 @@ namespace AccountManager.Core.Models
         public SkinsPanelLayout SkinsPanelLayout { get; set; } = new();
     }
 
-    public class SkinsPanelLayout
+    public sealed class SkinsPanelLayout
     {
         [JsonPropertyName("SingleItemOffers")]
         public List<string> SingleItemOffers { get; set; } = new();

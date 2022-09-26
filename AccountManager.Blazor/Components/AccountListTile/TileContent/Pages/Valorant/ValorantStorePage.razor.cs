@@ -8,8 +8,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     [AccountTilePage(Core.Enums.AccountType.Valorant, 0)]
     public partial class ValorantStorePage
     {
-        public static int OrderNumber = 0;
-
         [Parameter]
         public Account Account { get; set; } = new();
         private Account _account = new();
