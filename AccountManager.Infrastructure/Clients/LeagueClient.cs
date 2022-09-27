@@ -14,7 +14,7 @@ using System.Net.Http.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public class LeagueClient : ILeagueClient
+    public sealed class LeagueClient : ILeagueClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILeagueTokenClient _leagueTokenClient;

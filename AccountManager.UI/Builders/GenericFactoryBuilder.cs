@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace AccountManager.UI.Builders
 {
-    public class GenericFactoryBuilder<TKey, TInterface> : IGenericFactoryBuilder<TKey, TInterface> where TKey : notnull, new()
+    public sealed class GenericFactoryBuilder<TKey, TInterface> : IGenericFactoryBuilder<TKey, TInterface> where TKey : notnull, new()
     {
         private Dictionary<TKey, Type> _implementations { get; set; }
-        private readonly ServiceCollection _services;
-        public GenericFactoryBuilder(ServiceCollection services)
+        private readonly IServiceCollection _services;
+        public GenericFactoryBuilder(IServiceCollection services)
         {
             _implementations = new Dictionary<TKey, Type>();
             _services = services;

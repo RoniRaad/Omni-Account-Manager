@@ -1,7 +1,7 @@
 ﻿
 namespace AccountManager.Core.Models
 {
-    public class ConfirmationRequest
+    public sealed class ConfirmationRequest
     {
         public string RequestTitle { get; set; } = "Are you sure?";
         public string RequestMessage { get; set; } = string.Empty;

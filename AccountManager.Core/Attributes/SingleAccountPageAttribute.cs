@@ -3,7 +3,7 @@
 namespace AccountManager.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class SingleAccountPageAttribute : Attribute
+    public sealed class SingleAccountPageAttribute : Attribute
     {
         public readonly string Title;
         public readonly int OrderNumber = 0;

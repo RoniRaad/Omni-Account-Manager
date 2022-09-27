@@ -4,7 +4,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 {
     public partial class RiotClientApi
     {
-        public class AuthFlowStartRequest
+        public sealed class AuthFlowStartRequest
         {
             [JsonPropertyName("loginStrategy")]
             public string? LoginStrategy { get; set; }

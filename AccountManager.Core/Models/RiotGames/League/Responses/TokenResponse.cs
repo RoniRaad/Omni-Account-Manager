@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League.Responses
 {
-    public class TokenResponse
+    public sealed class TokenResponse
     {
         [JsonPropertyName("token")]
         public string? Token { get; set; }

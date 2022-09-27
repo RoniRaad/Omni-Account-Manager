@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models
 {
-    public class RankedGraphData
+    public sealed class RankedGraphData
     {
         public string? Label { get; set; }
         public List<string[]>? Tags { get; set; }

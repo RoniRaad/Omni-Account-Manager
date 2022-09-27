@@ -5,7 +5,7 @@ using AccountManager.Core.Models.RiotGames.League;
 
 namespace AccountManager.Core.Services.GraphServices
 {
-    public class LeagueGraphService : ILeagueGraphService
+    public sealed class LeagueGraphService : ILeagueGraphService
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
@@ -66,8 +66,10 @@ namespace AccountManager.Core.Services.GraphServices
 
                         if (!gameMatchesByType.TryGetValue(gameMatch.Type, out var gameList))
                         {
-                            gameList = new();
-                            gameList.Label = gameMatch.Type;
+                            gameList = new()
+                            {
+                                Label = gameMatch.Type
+                            };
                             gameMatchesByType.Add(gameMatch.Type, gameList);
                             if (gameMatch.Type == "Solo")
                                 gameList.ColorHex = soloQueueRank.HexColor;
@@ -77,9 +79,11 @@ namespace AccountManager.Core.Services.GraphServices
                         gameMatchesByType[gameMatch.Type].Data.Add(new CoordinatePair() { Y = gameMatchesOffsetByType[gameMatch.Type], X = DateTimeOffset.FromUnixTimeMilliseconds(game?.Json?.GameCreation ?? 0).ToLocalTime().ToUnixTimeMilliseconds() });
                     }
                 }
-                lineGraph = new();
-                lineGraph.Title = "Ranked Wins";
-                lineGraph.Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList();
+                lineGraph = new()
+                {
+                    Title = "Ranked Wins",
+                    Data = gameMatchesByType.Values.OrderBy((dataset) => !string.IsNullOrEmpty(dataset.ColorHex) ? 1 : 0).ToList()
+                };
 
 
                 return lineGraph;

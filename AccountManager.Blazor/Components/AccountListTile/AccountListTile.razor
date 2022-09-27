@@ -17,6 +17,7 @@
 @inject IValorantGraphService _valorantGraphService
 @inject ITeamFightTacticsGraphService _tftGraphService
 @inject IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings
+@inject IAccountService _accountService
 @inherits LayoutComponentBase
 
 <CascadingValue Value="_settings">
@@ -28,7 +29,7 @@
 		    <TileContent Account="Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
 	    </ul>
 	    <div class="container account-btn-container">
-            <ButtonContainer Account="Account" AccountService="AccountService" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
+            <ButtonContainer Account="Account" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
 	    </div>
     </div>
 </CascadingValue>

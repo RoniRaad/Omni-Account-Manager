@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Core.Services.GraphServices
 {
-    public class TeamFightTacticsGraphService : ITeamFightTacticsGraphService
+    public sealed class TeamFightTacticsGraphService : ITeamFightTacticsGraphService
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;

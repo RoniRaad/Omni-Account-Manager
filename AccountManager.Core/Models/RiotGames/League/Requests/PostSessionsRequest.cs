@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League.Requests
 {
-    public class PostSessionsRequest
+    public sealed class PostSessionsRequest
     {
         [JsonPropertyName("claims")]
         public Claims? Claims { get; set; }

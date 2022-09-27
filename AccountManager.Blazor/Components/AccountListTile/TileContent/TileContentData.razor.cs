@@ -1,15 +1,8 @@
 using Microsoft.AspNetCore.Components;
-using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages;
-using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League;
-using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant;
 using AccountManager.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
-using System.Reflection;
-using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.TeamFightTactics;
-using AccountManager.Core.Static;
 using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Attributes;
-using AccountManager.Core.Enums;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -21,10 +14,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         public AccountListItemSettings Settings { get; set; } = new();
 
         private List<Type> pages = new();
-        private Dictionary<string, object> pageParams = new();
+        private readonly Dictionary<string, object> pageParams = new();
         private int activePage = 0;
-        private Account _account;
-
+        private Account? _account;
 
         protected override void OnInitialized()
         {

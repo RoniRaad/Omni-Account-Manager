@@ -4,9 +4,9 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IAccountService
     {
-        Task<List<Account>> GetAllAccounts();
-        List<Account> GetAllAccountsMin();
-        Task Login(Account account);
-        void WriteAllAccounts(List<Account> accounts);
+        Task<List<Account>> GetAllAccountsAsync();
+        Task<List<Account>> GetAllAccountsMinAsync();
+        Task LoginAsync(Account account);
+        Task WriteAllAccountsAsync(List<Account> accounts);
     }
 }

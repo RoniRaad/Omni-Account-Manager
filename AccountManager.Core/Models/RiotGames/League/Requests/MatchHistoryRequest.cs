@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace AccountManager.Core.Models.RiotGames.League.Requests
 {
-    public class MatchHistoryResponse
+    public sealed class MatchHistoryResponse
     {
         [JsonPropertyName("games")]
         public List<Game>? Games { get; set; }
 
-        public class Ban
+        public sealed class Ban
         {
             [JsonPropertyName("championId")]
             public int ChampionId { get; set; }
@@ -21,7 +21,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int PickTurn { get; set; }
         }
 
-        public class Baron
+        public sealed class Baron
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }
@@ -30,7 +30,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Kills { get; set; }
         }
 
-        public class Challenges
+        public sealed class Challenges
         {
             [JsonPropertyName("12AssistStreakCount")]
             public double _12AssistStreakCount { get; set; }
@@ -414,7 +414,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public double? MejaisFullStackInTime { get; set; }
         }
 
-        public class Champion
+        public sealed class Champion
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }
@@ -423,7 +423,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Kills { get; set; }
         }
 
-        public class Dragon
+        public sealed class Dragon
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }
@@ -432,7 +432,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Kills { get; set; }
         }
 
-        public class Game
+        public sealed class Game
         {
             [JsonPropertyName("metadata")]
             public Metadata? Metadata { get; set; }
@@ -441,7 +441,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public Json? Json { get; set; }
         }
 
-        public class Inhibitor
+        public sealed class Inhibitor
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }
@@ -450,7 +450,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Kills { get; set; }
         }
 
-        public class Json
+        public sealed class Json
         {
             [JsonPropertyName("gameCreation")]
             public long? GameCreation { get; set; }
@@ -501,7 +501,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public string? TournamentCode { get; set; }
         }
 
-        public class Metadata
+        public sealed class Metadata
         {
             [JsonPropertyName("product")]
             public string? Product { get; set; }
@@ -528,7 +528,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public bool Private { get; set; }
         }
 
-        public class Objectives
+        public sealed class Objectives
         {
             [JsonPropertyName("baron")]
             public Baron? Baron { get; set; }
@@ -549,7 +549,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public Tower? Tower { get; set; }
         }
 
-        public class Participant
+        public sealed class Participant
         {
             [JsonPropertyName("assists")]
             public int Assists { get; set; }
@@ -873,7 +873,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public bool Win { get; set; }
         }
 
-        public class Perks
+        public sealed class Perks
         {
             [JsonPropertyName("statPerks")]
             public StatPerks? StatPerks { get; set; }
@@ -882,7 +882,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public List<Style>? Styles { get; set; }
         }
 
-        public class RiftHerald
+        public sealed class RiftHerald
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }
@@ -891,7 +891,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Kills { get; set; }
         }
 
-        public class Selection
+        public sealed class Selection
         {
             [JsonPropertyName("perk")]
             public int Perk { get; set; }
@@ -906,7 +906,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Var3 { get; set; }
         }
 
-        public class StatPerks
+        public sealed class StatPerks
         {
             [JsonPropertyName("defense")]
             public int Defense { get; set; }
@@ -918,7 +918,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int Offense { get; set; }
         }
 
-        public class Style
+        public sealed class Style
         {
             [JsonPropertyName("description")]
             public string? Description { get; set; }
@@ -930,7 +930,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int InnerStyle { get; set; }
         }
 
-        public class Team
+        public sealed class Team
         {
             [JsonPropertyName("bans")]
             public List<Ban>? Bans { get; set; }
@@ -945,7 +945,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public bool Win { get; set; }
         }
 
-        public class Tower
+        public sealed class Tower
         {
             [JsonPropertyName("first")]
             public bool First { get; set; }

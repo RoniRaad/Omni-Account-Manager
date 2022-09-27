@@ -8,14 +8,12 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     [AccountTilePage(Core.Enums.AccountType.Valorant, 2)]
     public partial class ValorantAverageACSPage
     {
-        public static int OrderNumber = 2;
-
         [Parameter]
         public Account Account { get; set; } = new();
 
         private Account _account = new();
         BarChart<double?>? barChart;
-        BarChartOptions barChartOptions = new()
+        private readonly BarChartOptions barChartOptions = new()
         {
             MaintainAspectRatio = false,
             Plugins = new()
@@ -64,9 +62,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
         }
 
-        protected override async Task OnAfterRenderAsync(bool first)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 await HandleRedraw();
         }
 
@@ -91,7 +89,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         }
 
         BarChart? displayGraph = new();
-        List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-        List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+        private readonly List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+        private readonly List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
     }
 }

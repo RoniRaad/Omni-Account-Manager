@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models.RiotGames.Requests
 {
-    public class RiotTokenRequest
+    public sealed class RiotTokenRequest
     {
         [JsonPropertyName("client_id")]
         public string? Id { get; set; }
         [JsonPropertyName("nonce")]
-        public string? Nonce { get; set; }
+        public string? Nonce { get; set; } = "1";
         [JsonPropertyName("redirect_uri")]
         public string? RedirectUri { get; set; }
         [JsonPropertyName("response_type")]

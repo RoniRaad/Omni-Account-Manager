@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models
 {
-    public class BarChart
+    public sealed class BarChart
     {
         [JsonPropertyName("title")]
         public string? Title { get; set; }
