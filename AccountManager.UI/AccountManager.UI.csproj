@@ -14,10 +14,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Remove="wwwroot\logos\epic-games-logo.png" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
 		<PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
@@ -195,6 +191,9 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\logos\valorant_point_icon.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\logos\epic-games-logo.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
