@@ -31,13 +31,15 @@ using System;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using Microsoft.Extensions.Logging;
 using System.Configuration;
+using AccountManager.UI.Services;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
     {
 		public IConfigurationRoot Configuration { get; set; }
 
@@ -45,97 +47,16 @@ namespace AccountManager.UI
 			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
-			// Initialize datapath
-			if (!Directory.Exists(IOService.DataPath))
-            {
-				Directory.CreateDirectory(IOService.DataPath);
-            }
-
-            // This file acts as a flag to delete the cache file before initializing
-            if (File.Exists(@$"{IOService.DataPath}\deletecache"))
-            {
-				File.Delete(@$"{IOService.DataPath}\cache.db");
-				File.Delete(@$"{IOService.DataPath}\deletecache");
-			}
 			var builder = new ConfigurationBuilder()
 			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 			Configuration = builder.Build();
 
-			ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddBlazorWebView();
-            serviceCollection.AddBlazorDragDrop();
-            serviceCollection.AddOptions();
-			serviceCollection.AddLogging(builder =>
-			{
-                builder.AddConfiguration(Configuration.GetSection("Logging"));
-                builder.AddFile(o => o.RootPath = AppContext.BaseDirectory);
-            });
-            serviceCollection.AddSqliteCache(options => {
-				options.CachePath = @$"{IOService.DataPath}\cache.db";
-			});
-			serviceCollection.AddMemoryCache();
-			serviceCollection.AddAutoMapperMappings();
-			serviceCollection.AddNamedClients(Configuration);
-            serviceCollection.Configure<RiotApiUri>(Configuration.GetSection("RiotApiUri"));
-			serviceCollection.Configure<AboutEndpoints>(Configuration.GetSection("AboutEndpoints"));
-			serviceCollection.AddSingleton<IIOService, IOService>();
-			serviceCollection.AddSingleton<IAlertService, AlertService>();
-			serviceCollection.AddSingleton<IAccountFilterService, AccountFilterService>();
-			serviceCollection.AddState();
-			serviceCollection.AddAuth();
-			serviceCollection.AddLogging();
-			serviceCollection.AddSingleton<IRiotFileSystemService, RiotFileSystemService>();
-            serviceCollection.AddSingleton<LeagueFileSystemService>();
-            serviceCollection.AddSingleton<ISteamLibraryService, SteamLibraryService>();
-            serviceCollection.AddSingleton<IShortcutService, ShortcutService>();
-            serviceCollection.AddSingleton<IAppUpdateService, SquirrelAppUpdateService>();
-			
-			// Cached Objects
-			serviceCollection.AddSingleton<RiotClient>();
-			serviceCollection.AddSingleton<LeagueClient>();
-            serviceCollection.AddSingleton<ValorantClient>();
-            serviceCollection.AddTransient<LeagueClient>();
-            serviceCollection.AddTransient<LeagueTokenClient>();
-            serviceCollection.AddSingleton<ValorantGraphService>();
-            serviceCollection.AddSingleton<LeagueGraphService>();
-            serviceCollection.AddSingleton<RiotTokenClient>();
+            GeneralFileSystemService.InitializeFileSystem();
 
-            serviceCollection.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
-            serviceCollection.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
-            serviceCollection.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
-            serviceCollection.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
-			serviceCollection.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
-			serviceCollection.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
-            serviceCollection.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
-            serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
-			serviceCollection.AddSingleton<IIpcService, IpcService>();
-			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
-			serviceCollection.AddBlazorise(options =>
-			{
-				options.Immediate = true;
-			})
-			.AddBootstrapProviders()
-			.AddFontAwesomeIcons();
-			serviceCollection.AddSingleton<IAccountService, AccountService>();
-			serviceCollection.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
-			serviceCollection.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
-			serviceCollection.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();
-			serviceCollection.AddSingleton<IUserSettingsService<Dictionary<Guid, AccountListItemSettings>>, UserSettingsService<Dictionary<Guid, AccountListItemSettings>>>();
-			serviceCollection.AddFactory<AccountType, IPlatformService>()
-				.AddImplementation<SteamPlatformService>(AccountType.Steam)
-				.AddImplementation<LeaguePlatformService>(AccountType.League)
-				.AddImplementation<TeamFightTacticsPlatformService>(AccountType.TeamFightTactics)
-				.AddImplementation<ValorantPlatformService>(AccountType.Valorant)
-				.Build();
-			serviceCollection.AddFactory<AccountType, ITokenService>()
-				.AddImplementation<LeagueTokenService>(AccountType.League)
-				.AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
-				.AddImplementation<RiotTokenService>(AccountType.Valorant)
-				.Build();
+            IServiceCollection services = new ServiceCollection();
+            Startup.ConfigureServices(services, Configuration);
 
-			var builtServiceProvider = serviceCollection.BuildServiceProvider();
+			var builtServiceProvider = services.BuildServiceProvider();
 
             Resources.Add("services", builtServiceProvider);
 

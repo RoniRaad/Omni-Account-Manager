@@ -3,11 +3,11 @@ using System.Reflection;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class RiotFileSystemService : IRiotFileSystemService
+    public sealed class RiotFileSystemService : IRiotFileSystemService
     {
-        private readonly IIOService _iOService;
+        private readonly IGeneralFileSystemService _iOService;
         private readonly string appDataPath;
-        public RiotFileSystemService(IIOService iOService)
+        public RiotFileSystemService(IGeneralFileSystemService iOService)
         {
             _iOService = iOService;
             appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

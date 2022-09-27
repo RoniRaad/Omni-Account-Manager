@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League.Responses
 {
-    public class LeagueRankedResponse
+    public sealed class LeagueRankedResponse
     {
         [JsonPropertyName("queues")]
         public List<Queue>? Queues { get; set; }

@@ -3,7 +3,7 @@ using WindowsShortcutFactory;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
 {
-    public class ShortcutService : IShortcutService
+    public sealed class ShortcutService : IShortcutService
     {
         public bool TryCreateDesktopLoginShortcut(string name, Guid accountGuid, string iconPath)
         {

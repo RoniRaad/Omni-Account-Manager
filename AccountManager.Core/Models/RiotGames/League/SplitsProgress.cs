@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class SplitsProgress
+    public sealed class SplitsProgress
     {
         [JsonPropertyName("1")]
         public int One { get; set; }

@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public class RankedTeamFightTacticsPairs
+    public sealed class RankedTeamFightTacticsPairs
     {
         [JsonPropertyName("currentSeasonId")]
         public int CurrentSeasonId { get; set; }

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Components;
-using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using System.Reflection;
 using AccountManager.Core.Models.UserSettings;
-using AccountManager.Blazor.Pages;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -12,28 +10,14 @@ namespace AccountManager.Blazor.Components.AccountListTile
         [CascadingParameter, EditorRequired]
         public AccountListItemSettings Settings { get; set; } = new();
         [Parameter, EditorRequired]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public Account Account { get; set; } = new();
 
-        public Account Account { get; set; }
-
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         [Parameter, EditorRequired]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        public Action ReloadList { get; set; }
-
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public Action ReloadList { get; set; } = delegate { };
 
         [Parameter]
         public Action OpenEditModal { get; set; } = () => { };
-
-        [Parameter, EditorRequired]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        public IAccountService AccountService { get; set; }
-
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
@@ -43,7 +27,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
             if (loginDisabled)
                 return;
             loginDisabled = true;
-            await AccountService.Login(Account);
+            await _accountService.LoginAsync(Account);
             loginDisabled = false;
         }
 
@@ -82,10 +66,10 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
         }
 
-        public void ToggleContentView()
+        public async Task ToggleContentViewAsync()
         {
             Settings.ShowAccountDetails = !Settings.ShowAccountDetails;
-            _accountItemSettings.Save();
+            await _accountItemSettings.SaveAsync();
         }
     }
 }

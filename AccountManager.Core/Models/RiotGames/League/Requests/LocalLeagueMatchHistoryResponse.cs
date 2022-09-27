@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace AccountManager.Core.Models.RiotGames.League.Requests
 {
     
-    public class LocalLeagueMatchHistoryResponse
+    public sealed class LocalLeagueMatchHistoryResponse
     {
         [JsonPropertyName("accountId")]
         public long AccountId { get; set; }
@@ -19,7 +19,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
         [JsonPropertyName("platformId")]
         public string? PlatformId { get; set; }
 
-        public class Ban
+        public sealed class Ban
         {
             [JsonPropertyName("championId")]
             public int ChampionId { get; set; }
@@ -28,29 +28,29 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int PickTurn { get; set; }
         }
 
-        public class CreepsPerMinDeltas
+        public sealed class CreepsPerMinDeltas
         {
         }
 
-        public class GameWrapper
+        public sealed class GameWrapper
         {
             [JsonPropertyName("games")]
             public List<Game>? Games { get; set; }
         }
 
-        public class CsDiffPerMinDeltas
+        public sealed class CsDiffPerMinDeltas
         {
         }
 
-        public class DamageTakenDiffPerMinDeltas
+        public sealed class DamageTakenDiffPerMinDeltas
         {
         }
 
-        public class DamageTakenPerMinDeltas
+        public sealed class DamageTakenPerMinDeltas
         {
         }
 
-        public class Game
+        public sealed class Game
         {
             [JsonPropertyName("gameCreation")]
             public long GameCreation { get; set; }
@@ -110,11 +110,11 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public int GameIndexEnd { get; set; }
         }
 
-        public class GoldPerMinDeltas
+        public sealed class GoldPerMinDeltas
         {
         }
 
-        public class Participant
+        public sealed class Participant
         {
             [JsonPropertyName("championId")]
             public int ChampionId { get; set; }
@@ -141,7 +141,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public Timeline? Timeline { get; set; }
         }
 
-        public class ParticipantIdentity
+        public sealed class ParticipantIdentity
         {
             [JsonPropertyName("participantId")]
             public int ParticipantId { get; set; }
@@ -150,7 +150,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public Player? Player { get; set; }
         }
 
-        public class Player
+        public sealed class Player
         {
             [JsonPropertyName("accountId")]
             public int AccountId { get; set; }
@@ -177,7 +177,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public string? SummonerName { get; set; }
         }
 
-        public class Stats
+        public sealed class Stats
         {
             [JsonPropertyName("assists")]
             public int Assists { get; set; }
@@ -498,7 +498,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public bool Win { get; set; }
         }
 
-        public class Team
+        public sealed class Team
         {
             [JsonPropertyName("bans")]
             public List<Ban>? Bans { get; set; }
@@ -546,7 +546,7 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public string? Win { get; set; }
         }
 
-        public class Timeline
+        public sealed class Timeline
         {
             [JsonPropertyName("creepsPerMinDeltas")]
             public CreepsPerMinDeltas? CreepsPerMinDeltas { get; set; }
@@ -579,11 +579,11 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             public XpPerMinDeltas? XpPerMinDeltas { get; set; }
         }
 
-        public class XpDiffPerMinDeltas
+        public sealed class XpDiffPerMinDeltas
         {
         }
 
-        public class XpPerMinDeltas
+        public sealed class XpPerMinDeltas
         {
         }
     }

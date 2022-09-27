@@ -14,9 +14,9 @@ namespace AccountManager.Blazor.Pages
             _accountFilterService.OnFilterChanged += () => LoadList();
         }
 
-        protected override void OnAfterRender(bool first)
+        protected override void OnAfterRender(bool firstRender)
         {
-            if (first)
+            if (firstRender)
                 Task.Run(async () => await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder"));
         }
 

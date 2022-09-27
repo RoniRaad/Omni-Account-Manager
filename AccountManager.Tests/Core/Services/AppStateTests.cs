@@ -6,7 +6,7 @@ using Moq;
 
 namespace AccountManager.Tests.Core.Services
 {
-    public class AppStateTests
+    public sealed class AppStateTests
     {
         private readonly Mock<IAccountService> _accountService;
         private readonly Mock<IIpcService> _ipcService;
@@ -34,7 +34,7 @@ namespace AccountManager.Tests.Core.Services
             };
             _sut.Accounts = new() { account };
 
-            _accountService.Setup((x) => x.Login(account)).Verifiable();
+            _accountService.Setup((x) => x.LoginAsync(account)).Verifiable();
 
             // Act
             await _sut.IpcLogin(new() { Guid = account.Guid });
@@ -47,24 +47,30 @@ namespace AccountManager.Tests.Core.Services
         public async Task UpdateAccount_AttemptsToUpdatePlatformIdAndRank_WhenPlatformIdAndRankHaveChanged()
         {
             // Arrange
+            var updatedPlatformId = "UpdatedPlatformId";
+            var updatedRanking = "UpdatedRanking";
+            var firstAccountGuid = Guid.NewGuid();
+            var secondAccountGuid = Guid.NewGuid();
+            var thirdAccountGuid = Guid.NewGuid();
+
             var minAccounts = new List<Account>()
             {
-                new Account() {Id = "TestId1"},
-                new Account() {Id = "TestId2"},
-                new Account() {Id = "TestId3"}
+                new Account() { Guid = firstAccountGuid, Id = "TestId1"},
+                new Account() { Guid = secondAccountGuid, Id = "TestId2"},
+                new Account() { Guid = thirdAccountGuid, Id = "TestId3"}
             };
             var fullAccounts = new List<Account>()
             {
-                new Account() {Id = "TestId1", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }},
-                new Account() {Id = "TestId2", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }},
-                new Account() {Id = "TestId3", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }}
+                new Account() { Guid = firstAccountGuid, Id = "TestId1", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }},
+                new Account() { Guid = secondAccountGuid, Id = "TestId2", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }},
+                new Account() { Guid = thirdAccountGuid, Id = "TestId3", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }}
             };
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMin()).Returns(minAccounts);
-            _accountService.Setup((x) => x.GetAllAccounts()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccounts(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == "UpdatedPlatformId" && account.Rank.Ranking == "UpdatedRanking")))).Verifiable();
+            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
+            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == updatedPlatformId && account.Rank.Ranking == updatedRanking)))).Verifiable();
 
             // Act
             await _sut.UpdateAccounts();
@@ -93,13 +99,12 @@ namespace AccountManager.Tests.Core.Services
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMin()).Returns(minAccounts);
-            _accountService.Setup((x) => x.GetAllAccounts()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccounts(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == "UpdatedPlatformId" && account.Rank.Ranking == "UpdatedRanking"))));
+            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
+            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == "UpdatedPlatformId" && account.Rank.Ranking == "UpdatedRanking"))));
 
             // Act
             await _sut.UpdateAccounts();
-
 
             // Assert
             Assert.True(_sut.IsInitialized);

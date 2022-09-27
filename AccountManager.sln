@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "published", "published", "{
 		AccountManager.UI\publish\.gitattributes = AccountManager.UI\publish\.gitattributes
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManager.Tests", "AccountManager.Tests\AccountManager.Tests.csproj", "{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountManager.Tests", "AccountManager.Tests\AccountManager.Tests.csproj", "{F72AE567-6ACC-4BD2-B71D-A61CF8ACEBDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

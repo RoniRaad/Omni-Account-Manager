@@ -7,9 +7,9 @@ using Moq;
 
 namespace AccountManager.Tests.Core.Services
 {
-    public class AccountServiceTests
+    public sealed class AccountServiceTests
     {
-        private readonly Mock<IIOService> _iOService;
+        private readonly Mock<IGeneralFileSystemService> _iOService;
         private readonly Mock<IAuthService> _authService;
         private readonly Mock<IGenericFactory<AccountType, IPlatformService>> _platformServiceFactory;
         private readonly Mock<IPlatformService> _platformService;
@@ -17,7 +17,7 @@ namespace AccountManager.Tests.Core.Services
 
         public AccountServiceTests()
         {
-            _iOService = new Mock<IIOService>();
+            _iOService = new Mock<IGeneralFileSystemService>();
             _authService = new Mock<IAuthService>();
             _platformServiceFactory = new Mock<IGenericFactory<AccountType, IPlatformService>>();
             _sut = new AccountService(_iOService.Object, _authService.Object, _platformServiceFactory.Object);
@@ -36,14 +36,14 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.UpdateData<List<Account>>(It.IsAny<List<Account>>(), It.IsAny<string>()));
 
             // Act
-            _sut.RemoveAccount(testAccount);
+            _sut.RemoveAccountAsync(testAccount);
 
             // Assert
             Assert.DoesNotContain(testAccount, accounts);
         }
 
         [Fact]
-        public void GetAllAccountsMin_GetsAllAccounts_WhenAccountsExist()
+        public async Task GetAllAccountsMin_GetsAllAccounts_WhenAccountsExist()
         {
             // Arrange
             var fixture = new Fixture();
@@ -52,7 +52,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.IsAny<string>())).Returns(accounts);
 
             // Act
-            var value = _sut.GetAllAccountsMin();
+            var value = await _sut.GetAllAccountsMinAsync();
 
             // Assert
             Assert.Equal(accounts, value);
@@ -71,7 +71,7 @@ namespace AccountManager.Tests.Core.Services
             _platformService.Setup((x) => x.TryFetchRank(It.IsAny<Account>())).ReturnsAsync((true, new Rank() { Tier = "TestTier" }));
 
             // Act
-            var value = await _sut.GetAllAccounts();
+            var value = await _sut.GetAllAccountsAsync();
 
             // Assert
             Assert.Equal(value, accounts);
@@ -91,10 +91,10 @@ namespace AccountManager.Tests.Core.Services
             _platformService.Setup((x) => x.TryFetchRank(It.IsAny<Account>())).ReturnsAsync((true, new Rank() { Tier = "TestTier"}));
 
             // Act
-            var value = await _sut.GetAllAccounts();
+            var value = await _sut.GetAllAccountsAsync();
 
             // Assert
-            Assert.True(value.TrueForAll((x) => x.Rank.Tier == "TestTier"));
+            Assert.True(value.TrueForAll((x) => x?.Rank?.Tier == "TestTier"));
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace AccountManager.Tests.Core.Services
             _platformService.Setup((x) => x.TryFetchRank(It.IsAny<Account>())).ReturnsAsync((true, new Rank() { Tier = "TestTier" }));
 
             // Act
-            var value = await _sut.GetAllAccounts();
+            var value = await _sut.GetAllAccountsAsync();
 
             // Assert
             Assert.True(value.TrueForAll((x) => x.PlatformId == "UpdatedId"));
@@ -131,7 +131,7 @@ namespace AccountManager.Tests.Core.Services
             _platformService.Setup((x) => x.TryFetchRank(It.IsAny<Account>())).ReturnsAsync((true, new Rank() { Tier = "TestTier" }));
 
             // Act
-            var value = await _sut.GetAllAccounts();
+            var value = await _sut.GetAllAccountsAsync();
 
             // Assert
             Assert.True(value.TrueForAll((x) => x.PlatformId == "InitialId" ));

@@ -3,7 +3,7 @@ using AccountManager.Core.Models;
 
 namespace AccountManager.Core.Services
 {
-    public class AlertService : IAlertService
+    public sealed class AlertService : IAlertService
     {
         private readonly List<TwoFactorAuthenticationUserRequest> twoFactorRequests = new();
         private readonly List<Alert> errorMessages = new();
@@ -80,15 +80,15 @@ namespace AccountManager.Core.Services
         }
     }
 
-    public class TwoFactorAuthenticationUserRequest
+    public sealed class TwoFactorAuthenticationUserRequest
     {
         public Account? Account { get; set; }
         public string EmailHint { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
-        public Action<string>? Callback { get; set; }
+        public Action<string> Callback { get; set; } = delegate { };
     }
 
-    public class Alert
+    public sealed class Alert
     {
         public AlertType Type { get; set; }
         public string DisplayMessage { get; set; } = "";

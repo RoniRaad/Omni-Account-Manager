@@ -1,6 +1,6 @@
 ﻿namespace AccountManager.Core.Models.UserSettings
 {
-    public class LeagueSettings
+    public sealed class LeagueSettings
     {
         public LeagueSettings() { }
 

@@ -3,13 +3,13 @@ using System.Net;
 
 namespace AccountManager.Core.Models.RiotGames
 {
-    public class RiotAuthResponse
+    public sealed class RiotAuthResponse
     {
         public TokenResponseWrapper? Content { get; set; }
         public RiotAuthCookies? Cookies { get; set; }
     }
 
-    public class RiotAuthCookies
+    public sealed class RiotAuthCookies
     {
         public RiotAuthCookies() { }
 
