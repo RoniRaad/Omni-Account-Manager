@@ -3,6 +3,8 @@ The Omni Account Manager (Omni AM) allows gamers to control and manager their ac
 
 ![omni-screenshot](https://user-images.githubusercontent.com/46434047/192658130-4048d32a-4953-4e8f-96b6-a544ee37651d.PNG)
 
+Join our discord! https://discord.gg/eJgyS98P8H
+
 Download the most current stable release here:
 https://github.com/RoniRaad/Omni-Account-Manager/releases/latest/download/Setup.exe
 
