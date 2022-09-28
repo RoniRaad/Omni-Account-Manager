@@ -5,6 +5,8 @@ The Omni Account Manager (Omni AM) allows gamers to control and manager their ac
 
 Join our discord! https://discord.gg/eJgyS98P8H
 
+Requires Webview2 https://developer.microsoft.com/en-us/microsoft-edge/webview2
+
 Download the most current stable release here:
 https://github.com/RoniRaad/Omni-Account-Manager/releases/latest/download/Setup.exe
 
