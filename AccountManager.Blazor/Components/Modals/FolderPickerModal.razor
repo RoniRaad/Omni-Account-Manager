@@ -30,11 +30,11 @@
 
 @code {
 
-    [Parameter, EditorRequired]
-    public Action<string?> DirectoryChosen { get; set; }
+	[Parameter, EditorRequired]
+	public Action<string?> DirectoryChosen { get; set; } = delegate { };
 
 	[Parameter, EditorRequired]
-    public string CurrentDirectory  { get; set; }
+	public string CurrentDirectory { get; set; } = "";
 
 	public IEnumerable<string> GetDirectories(string path)
 	{
@@ -50,6 +50,9 @@
 
 	public string? GetParentDirectory(string path)
 	{
+		if (string.IsNullOrEmpty(CurrentDirectory))
+			CurrentDirectory = Directory.GetLogicalDrives().First();
+
 		return Directory.GetParent(CurrentDirectory)?.FullName;
 	}
 }
