@@ -1,5 +1,6 @@
 ﻿@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
+@using System.Text.RegularExpressions
 @inject IAccountFilterService _accountFilterService
 
 <div class="filter-sidebar" style="@Style">
@@ -17,7 +18,7 @@
 			{
 				<div class="checkbox-container">
 					<input checked="@_accountFilterService.AccountTypeFilter.Contains(Enum.Parse<AccountType>(enumName))" @onchange="(ChangeEventArgs e) => OnAccountTypeFilterCheckboxChange(e, Enum.Parse<AccountType>(enumName))" type="checkbox" id="@(enumName)" name="@(enumName)">
-					<label for="@(enumName)">@(enumName)</label>
+					<label for="@(enumName)">@(@Regex.Replace(enumName ?? "", "(\\B[A-Z])", " $1"))</label>
 				</div>
 			}
 		</div>
