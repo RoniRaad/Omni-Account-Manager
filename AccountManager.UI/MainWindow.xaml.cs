@@ -1,38 +1,8 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Windows;
-using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models.AppSettings;
-using AccountManager.Core.Services;
-using AccountManager.Core.Services.GraphServices;
-using AccountManager.Core.Services.GraphServices.Cached;
-using AccountManager.Infrastructure.CachedClients;
-using AccountManager.Infrastructure.Clients;
-using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
-using AccountManager.Infrastructure.Services.Platform;
-using AccountManager.Infrastructure.Services.Token;
-using AccountManager.UI.Extensions;
-using Blazorise;
-using Blazorise.Bootstrap;
-using Blazorise.Icons.FontAwesome;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NeoSmart.Caching.Sqlite;
-using Plk.Blazor.DragDrop;
-using Squirrel;
-using Microsoft.Extensions.Options;
-using AccountManager.Core.Models.UserSettings;
-using System.Collections.Generic;
-using System;
-using AccountManager.Core.Models.RiotGames.Valorant;
-using Microsoft.Extensions.Logging;
-using System.Configuration;
-using AccountManager.UI.Services;
-using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.UI
 {
@@ -43,8 +13,6 @@ namespace AccountManager.UI
     {
 		public IConfigurationRoot Configuration { get; set; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Vulnerability", 
-			"S4830:Server certificates should be verified during SSL/TLS connections", Justification = "This is for communicating with a local api.")]
         public MainWindow()
         {
 			var builder = new ConfigurationBuilder()
