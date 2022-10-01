@@ -25,16 +25,29 @@
         }
         catch{}
 
+        <div title="@amountOfAccountsFilered accounts filtered" style="@(amountOfAccountsFilered > 0 ? "" : "display:none")" id="filter-indicator" class="filter-indicator">
+            <div class="card filter-indicator-card">
+                <ul class="list-group list-group-flush">
+                    <li class="inner-card list-group-item list-group-item-placeholder">
+                        <div class="list-item-placeholder-div">
+                            <p style="font-family: Roboto;">+@(amountOfAccountsFilered)</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+
         <div id="new-account-placeholder" class="placeholder-account-tile">
             <div class="card card-placeholder">
-	            <ul class="list-group list-group-flush">
-                    <li @onclick="()=>addAccountPrompt=true" class="clickable-card list-group-item list-group-item-placeholder">
+                <ul class="list-group list-group-flush">
+                    <li @onclick="()=>addAccountPrompt=true" class="inner-card clickable-card list-group-item list-group-item-placeholder">
                         <div class="list-item-placeholder-div">
                             <p>+</p>
                         </div>
                     </li>
                 </ul>
-	        </div>
+            </div>
         </div>
     </div>
 </div>
