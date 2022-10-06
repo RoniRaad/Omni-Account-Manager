@@ -202,8 +202,6 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 StartLeague();
 
-                await _riotFileSystemService.WaitForClientInit();
-
                 if (!await VerifyLogInStatus() && !await SendCredentialsToClient(account))
                 {
                     return false;
