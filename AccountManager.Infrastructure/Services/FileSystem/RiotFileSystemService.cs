@@ -19,7 +19,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             while (!_iOService.IsFileLocked(lockfilePath))
             {
-                await Task.Delay(100);
+                await Task.Delay(300);
             }
         }
 
@@ -29,7 +29,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             while (_iOService.IsFileLocked(lockfilePath))
             {
-                await Task.Delay(100);
+                await Task.Delay(300);
             }
         }
 

@@ -91,12 +91,12 @@ namespace AccountManager.Infrastructure.Clients
       
         public async Task<RegionInfo> GetRegionInfo(Account account)
         {
-            var riotTokens = await _riotTokenClient.GetRiotTokens(valorantRequest, account);
+            var riotTokens = await _riotTokenClient.GetRiotTokens(GetAuthRequest(account), account);
             var client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(_riotApiUri?.RiotGeo ?? "");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", riotTokens.AccessToken);
             var affinityResponse = await client.PutAsJsonAsync<AffinityRequest>("/pas/v1/product/valorant", new() { IdToken = riotTokens.IdToken });
-            
+
             try
             {
                 affinityResponse.EnsureSuccessStatusCode();
