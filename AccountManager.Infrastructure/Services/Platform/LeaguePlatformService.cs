@@ -111,9 +111,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         {
             try
             {
-                foreach (var process in Process.GetProcesses())
-                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
-                        process.Kill();
+                CloseAllRiotApps();
 
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
@@ -158,9 +156,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     regionInfo = new();
                 }
 
-                foreach (var process in Process.GetProcesses())
-                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot") || process.ProcessName.Contains("Valorant"))
-                        process.Kill();
+                CloseAllRiotApps();
 
                 await _riotFileSystemService.WaitForClientClose();
                 _riotFileSystemService.DeleteLockfile();
@@ -205,6 +201,8 @@ namespace AccountManager.Infrastructure.Services.Platform
                     riotTokens.Cookies.Sub.Value, riotTokens.Cookies.Csid.Value);
 
                 StartLeague();
+
+                await _riotFileSystemService.WaitForClientInit();
 
                 if (!await VerifyLogInStatus() && !await SendCredentialsToClient(account))
                 {
@@ -269,6 +267,15 @@ namespace AccountManager.Infrastructure.Services.Platform
             });
 
             return true;
+        }
+
+        private void CloseAllRiotApps()
+        {
+            foreach (var process in Process.GetProcesses())
+                if (process.ProcessName.ToLower().Contains("league")
+                    || process.ProcessName.ToLower().Contains("riot")
+                    || process.ProcessName.ToLower().Contains("valorant"))
+                    process.Kill();
         }
 
         private string GetRiotExePath()
