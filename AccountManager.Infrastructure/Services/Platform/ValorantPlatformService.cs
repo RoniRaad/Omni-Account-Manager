@@ -1,20 +1,20 @@
 ﻿using AccountManager.Core.Enums;
 using AccountManager.Core.Exceptions;
-using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.EpicGames;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.UserSettings;
-using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services.FileSystem;
-using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -49,157 +49,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             _riotTokenClient = riotTokenClient;
             _logger = logger;
         }
-        private async Task<bool> TryLoginUsingRCU(Account account)
-        {
-            try
-            {
-                foreach (var process in Process.GetProcesses())
-                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
-                        process.Kill();
-
-                await _riotFileSystemService.WaitForClientClose();
-                _riotFileSystemService.DeleteLockfile();
-
-                var startRiot = new ProcessStartInfo
-                {
-                    FileName = GetRiotExePath(),
-                };
-                Process.Start(startRiot);
-
-                await _riotFileSystemService.WaitForClientInit();
-
-                if (!_riotService.TryGetPortAndToken(out var token, out var port))
-                    return false;
-
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-                await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session");
-
-                await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/player-session-lifecycle/v1/session", new RiotClientApi.AuthFlowStartRequest
-                {
-                    LoginStrategy = "riot_identity",
-                    PersistLogin = true,
-                    RequireRiotID = true,
-                    Scopes = new()
-                    {
-                        "openid",
-                        "offline_access",
-                        "lol",
-                        "ban",
-                        "profile",
-                        "email",
-                        "phone",
-                        "account"
-                    }
-                });
-
-                var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
-                {
-                    Username = account.Username,
-                    Password = account.Password,
-                    PersistLogin = true,
-                    Region = "NA1"
-                });
-
-                var credentialsResponse = await resp.Content.ReadFromJsonAsync<RiotClientApi.CredentialsResponse>();
-
-                if (string.IsNullOrEmpty(credentialsResponse?.Type))
-                {
-                    _alertService.AddErrorAlert("There was an error signing in, please try again later.");
-                }
-
-                if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
-                {
-                    StartValorant();
-                    return true;
-                }
-
-                var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
-
-                await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new RiotClientApi.MultifactorLoginResponse
-                {
-                    Code = mfaCode,
-                    Retry = false,
-                    TrustDevice = true
-                });
-
-                StartValorant();
-                return true;
-            }
-            catch (RiotClientNotFoundException)
-            {
-                _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private async Task<bool> TryLoginUsingApi(Account account)
-        {
-            RegionInfo? regionInfo;
-            try
-            {
-                _logger.LogInformation("Attempting to login to account! Username: {Username}, Account Type: {AccountType}", account.Username, account.AccountType);
-                foreach (var process in Process.GetProcesses())
-                    if (process.ProcessName.Contains("League") || process.ProcessName.Contains("Riot"))
-                        process.Kill();
-
-                await _riotFileSystemService.WaitForClientClose();
-                _riotFileSystemService.DeleteLockfile();
-                _logger.LogInformation("Riot client closed and lockfile deleted!");
-
-                var request = new RiotTokenRequest
-                {
-                    Id = "riot-client",
-                    Nonce = "1",
-                    RedirectUri = "http://localhost/redirect",
-                    ResponseType = "token id_token",
-                    Scope = "openid offline_access lol ban profile email phone account"
-                };
-
-                _logger.LogInformation("Attempted to retrieve riot tokens!");
-
-                var authResponse = await _riotTokenClient.GetRiotTokens(request, account);
-                if (authResponse is null || authResponse?.Cookies?.Tdid is null || authResponse?.Cookies?.Ssid is null ||
-                    authResponse?.Cookies?.Sub is null || authResponse?.Cookies?.Csid is null)
-                {
-                    _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
-                    _logger.LogError("Unable to retrieve riot login cookies! There must have been an issue with the auth request! Account Username: {Username}", account.Username);
-                    return true;
-                }
-
-                _logger.LogInformation("Riot token obtained successfully!");
-
-                try
-                {
-                    regionInfo = await _riotClient.GetRegionInfo(account);
-                }
-                catch
-                {
-                    _logger.LogError("Unable to obtain region info for riot account! Account Username: {Username}", account.Username);
-                    regionInfo = new();
-                }
-
-                await _riotFileSystemService.WriteRiotYaml(regionInfo.RegionId, authResponse.Cookies.Tdid.Value, authResponse.Cookies.Ssid.Value,
-                    authResponse.Cookies.Sub.Value, authResponse.Cookies.Csid.Value);
-
-                StartValorant();
-                return true;
-            }
-            catch (RiotClientNotFoundException)
-            {
-                _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
-                _logger.LogError("Could not find riot client! Unable to login!");
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         public async Task Login(Account account)
         {
@@ -210,19 +59,6 @@ namespace AccountManager.Infrastructure.Services.Platform
 
             _alertService.AddErrorAlert("There was an error attempting to sign in.");
             _logger.LogError("Riot login failed via api and rcu!");
-        }
-
-        private void StartValorant()
-        {
-            _logger.LogInformation("Launching valorant...");
-
-            var startValorantCommandline = "--launch-product=valorant --launch-patchline=live";
-            var startValorant = new ProcessStartInfo
-            {
-                FileName = GetRiotExePath(),
-                Arguments = startValorantCommandline
-            };
-            Process.Start(startValorant);
         }
 
         public async Task<(bool, Rank)> TryFetchRank(Account account)
@@ -261,7 +97,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             {
                 if (!string.IsNullOrEmpty(account.PlatformId))
                 {
-                    return new (true, account.PlatformId);
+                    return new(true, account.PlatformId);
                 }
 
                 var id = await _riotClient.GetPuuId(account);
@@ -269,8 +105,205 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
             catch
             {
-                return new (false, string.Empty);
+                return new(false, string.Empty);
             }
+        }
+
+        private async Task<bool> TryLoginUsingRCU(Account account)
+        {
+            try
+            {
+                CloseAllRiotApps();
+
+                await _riotFileSystemService.WaitForClientClose();
+                _riotFileSystemService.DeleteLockfile();
+
+                var startRiot = new ProcessStartInfo
+                {
+                    FileName = GetRiotExePath(),
+                };
+
+                Process.Start(startRiot);
+
+                await _riotFileSystemService.WaitForClientInit();
+
+                if (!await SendCredentialsToClient(account))
+                {
+                    return false;
+                }
+
+                StartValorant();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> TryLoginUsingApi(Account account)
+        {
+            RegionInfo regionInfo;
+            try
+            {
+                _logger.LogInformation("Attempting to login to account! Username: {Username}, Account Type: {AccountType}", account.Username, account.AccountType);
+
+                try
+                {
+                    regionInfo = await _riotClient.GetRegionInfo(account);
+                }
+                catch
+                {
+                    _logger.LogError("Unable to obtain region info for riot account! Account Username: {Username}", account.Username);
+                    regionInfo = new();
+                }
+
+                CloseAllRiotApps();
+
+                await _riotFileSystemService.WaitForClientClose();
+                _riotFileSystemService.DeleteLockfile();
+                _logger.LogInformation("Riot client closed and lockfile deleted!");
+
+                var request = new RiotTokenRequest
+                {
+                    Id = "riot-client",
+                    Nonce = "1",
+                    RedirectUri = "http://localhost/redirect",
+                    ResponseType = "token id_token",
+                    Scope = "openid offline_access lol ban profile email phone account"
+                };
+
+                _logger.LogInformation("Attempted to retrieve riot tokens!");
+
+                var riotTokens = await _riotTokenClient.GetRiotTokens(request, account);
+                if (riotTokens is null || riotTokens?.Cookies?.Tdid is null || riotTokens?.Cookies?.Ssid is null ||
+                    riotTokens?.Cookies?.Sub is null || riotTokens?.Cookies?.Csid is null)
+                {
+                    _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
+                    _logger.LogError("Unable to retrieve riot login cookies! There must have been an issue with the auth request! Account Username: {Username}", account.Username);
+
+                    return true;
+                }
+
+                _logger.LogInformation("Riot token obtained successfully!");
+
+                JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
+                var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(riotTokens.AccessToken);
+                jwtToken.Payload.TryGetValue("dat", out object? regionCodeObject);
+                var regionCodeTokenJson = regionCodeObject?.ToString();
+                var region = "NA";
+
+                if (regionCodeTokenJson is not null)
+                {
+                    var accessTokenPayloadData = JsonSerializer.Deserialize<RiotAccessTokenPayloadData>(regionCodeTokenJson);
+                    region = accessTokenPayloadData?.Region?.ToUpper()?.TrimEnd('1') ?? "NA";
+                }
+
+                await _riotFileSystemService.WriteRiotYaml(region, riotTokens.Cookies.Tdid.Value, riotTokens.Cookies.Ssid.Value,
+                    riotTokens.Cookies.Sub.Value, riotTokens.Cookies.Csid.Value);
+
+                StartValorant();
+
+                if (!await VerifyLogInStatus() && !await SendCredentialsToClient(account))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (RiotClientNotFoundException)
+            {
+                _alertService.AddErrorAlert("Could not find riot client. Please set your riot install location in the settings page.");
+                _logger.LogError("Could not find riot client! Unable to login!");
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> SendCredentialsToClient(Account account)
+        {
+            if (!_riotService.TryGetPortAndToken(out var token, out var port))
+                return false;
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+
+            await _httpClient.DeleteAsync($"https://127.0.0.1:{port}/rso-auth/v1/session");
+
+            await _httpClient.PostAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v2/authorizations", new RcuAuthorizationsRequest
+            {
+                ClientId = "riot-client",
+                TrustLevels = new() { "always_trusted" }
+            });
+
+            var resp = await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/credentials", new RiotClientApi.LoginRequest
+            {
+                Username = account.Username,
+                Password = account.Password,
+                PersistLogin = true,
+            });
+
+            var credentialsResponse = await resp.Content.ReadFromJsonAsync<RiotClientApi.CredentialsResponse>();
+
+            if (string.IsNullOrEmpty(credentialsResponse?.Type))
+            {
+                _alertService.AddErrorAlert("There was an error signing in, please try again later.");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(credentialsResponse?.Multifactor?.Email))
+                return true;
+
+            var mfaCode = await _alertService.PromptUserFor2FA(account, credentialsResponse.Multifactor.Email);
+
+            await _httpClient.PutAsJsonAsync($"https://127.0.0.1:{port}/rso-auth/v1/session/multifactor", new RiotClientApi.MultifactorLoginResponse
+            {
+                Code = mfaCode,
+                Retry = false,
+                TrustDevice = true
+            });
+
+            return true;
+        }
+
+        private void CloseAllRiotApps()
+        {
+            foreach (var process in Process.GetProcesses())
+                if (process.ProcessName.ToLower().Contains("league")
+                    || process.ProcessName.ToLower().Contains("riot")
+                    || process.ProcessName.ToLower().Contains("valorant"))
+                    process.Kill();
+        }
+
+        private async Task<bool> VerifyLogInStatus()
+        {
+            await _riotFileSystemService.WaitForClientInit();
+
+            if (!_riotService.TryGetPortAndToken(out var token, out var port))
+                return false;
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
+            var authorizationStatus = await _httpClient.GetAsync($"https://127.0.0.1:{port}/rso-auth/v1/authorization");
+            if (!authorizationStatus.IsSuccessStatusCode)
+                return false;
+
+            return true;
+        }
+
+        private void StartValorant()
+        {
+            _logger.LogInformation("Launching valorant...");
+
+            var startValorantCommandline = "--launch-product=valorant --launch-patchline=live";
+            var startValorant = new ProcessStartInfo
+            {
+                FileName = GetRiotExePath(),
+                Arguments = startValorantCommandline
+            };
+            Process.Start(startValorant);
         }
 
         private string GetRiotExePath()

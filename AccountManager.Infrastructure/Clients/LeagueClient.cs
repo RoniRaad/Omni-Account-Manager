@@ -58,12 +58,13 @@ namespace AccountManager.Infrastructure.Clients
         {
             var sessionToken = await _leagueTokenClient.GetLeagueSessionToken();
             var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{region.RegionId.ToUpper()}");
+            var client = _httpClientFactory.CreateClient($"League{region.RegionId.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
             try
             {
-                var rankResponse = await client.GetFromJsonAsync<LeagueRankedResponse>($"{_riotApiUri.LeagueNA}/leagues-ledge/v2/rankedStats/puuid/{account.PlatformId}");
+                var rankResponseMessage = await client.GetAsync($"/leagues-ledge/v2/rankedStats/puuid/{account.PlatformId}");
+                var rankResponse = await rankResponseMessage.Content.ReadFromJsonAsync<LeagueRankedResponse>();
                 if (rankResponse?.Queues is null)
                     return new List<Queue>();
 

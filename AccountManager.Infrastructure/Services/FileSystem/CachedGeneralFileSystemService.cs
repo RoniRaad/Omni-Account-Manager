@@ -32,7 +32,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.{nameof(IsFileLocked)}";
             return _memoryCache.GetOrCreate(cacheKey, (entry) =>
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1);
                 return _generalFileSystemService.IsFileLocked(filePath);
             });
         }
