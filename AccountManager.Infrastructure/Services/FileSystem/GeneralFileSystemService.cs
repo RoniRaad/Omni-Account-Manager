@@ -41,22 +41,12 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
-            //AddAccountDataToCache();
 
             if (!File.Exists(filePath))
                 return false;
             else
                 return true;
 
-        }
-
-        private void AddAccountDataToCache()
-        {
-            var name = typeof(List<Account>).Name;
-            var fileName = StringEncryption.Hash(name);
-            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
-            var filePath = Path.Combine(DataPath, $"{fileName}.dat");
-            ReadFile(filePath);
         }
 
         public bool TryReadEncryptedData(string password)
