@@ -41,7 +41,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             await Task.Run(() =>
             {
                 StopSteam();
-                StartSteam($"{args} -login {userName} {password}");
+                StartSteam($"{args} -noreactlogin -login {userName} {password}");
             });
 
         }
