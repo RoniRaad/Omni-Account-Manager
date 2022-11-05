@@ -3,7 +3,7 @@
 @using System.Text.RegularExpressions
 @inject IAppState _appState
 @inject IAccountService _accountService
-<div class="modal fade show d-block" tabindex="-1" role="dialog">
+<div @onclick="Close" class="modal fade show d-block" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">

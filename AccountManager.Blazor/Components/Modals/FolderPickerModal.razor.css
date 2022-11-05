@@ -2,8 +2,7 @@
 }
 
 .directory-list-item {
-    background-color: #4a4a4a;
-    padding: 14px 10px 10px 15px;
+    background-color: var(--primary-light);
     border-bottom: #252525 1px solid;
     padding: 15px 10px 15px 15px;
     cursor: pointer;
@@ -34,5 +33,43 @@ input {
 }
 
 .modal-body {
-    padding: 0px;
+    padding: 0px 8px;
+    background-color: var(--primary-dark);
+}
+
+.modal-header {
+    background-color: var(--primary-dark);
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 0.8rem;
+    border-bottom: 0px;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 6px;
+    background-color: var(--primary-dark);
+}
+
+.file-path-input {
+    margin: 0 0 14px 0;
+    background-color: var(--primary-light);
+    color: white;
+    border: none;
+    height: 30px;
+    box-shadow: inset 0px 0px 2px 1px #1d1d1d;
+    text-indent: 5px;
+}
+
+.btn-dark {
+    background-color: #121212;
+}
+
+.modal-content {
+    border: none;
+}
+
+.modal-dialog {
+    box-shadow: 0px 0px 10px 1px #131313;
+    max-width: 600px;
 }

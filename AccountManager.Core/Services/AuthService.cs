@@ -37,7 +37,7 @@ namespace AccountManager.Core.Services
         public async Task RegisterAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
-            await _iOService.UpdateDataAsync<List<object>>(new(), PasswordHash);
+            await _iOService.WriteDataAsync<List<object>>(new(), PasswordHash);
             LoggedIn = true;
         }
 
@@ -50,7 +50,7 @@ namespace AccountManager.Core.Services
             newPassword = StringEncryption.Hash(newPassword);
 
             var currentData = await _iOService.ReadDataAsync<List<Account>>(oldPassword);
-            await _iOService.UpdateDataAsync(currentData, newPassword);
+            await _iOService.WriteDataAsync(currentData, newPassword);
             PasswordHash = newPassword;
         }
     }

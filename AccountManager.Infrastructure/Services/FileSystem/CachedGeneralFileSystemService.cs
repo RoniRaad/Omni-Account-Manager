@@ -1,5 +1,4 @@
 ﻿using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models;
 using AccountManager.Core.Static;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -37,7 +36,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             });
         }
 
-        public void UpdateData<T>(T data, string password)
+        public void WriteData<T>(T data, string password)
         {
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
@@ -46,10 +45,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileData";
             _memoryCache.Remove(cacheKey);
 
-            _generalFileSystemService.UpdateData(data, password);
+            _generalFileSystemService.WriteData(data, password);
         }
 
-        public void UpdateData<T>(T data)
+        public void WriteData<T>(T data)
         {
             var type = typeof(T);
             var name = type.Name;
@@ -61,10 +60,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileData";
             _memoryCache.Remove(cacheKey);
 
-            _generalFileSystemService.UpdateData(data);
+            _generalFileSystemService.WriteData(data);
         }
 
-        public async Task UpdateDataAsync<T>(T data)
+        public async Task WriteDataAsync<T>(T data)
         {
             var type = typeof(T);
             var name = type.Name;
@@ -76,10 +75,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileData";
             _memoryCache.Remove(cacheKey);
 
-            await _generalFileSystemService.UpdateDataAsync(data);
+            await _generalFileSystemService.WriteDataAsync(data);
         }
 
-        public async Task UpdateDataAsync<T>(T data, string password)
+        public async Task WriteDataAsync<T>(T data, string password)
         {
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
@@ -88,7 +87,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileData";
             _memoryCache.Remove(cacheKey);
             
-            await _generalFileSystemService.UpdateDataAsync(data, password);
+            await _generalFileSystemService.WriteDataAsync(data, password);
         }
 
         public T ReadData<T>(string password) where T : new()
@@ -156,6 +155,29 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public void AddCacheDeleteFlag()
         {
             _generalFileSystemService.AddCacheDeleteFlag();
+        }
+
+        public async Task<T> ReadDataAsync<T>(string filePath, string password) where T : new()
+        {
+            var cacheKey = $"FileContents.{filePath}";
+            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            {
+                return await _generalFileSystemService.ReadDataAsync<T>(password);
+            })) ?? new T();
+        }
+
+        public async Task WriteUnmanagedData<T>(T data, string filePath, string password)
+        {
+            await _generalFileSystemService.WriteUnmanagedData<T>(data, filePath, password);
+        }
+
+        public async Task<T> ReadUnmanagedData<T>(string filePath, string password) where T : new()
+        {
+            var cacheKey = $"FileContentsUnmanaged.{filePath}";
+            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            {
+                return await _generalFileSystemService.ReadUnmanagedData<T>(filePath, password);
+            })) ?? new T();
         }
     }
 }

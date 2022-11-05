@@ -66,6 +66,20 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
         }
 
+        public void ExportAccount()
+        {
+            if (Account?.Id is null)
+                return;
+
+            var platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
+            var icoPath = platformService.GetType()?.GetField("IcoFilePath", BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString() ?? "";
+            var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Id, Account.Guid, icoPath);
+
+            if (successful)
+                _alertService.AddInfoAlert("Shortcut created successfully!");
+            else
+                _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
+        }
         public async Task ToggleContentViewAsync()
         {
             Settings.ShowAccountDetails = !Settings.ShowAccountDetails;
