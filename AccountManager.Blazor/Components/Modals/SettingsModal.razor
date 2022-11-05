@@ -12,19 +12,19 @@
 <div class="modal fade show d-block" tabindex="-1" role="dialog" >
     <div class="modal-dialog" role="document">
         <div class="modal-content" style="background-color: var(--primary-light);">
+            <ul class="nav nav-tabs" style="padding: 1%; background-color: var(--primary-dark)">
+                <li class="nav-item">
+                    <a class="nav-link @(currentPage == typeof(General) ? "active" : "")" @onclick="() => currentPage = typeof(General)">General</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentPage == typeof(League) ? "active" : "")" @onclick="() => currentPage = typeof(League)">League</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentPage == typeof(Steam) ? "active" : "")" @onclick="() => currentPage = typeof(Steam)">Steam</a>
+                </li>
+                <button @onclick="Close" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+            </ul>
             <div style="margin:1%">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link @(currentPage == typeof(General) ? "active" : "")" @onclick="() => currentPage = typeof(General)">General</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentPage == typeof(League) ? "active" : "")" @onclick="() => currentPage = typeof(League)">League</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentPage == typeof(Steam) ? "active" : "")" @onclick="() => currentPage = typeof(Steam)">Steam</a>
-                    </li>
-                    <button @onclick="Close" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
-                </ul>
 
                 <div class="container main">
                     <DynamicComponent Type="currentPage"></DynamicComponent>

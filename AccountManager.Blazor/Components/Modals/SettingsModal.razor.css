@@ -64,8 +64,14 @@ table {
 }
 
 .nav-tabs {
-    border-color: #979797;
     margin-bottom: 10px;
+    padding: 1%;
+    background-color: var(--primary-dark);
+    border: none;
+    box-shadow: -1px 0px 1px 1px #000;
+    box-sizing: content-box;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 120%, 0% 120%);
+    border-radius: 2px 2px 0px 0px;
 }
 
 .modal-dialog {
@@ -84,3 +90,4 @@ table {
 .modal-content {
     border: initial;
 }
+

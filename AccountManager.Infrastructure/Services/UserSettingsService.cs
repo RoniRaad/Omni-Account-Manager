@@ -22,7 +22,7 @@ namespace AccountManager.Infrastructure.Services
         }
 
         public async Task SaveAsync() {
-            await _iOService.UpdateDataAsync(Settings);
+            await _iOService.WriteDataAsync(Settings);
             OnSettingsSaved.Invoke();
         }
 
