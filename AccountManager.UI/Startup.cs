@@ -64,6 +64,7 @@ namespace AccountManager.UI
             services.AddTransient<IEpicGamesTokenClient, EpicGamesTokenClient>();
             services.AddTransient<IEpicGamesLibraryService, EpicGamesLibraryService>();
             services.AddSingleton<IGeneralFileSystemService, CachedGeneralFileSystemService>();
+            services.AddSingleton<IAccountExportService, AccountExportService>();
 
             // Cached Objects
             services.AddSingleton<RiotClient>();

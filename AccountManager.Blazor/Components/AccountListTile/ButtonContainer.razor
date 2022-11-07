@@ -47,3 +47,8 @@
 {
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
 }
+
+@if (exportAccountRequest is not null)
+{
+	<ExportPasswordModal ExportAccountRequest="exportAccountRequest" Close="@(()=> {exportAccountRequest = null;})"></ExportPasswordModal>
+}

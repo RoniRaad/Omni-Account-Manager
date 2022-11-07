@@ -16,12 +16,9 @@ namespace AccountManager.Infrastructure.Services
 			_appState = appState;
 		}
 
-		public async Task ExportAccountsAsync(List<string> accountIds, string password, string filePath)
+		public async Task ExportAccountsAsync(List<Account> accounts, string password, string filePath)
 		{
-			var accounts = await _accountService.GetAllAccountsMinAsync();
-			accounts = accounts.Where(a => accountIds.Contains(a.Id ?? "")).ToList();
-			filePath = filePath.EndsWith(".omni") ? filePath : Path.Combine(filePath, ".omni");
-
+			filePath = Path.ChangeExtension(filePath, ".omni");
 			await _fileSystemService.WriteUnmanagedData(accounts, filePath, password);
 		}
 
@@ -30,6 +27,9 @@ namespace AccountManager.Infrastructure.Services
 			var accounts = await _fileSystemService.ReadUnmanagedData<List<Account>>(filePath, password);
 			_appState.Accounts.AddRange(accounts.Where((account) =>
 				!_appState.Accounts.Exists((acc) => acc.Id == account.Id)));
-		}
+
+			_appState.SaveAccounts();
+
+        }
 	}
 }
