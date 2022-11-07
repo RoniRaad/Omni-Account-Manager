@@ -81,6 +81,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public async Task WriteUnmanagedData<T>(T data, string filePath, string password)
         {
+            password = StringEncryption.Hash(password);
             var serializedData = JsonSerializer.Serialize(data);
             var encryptedData = StringEncryption.EncryptString(password, serializedData);
             await WriteFileAsync(filePath, encryptedData);
@@ -88,6 +89,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         public async Task<T> ReadUnmanagedData<T>(string filePath, string password) where T : new()
         {
+            password = StringEncryption.Hash(password);
             var encryptedData = await ReadFileAsync(filePath);
             var unencryptedData = StringEncryption.DecryptString(password, encryptedData);
             var deserializedData = JsonSerializer.Deserialize<T>(unencryptedData);
