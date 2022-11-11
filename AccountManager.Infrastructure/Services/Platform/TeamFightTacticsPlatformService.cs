@@ -180,7 +180,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                     _alertService.AddErrorAlert("There was an issue authenticating with riot. We are unable to sign you in.");
                     _logger.LogError("Unable to retrieve riot login cookies! There must have been an issue with the auth request! Account Username: {Username}", account.Username);
 
-                    return true;
+                    return false;
                 }
 
                 _logger.LogInformation("Riot token obtained successfully!");
