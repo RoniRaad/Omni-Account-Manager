@@ -6,20 +6,27 @@ namespace AccountManager.Infrastructure.Services
 	public class AccountExportService : IAccountExportService
 	{
 		private readonly IGeneralFileSystemService _fileSystemService;
-		private readonly IAccountService _accountService;
 		private readonly IAppState _appState;
+		private readonly IAlertService _alertService;
 
-		public AccountExportService(IGeneralFileSystemService fileSystemService, IAccountService accountService, IAppState appState)
+		public AccountExportService(IGeneralFileSystemService fileSystemService, IAppState appState, IAlertService alertService)
 		{
 			_fileSystemService = fileSystemService;
-			_accountService = accountService;
 			_appState = appState;
+			_alertService = alertService;
 		}
 
 		public async Task ExportAccountsAsync(List<Account> accounts, string password, string filePath)
 		{
-			filePath = Path.ChangeExtension(filePath, ".omni");
-			await _fileSystemService.WriteUnmanagedData(accounts, filePath, password);
+			try
+			{
+                filePath = Path.ChangeExtension(filePath, ".omni");
+                await _fileSystemService.WriteUnmanagedData(accounts, filePath, password);
+            }
+			catch (UnauthorizedAccessException)
+			{
+				_alertService.AddErrorAlert($"Unable to access directory '{Path.GetDirectoryName(filePath)}'. Please choose another one.");
+			}
 		}
 
 		public async Task ImportAccountsAsync(string filePath, string password)
