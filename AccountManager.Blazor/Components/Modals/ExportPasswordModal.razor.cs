@@ -1,5 +1,7 @@
 using AccountManager.Core.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.VisualBasic.FileIO;
+using System;
 
 namespace AccountManager.Blazor.Components.Modals
 {
@@ -13,9 +15,12 @@ namespace AccountManager.Blazor.Components.Modals
 
         public void Submit()
         {
+            if (string.IsNullOrEmpty(ExportAccountRequest.FolderPath) || string.IsNullOrEmpty(ExportAccountRequest.Password))
+                return;
+
             _exportService.ExportAccountsAsync(ExportAccountRequest.Accounts,
                                                ExportAccountRequest.Password,
-                                               Path.Combine(ExportAccountRequest.FilePath, ExportAccountRequest.Accounts?.First()?.Id));
+                                               Path.Combine(ExportAccountRequest.FolderPath, ExportAccountRequest.Accounts?.First()?.Id));
             Close();
         }
     }
@@ -24,6 +29,6 @@ namespace AccountManager.Blazor.Components.Modals
     {
         public List<Account> Accounts { get; set; } = new();
         public string Password { get; set; } = "";
-        public string FilePath { get; set; } = "";
+        public string FolderPath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 }
