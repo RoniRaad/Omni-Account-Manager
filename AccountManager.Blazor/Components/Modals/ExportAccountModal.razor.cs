@@ -5,7 +5,7 @@ using System;
 
 namespace AccountManager.Blazor.Components.Modals
 {
-    public partial class ExportPasswordModal
+    public partial class ExportAccountModal
     {
         [Parameter, EditorRequired]
         public ExportAccountRequest ExportAccountRequest { get; set; } = new();
