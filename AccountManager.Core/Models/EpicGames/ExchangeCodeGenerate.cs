@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AccountManager.Core.Models
+namespace AccountManager.Core.Models.EpicGames
 {
     public sealed class ExchangeCodeResponse
     {

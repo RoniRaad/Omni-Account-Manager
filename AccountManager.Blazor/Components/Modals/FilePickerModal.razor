@@ -1,0 +1,86 @@
+﻿@namespace AccountManager.Blazor.Components
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Select a File</h5>
+				<button @onclick="() => FileChosen.InvokeAsync(null)" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+			</div>
+			<form onsubmit="return false">
+				<div class="modal-body">
+					<input class="file-path-input" type="text" @bind-value="CurrentDirectory" required></input>
+					<ul>
+						@if (GetParentDirectory(CurrentDirectory) is not null)
+						{
+							<li class="directory-list-item" style="padding-top: 5px;padding-bottom: 5px;" @onclick="() => CurrentDirectory = GetParentDirectory(CurrentDirectory) ?? CurrentDirectory"><span class="oi oi-folder" />..</li>
+						}
+						@foreach (var directory in GetDirectories(CurrentDirectory))
+						{
+						
+							<li class="directory-list-item" @onclick="() => CurrentDirectory = directory"><span class="oi oi-folder"></span>@directory.Split('\\').Last()</li>
+						}
+						@foreach (var directory in GetFiles(CurrentDirectory))
+						{
+
+							<li class="directory-list-item @(CurrentFileName == Path.GetFileName(directory) ? "selected" : "")" @onclick="() => CurrentFileName = Path.GetFileName(directory)"><span class="oi oi-file"></span>@directory.Split('\\').Last()</li>
+						}
+					</ul>
+					<input style="margin-bottom:0" class="file-path-input" type="text" placeholder="File Name" @bind-value="CurrentFileName" required/>
+				</div>
+				<div class="modal-footer">
+					<button @onclick="async () => await Submit()" type="submit" class="btn btn-dark">Select File</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter, EditorRequired]
+	public EventCallback<string?> FileChosen { get; set; }
+
+	[Parameter]
+	public string CurrentDirectory { get; set; } = "";
+
+	[Parameter]
+	public string CurrentFileName { get; set; } = "";
+
+	public IEnumerable<string> GetDirectories(string path)
+	{
+		try
+		{
+			return Directory.EnumerateDirectories(CurrentDirectory);
+		}
+		catch
+		{
+			return new List<string>();
+		}
+	}
+
+	public IEnumerable<string> GetFiles(string path)
+	{
+		try
+		{
+			return Directory.EnumerateFiles(CurrentDirectory);
+		}
+		catch
+		{
+			return new List<string>();
+		}
+	}
+
+	public string? GetParentDirectory(string path)
+	{
+		if (string.IsNullOrEmpty(CurrentDirectory))
+			CurrentDirectory = Directory.GetLogicalDrives().First();
+
+		return Directory.GetParent(CurrentDirectory)?.FullName;
+	}
+
+	public async Task Submit()
+	{
+		if (!string.IsNullOrEmpty(CurrentDirectory) && !string.IsNullOrEmpty(CurrentFileName))
+			await FileChosen.InvokeAsync(Path.Combine(CurrentDirectory, CurrentFileName));
+	}
+}

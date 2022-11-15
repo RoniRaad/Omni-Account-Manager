@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AccountManager.Core.Models
+namespace AccountManager.Core.Models.RiotGames
 {
     public sealed class Bundle
     {

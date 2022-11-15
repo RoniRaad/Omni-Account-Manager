@@ -1,0 +1,80 @@
+﻿div {
+    text-align: left;
+}
+
+.directory-list-item {
+    background-color: var(--primary-light);
+    border-bottom: #252525 1px solid;
+    padding: 15px 10px 15px 15px;
+    cursor: pointer;
+}
+
+.directory-list-item:hover {
+    background-color: #414141;
+}
+
+.selected {
+    background-color: #414141;
+}
+
+.oi {
+    margin-right: 5px
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+input {
+    margin: 2px 2px 2px 2px;
+    width: -webkit-fill-available;
+}
+
+.modal {
+    z-index: 100000;
+}
+
+.modal-body {
+    padding: 0px 8px;
+    background-color: var(--primary-dark);
+}
+
+.modal-header {
+    background-color: var(--primary-dark);
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 0.8rem;
+    border-bottom: 0px;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 6px;
+    background-color: var(--primary-dark);
+}
+
+.file-path-input {
+    margin: 0 0 14px 0;
+    background-color: var(--primary-light);
+    color: white;
+    border: none;
+    height: 30px;
+    box-shadow: inset 0px 0px 2px 1px #1d1d1d;
+    text-indent: 5px;
+}
+
+.btn-dark {
+    background-color: #121212;
+}
+
+.modal-content {
+    border: none;
+}
+
+.modal-dialog {
+    box-shadow: 0px 0px 10px 1px #131313;
+    max-width: 600px;
+}

@@ -50,5 +50,5 @@
 
 @if (exportAccountRequest is not null)
 {
-	<ExportAccountModal ExportAccountRequest="exportAccountRequest" Close="@(()=> {exportAccountRequest = null;})"></ExportAccountModal>
+	<ImportExportAccountModal IsImport=false ExportAccountRequest="exportAccountRequest" Close="@(()=> {exportAccountRequest = null;})"></ImportExportAccountModal>
 }
