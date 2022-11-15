@@ -336,3 +336,7 @@ p {
 .sidebars-container {
 	display: flex;
 }
+
+.modal {
+	overflow: hidden;
+}

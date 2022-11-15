@@ -29,6 +29,7 @@ tr {
     border-bottom: solid 1px #787b7c;
     height: 60px;
 }
+
 td {
     text-align: right;
     height: 60px;
@@ -37,9 +38,11 @@ td {
     align-items: center;
     justify-content: flex-end;
 }
+
 table {
     width: 100%;
 }
+
 .btn-text-save {
     margin-left: 10px !important;
 }

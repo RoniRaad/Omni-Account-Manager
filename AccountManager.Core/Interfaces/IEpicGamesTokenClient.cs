@@ -1,4 +1,5 @@
 ﻿using AccountManager.Core.Models;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.Core.Interfaces
 {
