@@ -68,7 +68,7 @@ namespace AccountManager.Core.Services
 
         public async Task WriteAllAccountsAsync(List<Account> accounts)
         {
-            await _iOService.UpdateDataAsync(accounts, _authService.PasswordHash);
+            await _iOService.WriteDataAsync(accounts, _authService.PasswordHash);
         }
     }
 }

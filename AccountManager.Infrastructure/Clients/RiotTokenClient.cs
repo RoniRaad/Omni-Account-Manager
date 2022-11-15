@@ -27,6 +27,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly RiotApiUri _riotApiUri;
+        private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly IMapper _autoMapper;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
         public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
@@ -39,7 +40,8 @@ namespace AccountManager.Infrastructure.Clients
                             {"kr", "apse" }
                         }.ToImmutableDictionary();
         public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IMemoryCache memoryCache,
-            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, ILogger<RiotTokenClient> logger)
+            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, 
+            ILogger<RiotTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient)
         {
             _httpClientFactory = httpClientFactory;
             _alertService = alertService;
@@ -49,23 +51,13 @@ namespace AccountManager.Infrastructure.Clients
             _autoMapper = autoMapper;
             _curlRequestBuilder = curlRequestBuilder;
             _logger = logger;
+            _riot3rdPartyClient = riot3rdPartyClient;
         }
 
         public async Task<string?> GetExpectedClientVersion()
         {
-            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
-            try
-            {
-                var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>($"/v1/version");
-
-                return response?.Data?.RiotClientVersion;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError("Unable to get expected riot client version! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
-                throw;
-            }
-
+            var versionInfo = await _riot3rdPartyClient.GetRiotVersionInfoAsync();
+            return versionInfo?.Data?.RiotClientVersion;
         }
 
         private async Task<RiotAuthResponse?> CreateRiotSessionCookies(RiotTokenRequest request, Account account)
@@ -81,7 +73,7 @@ namespace AccountManager.Infrastructure.Clients
                 .SetContent(request)
                 .AddCookies(cookieCollection)
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent(_riotApiUri.UserAgent)
+                .SetUserAgent(await GetRiotClientUserAgent())
                 .Post<TokenResponseWrapper>();
 
             var authResponseDeserialized = authResponse.ResponseContent;
@@ -141,7 +133,7 @@ namespace AccountManager.Infrastructure.Clients
                         Remember = true
                     })
                     .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                    .SetUserAgent(_riotApiUri.UserAgent)
+                    .SetUserAgent(await GetRiotClientUserAgent())
                     .AddCookies(initialCookies.GetCookies())
                     .Put<TokenResponseWrapper>();
 
@@ -172,7 +164,7 @@ namespace AccountManager.Infrastructure.Clients
                             RememberDevice = true
                         })
                         .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                        .SetUserAgent(_riotApiUri.UserAgent)
+                        .SetUserAgent(await GetRiotClientUserAgent())
                         .AddCookies(responseCookies?.GetCookies() ?? new())
                         .Put<TokenResponseWrapper>();
 
@@ -212,7 +204,7 @@ namespace AccountManager.Infrastructure.Clients
             var tokenResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}/")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent(_riotApiUri.UserAgent)
+                .SetUserAgent(await GetRiotClientUserAgent())
                 .AddCookies(cookies.GetCookies() ?? new())
                 .Get();
 
@@ -275,7 +267,7 @@ namespace AccountManager.Infrastructure.Clients
             .SetContent(new { })
             .SetBearerToken(accessToken)
             .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-            .SetUserAgent(_riotApiUri.UserAgent)
+            .SetUserAgent(await GetRiotClientUserAgent())
             .AddHeader("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9")
             .Post<EntitlementTokenResponse>();
 
@@ -301,5 +293,11 @@ namespace AccountManager.Infrastructure.Clients
             return new() { AccessToken = accessToken, IdToken = idToken, ExpiresIn = expiresIn, Cookies = response?.Cookies ?? new()};
         }
 
+        private async Task<string> GetRiotClientUserAgent()
+        {
+            var versionInfo = await _riot3rdPartyClient.GetRiotVersionInfoAsync();
+
+            return _riotApiUri.UserAgentTemplate.Replace("{riotClientBuild}", versionInfo?.Data?.RiotClientBuild ?? "");
+        }
     }
 }

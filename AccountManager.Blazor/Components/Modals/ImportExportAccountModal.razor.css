@@ -1,9 +1,44 @@
-﻿body {
+﻿div {
+    text-align: left;
 }
 
-.main {
-    width: 92%
+.modal-header {
+    background-color: var(--primary-dark);
+    border: none;
+    box-shadow: -1px 0px 1px 1px #000;
+    box-sizing: content-box;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 120%, 0% 120%);
+    border-radius: 2px 2px 0px 0px;
 }
+
+.modal-content {
+    box-sizing: initial;
+}
+
+.modal-footer {
+    padding-top: 0;
+    border: none
+}
+
+.modal-content {
+    padding-bottom: .25rem
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+    padding-bottom: .25rem;
+}
+
+.oi-folder {
+    position: inherit;
+    background-color: white;
+    font-family: 'Icons';
+    border-radius: 0px;
+    border-color: #ced4da;
+}
+
 
 .setting-col {
     display: flex;
@@ -26,6 +61,7 @@ p {
 }
 
 tr {
+    border-bottom: solid 1px #787b7c;
     height: 60px;
 }
 
@@ -57,37 +93,3 @@ table {
 .text-input {
     width: 400px;
 }
-
-.nav-link {
-    color: white;
-    cursor: pointer;
-}
-
-.nav-tabs {
-    margin-bottom: 10px;
-    padding: 1%;
-    background-color: var(--primary-dark);
-    border: none;
-    box-shadow: -1px 0px 1px 1px #000;
-    box-sizing: content-box;
-    clip-path: polygon(0% 0%, 100% 0%, 100% 120%, 0% 120%);
-    border-radius: 2px 2px 0px 0px;
-}
-
-.modal-dialog {
-    max-width: initial;
-    height: 90%;
-    width: 90%;
-    background-color: var(--primary-light);
-}
-
-
-.btn-close-white {
-    margin: 8px;
-    margin-left: auto;
-}
-
-.modal-content {
-    border: initial;
-}
-

@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
@@ -18,6 +19,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IUserSettingsService<GeneralSettings> _settings;
         private readonly IRiotClient _riotClient;
         private readonly IRiotTokenClient _riotTokenClient;
+        private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly IMapper _autoMapper;
         private readonly RiotTokenRequest tokenRequest = new RiotTokenRequest
             {
@@ -30,7 +32,9 @@ namespace AccountManager.Infrastructure.Clients
         private const int historyLength = 15;
         public ValorantClient(IHttpClientFactory httpClientFactory,
             IUserSettingsService<GeneralSettings> settings,
-            IRiotClient riotClient, IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotTokenClient> logger)
+            IRiotClient riotClient, IMapper autoMapper, 
+            IRiotTokenClient riotTokenClient, ILogger<RiotTokenClient> logger, 
+            IRiotThirdPartyClient riot3rdPartyClient)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;
@@ -39,6 +43,7 @@ namespace AccountManager.Infrastructure.Clients
             _autoMapper = autoMapper;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
+            _riot3rdPartyClient = riot3rdPartyClient;
         }
 
         public async Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account)
@@ -191,36 +196,13 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<ValorantOperatorsResponse> GetValorantOperators()
         {
-            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
-            var operatorsRequest = await client.GetAsync("/v1/agents");
-
-            try
-            {
-                operatorsRequest.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError("Unable to get valorant operators! Status Code: {StatusCode}, Message: {Message}", ex.StatusCode, ex.Message);
-                throw;
-            }
-
-            return await operatorsRequest.Content.ReadFromJsonAsync<ValorantOperatorsResponse>() ?? new();
+            return await _riot3rdPartyClient.GetValorantOperators();
         }
 
         private async Task<ValorantSkinLevelResponse> GetSkinFromUuid(string uuid)
         {
-            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
-            try
-            {
-                return await client.GetFromJsonAsync<ValorantSkinLevelResponse>($"/v1/weapons/skinlevels/{uuid}") ?? new();
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError("Unable to get valorant skin details for UUID: {UUID}! Status Code: {StatusCode}, Message: {Message}",uuid ,ex.StatusCode, ex.Message);
-                throw;
-            }
+            return await _riot3rdPartyClient.GetValorantSkinFromUuid(uuid);
         }
-
 
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {

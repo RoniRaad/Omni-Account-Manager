@@ -3,7 +3,6 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Static;
 using KeyedSemaphores;
 using Microsoft.Extensions.Caching.Memory;
-using System.Security.Principal;
 using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
@@ -80,7 +79,25 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
         }
 
-        public void UpdateData<T>(T data, string password)
+        public async Task WriteUnmanagedData<T>(T data, string filePath, string password)
+        {
+            password = StringEncryption.Hash(password);
+            var serializedData = JsonSerializer.Serialize(data);
+            var encryptedData = StringEncryption.EncryptString(password, serializedData);
+            await WriteFileAsync(filePath, encryptedData);
+        }
+
+        public async Task<T> ReadUnmanagedData<T>(string filePath, string password) where T : new()
+        {
+            password = StringEncryption.Hash(password);
+            var encryptedData = await ReadFileAsync(filePath);
+            var unencryptedData = StringEncryption.DecryptString(password, encryptedData);
+            var deserializedData = JsonSerializer.Deserialize<T>(unencryptedData);
+
+            return deserializedData ?? new();
+        }
+
+        public void WriteData<T>(T data, string password)
         {
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
@@ -92,7 +109,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             WriteFile(filePath, encryptedData);
         }
 
-        public void UpdateData<T>(T data)
+        public void WriteData<T>(T data)
         {
             var type = typeof(T);
             var name = type.Name;
@@ -105,7 +122,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             WriteFile(filePath, JsonSerializer.Serialize(data));
         }
 
-        public async Task UpdateDataAsync<T>(T data)
+        public async Task WriteDataAsync<T>(T data)
         {
             var type = typeof(T);
             var name = type.Name;
@@ -118,7 +135,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             await WriteFileAsync(filePath, JsonSerializer.Serialize(data));
         }
 
-        public async Task UpdateDataAsync<T>(T data, string password)
+        public async Task WriteDataAsync<T>(T data, string password)
         {
             var name = typeof(T).Name;
             var fileName = StringEncryption.Hash(name);
@@ -210,6 +227,21 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return new T();
             }
 
+            string encryptedData = await ReadFileAsync(filePath);
+            try
+            {
+                decryptedData = StringEncryption.DecryptString(password, encryptedData);
+            }
+            catch
+            {
+                throw new ArgumentException("Incorrect Password Given");
+            }
+            return JsonSerializer.Deserialize<T>(decryptedData) ?? new T();
+        }
+
+        public async Task<T> ReadDataAsync<T>(string filePath, string password) where T : new()
+        {
+            string decryptedData;
             string encryptedData = await ReadFileAsync(filePath);
             try
             {

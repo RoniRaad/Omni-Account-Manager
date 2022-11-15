@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 namespace AccountManager.Core.Models.RiotGames.Valorant.Responses
 {
-    public sealed class ExpectedClientVersionResponse
+    public sealed class RiotVersionInfo
     {
 
         [JsonPropertyName("data")]

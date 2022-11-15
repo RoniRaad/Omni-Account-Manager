@@ -13,7 +13,11 @@
     background-color: #414141;
 }
 
-.oi-folder {
+.selected {
+    background-color: #414141;
+}
+
+.oi {
     margin-right: 5px
 }
 

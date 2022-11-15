@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using System.Reflection;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Blazor.Components.Modals;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -22,6 +23,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
         ConfirmationRequest? deleteAccountConfirmationRequest = null;
+        ExportAccountRequest? exportAccountRequest = null;
         async Task Login()
         {
             if (loginDisabled)
@@ -66,6 +68,13 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 _alertService.AddErrorAlert("There was an error creating the desktop shortcut!");
         }
 
+        public void ExportAccount()
+        {
+            if (Account?.Id is null)
+                return;
+
+            exportAccountRequest = new() { Accounts = new() { Account } };
+        }
         public async Task ToggleContentViewAsync()
         {
             Settings.ShowAccountDetails = !Settings.ShowAccountDetails;

@@ -215,7 +215,7 @@ namespace AccountManager.UI.Extensions
             {
                 httpClient.BaseAddress = baseUri;
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientPlatform", "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9");
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/46.0.0.4265023.4253280 rso-auth (Windows;10;;Enterprise, x64)");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RiotClient/60.0.6.4770705.4749685 rso-auth (Windows;10;;Enterprise, x64)");
             }).ConfigureHttpMessageHandlerBuilder(x =>
             {
                 x.PrimaryHandler = new HttpClientHandler

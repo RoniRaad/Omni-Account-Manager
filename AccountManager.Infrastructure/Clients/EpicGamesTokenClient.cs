@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using AccountManager.Core.Models;
 using AccountManager.Core.Interfaces;
+using AccountManager.Core.Models.EpicGames;
 
 namespace AccountManager.Infrastructure.Clients
 {
