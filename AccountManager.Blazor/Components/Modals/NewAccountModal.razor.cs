@@ -12,6 +12,9 @@ namespace AccountManager.Blazor.Components.Modals
     
         public void AddAccount()
         {
+            if (string.IsNullOrEmpty(NewAccount.Id) || string.IsNullOrEmpty(NewAccount.Username) || string.IsNullOrEmpty(NewAccount.Password))
+                return;
+
             _appState.Accounts.Add(NewAccount);
             _appState.SaveAccounts();
             Close();
