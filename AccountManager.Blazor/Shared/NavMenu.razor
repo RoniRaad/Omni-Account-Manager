@@ -1,5 +1,7 @@
 ﻿@using AccountManager.Core.Interfaces
 @inject IAccountExportService _accountExportService;
+@inject IAppState _appState;
+@inject NavigationManager uriHelper;
 
 <div class="sidebar-shrink" @onclick="ToggleNavMenu">
 	<nav class="flex-column">
@@ -27,7 +29,7 @@
 
 @if (showImportModal)
 {
-	<AccountManager.Blazor.Components.Modals.ImportExportAccountModal IsImport=true Close="() => showImportModal = false"></AccountManager.Blazor.Components.Modals.ImportExportAccountModal>
+	<AccountManager.Blazor.Components.Modals.ImportExportAccountModal IsImport=true Close="() => { showImportModal = false; uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true); }"></AccountManager.Blazor.Components.Modals.ImportExportAccountModal>
 }
 
 @code {
