@@ -20,6 +20,7 @@ namespace AccountManager.Infrastructure.Clients
 {
     public sealed class LeagueTokenClient : ILeagueTokenClient
     {
+        private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly ITokenService _leagueTokenService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRiotClient _riotClient;
@@ -41,7 +42,7 @@ namespace AccountManager.Infrastructure.Clients
         public LeagueTokenClient(IHttpClientFactory httpClientFactory,
             IRiotClient riotClient, IOptions<RiotApiUri> riotApiOptions,
             IHttpRequestBuilder curlRequestBuilder, IGenericFactory<AccountType, ITokenService> leagueTokenServiceFactory,
-            IUserSettingsService<LeagueSettings> leagueSettings, IAppState state, IRiotTokenClient riotTokenClient, ILogger<LeagueTokenClient> logger)
+            IUserSettingsService<LeagueSettings> leagueSettings, IAppState state, IRiotTokenClient riotTokenClient, ILogger<LeagueTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient)
         {
             _httpClientFactory = httpClientFactory;
             _httpClientFactory = httpClientFactory;
@@ -53,6 +54,7 @@ namespace AccountManager.Infrastructure.Clients
             _state = state;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
+            _riot3rdPartyClient = riot3rdPartyClient;
         }
 
         public async Task<string> GetLocalSessionToken()
@@ -121,7 +123,7 @@ namespace AccountManager.Infrastructure.Clients
                 account = _state.Accounts.FirstOrDefault((acc) => acc.Guid == _leagueSettings.Settings.AccountToUseCredentials);
             }
 
-            if ( account is null )
+            if (account is null)
                 return string.Empty;
 
             var puuId = account?.PlatformId ?? await _riotClient.GetPuuId(account);
@@ -216,7 +218,7 @@ namespace AccountManager.Infrastructure.Clients
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Auth}/userinfo")
             .SetBearerToken(riotToken)
-            .SetUserAgent(_riotApiUri.UserAgent)
+            .SetUserAgent(await GetRiotClientUserAgent())
             .Get();
 
             return response?.ResponseContent ?? "";
@@ -229,7 +231,7 @@ namespace AccountManager.Infrastructure.Clients
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1")
             .SetContent(new { urn = "urn:entitlement" })
             .SetBearerToken(riotToken)
-            .SetUserAgent(_riotApiUri.UserAgent)
+            .SetUserAgent(await GetRiotClientUserAgent())
             .Post<EntitlementResponse>();
 
             entitlement = response?.ResponseContent?.EntitlementToken ?? "";
@@ -248,6 +250,13 @@ namespace AccountManager.Infrastructure.Clients
             var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString() ?? "{}");
 
             return leagueInfo?.FirstOrDefault();
+        }
+
+        private async Task<string> GetRiotClientUserAgent()
+        {
+            var versionInfo = await _riot3rdPartyClient.GetRiotVersionInfoAsync();
+
+            return _riotApiUri.UserAgentTemplate.Replace("{riotClientBuild}", versionInfo?.Data?.RiotClientBuild ?? "");
         }
     }
 }

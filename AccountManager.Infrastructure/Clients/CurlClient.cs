@@ -140,7 +140,7 @@ namespace AccountManager.Infrastructure.Clients
 
 
                 _argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
-                _argumentsBuilder.Add($"{uri}");
+                _argumentsBuilder.Add($"{uri.TrimEnd('\\').TrimEnd('/')}");
 
                 var argumentsString = _argumentsBuilder.Build();
 

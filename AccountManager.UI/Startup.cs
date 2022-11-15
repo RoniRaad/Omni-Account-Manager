@@ -32,7 +32,6 @@ namespace AccountManager.UI
     {
         public static void ConfigureServices(IServiceCollection services, IConfigurationRoot configuration)
         {
-
             services.AddBlazorWebView();
             services.AddBlazorDragDrop();
             services.AddOptions();
@@ -65,8 +64,10 @@ namespace AccountManager.UI
             services.AddTransient<IEpicGamesLibraryService, EpicGamesLibraryService>();
             services.AddSingleton<IGeneralFileSystemService, CachedGeneralFileSystemService>();
             services.AddSingleton<IAccountExportService, AccountExportService>();
+            services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
 
             // Cached Objects
+            services.AddSingleton<RiotThirdPartyClient>();
             services.AddSingleton<RiotClient>();
             services.AddSingleton<LeagueClient>();
             services.AddSingleton<ValorantClient>();
