@@ -55,7 +55,7 @@ namespace AccountManager.Tests.Core.Services
         {
             // Arrange
             var testPassword = "password";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword)))).Verifiable();
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword)))).Verifiable();
 
             // Act
             _sut.RegisterAsync(testPassword);
@@ -69,7 +69,7 @@ namespace AccountManager.Tests.Core.Services
         {
             // Arrange
             var testPassword = "password";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword))));
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword))));
 
             // Act
             _sut.RegisterAsync(testPassword);
@@ -85,7 +85,7 @@ namespace AccountManager.Tests.Core.Services
             var testInitialPassword = "password";
             var testUpdatedPassword = "updatePassword";
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Verifiable();
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Verifiable();
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Verifiable();
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
@@ -101,7 +101,7 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var testInitialPassword = "password";
             var testUpdatedPassword = "updatePassword";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Verifiable();
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Verifiable();
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Verifiable();
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
@@ -118,7 +118,7 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var testInitialPassword = "";
             var testUpdatedPassword = "updatePassword";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
@@ -135,7 +135,7 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             string? testInitialPassword = "";
             var testUpdatedPassword = "updatePassword";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. initial password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == null))).Throws(new Exception("Should not be called. initial password was empty"));
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
@@ -152,7 +152,7 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var testInitialPassword = "password";
             string testUpdatedPassword = "";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == null))).Throws(new Exception("Should not be called. new password was empty"));
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == null))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
@@ -169,7 +169,7 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var testInitialPassword = "password";
             var testUpdatedPassword = "";
-            _iOService.Setup((x) => x.UpdateData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. new password was empty"));
+            _iOService.Setup((x) => x.WriteData(It.IsAny<List<Account>>(), It.Is<string>((val) => val == StringEncryption.Hash(testUpdatedPassword)))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.Is<string>((val) => val == StringEncryption.Hash(testInitialPassword)))).Throws(new Exception("Should not be called. new password was empty"));
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 

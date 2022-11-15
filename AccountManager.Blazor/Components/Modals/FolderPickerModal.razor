@@ -7,7 +7,7 @@
 				<button @onclick="() => DirectoryChosen(null)" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<input type="text" @bind-value="CurrentDirectory"></input>
+				<input class="file-path-input" type="text" @bind-value="CurrentDirectory"></input>
 				<ul>
 					@if (GetParentDirectory(CurrentDirectory) is not null)
 					{
@@ -21,7 +21,6 @@
 				</ul>
 			</div>
 			<div class="modal-footer">
-				<button @onclick="() => DirectoryChosen(null)" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 				<button @onclick="() => DirectoryChosen(CurrentDirectory)" type="button" class="btn btn-dark">Select Current Folder</button>
 			</div>
 		</div>

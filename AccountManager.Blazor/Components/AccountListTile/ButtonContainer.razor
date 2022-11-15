@@ -24,6 +24,7 @@
 		<div class="dropdown dropend">
 			<span class="oi oi-share-boxed" title="Export" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
 			  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+				<a class="dropdown-item" @onclick="ExportAccount">Export Account</a>
 				<a class="dropdown-item" @onclick="CreateShortcut">Create desktop shortcut</a>
 			  </div>
 		</div>
@@ -45,4 +46,9 @@
 @if (deleteAccountConfirmationRequest is not null)
 {
     <ConfirmationPrompt Request="deleteAccountConfirmationRequest"></ConfirmationPrompt>
+}
+
+@if (exportAccountRequest is not null)
+{
+	<ImportExportAccountModal IsImport=false ExportAccountRequest="exportAccountRequest" Close="@(()=> {exportAccountRequest = null;})"></ImportExportAccountModal>
 }

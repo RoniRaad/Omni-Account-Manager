@@ -33,7 +33,7 @@ namespace AccountManager.Tests.Core.Services
             var testAccount = accounts.First();
 
             _iOService.Setup((x) => x.ReadData<List<Account>>(It.IsAny<string>())).Returns(accounts);
-            _iOService.Setup((x) => x.UpdateData<List<Account>>(It.IsAny<List<Account>>(), It.IsAny<string>()));
+            _iOService.Setup((x) => x.WriteData<List<Account>>(It.IsAny<List<Account>>(), It.IsAny<string>()));
 
             // Act
             _sut.RemoveAccountAsync(testAccount);

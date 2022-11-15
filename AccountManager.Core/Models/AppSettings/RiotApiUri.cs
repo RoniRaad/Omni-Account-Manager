@@ -18,6 +18,6 @@
         public string? LeagueSessionAPSE { get; set; }
         public string? RiotCDN { get; set; }
         public string? RiotGeo { get; set; }
-        public string UserAgent { get; set; } = "";
+        public string UserAgentTemplate { get; set; } = "";
     }
 }

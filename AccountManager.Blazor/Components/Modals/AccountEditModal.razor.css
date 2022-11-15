@@ -1,6 +1,17 @@
-﻿label {
-    font-size:15px;
+﻿div .modal {
+    display: block;
+    color: white;
+}
+label {
+    font-size: 15px;
     margin-bottom: 3px;
+}
+.btn-password-show {
+    position: inherit;
+    background-color: white;
+    font-family: 'Icons';
+    border-radius: 0px;
+    border-color: #ced4da;
 }
 
 .modal-header {
@@ -18,16 +29,9 @@
 
 .modal-footer {
     padding-top: 0;
-    border:none
+    border: none
 }
 
 .modal-content {
     padding-bottom: .25rem
-}
-
-.modal-body {
-    position: relative;
-    flex: 1 1 auto;
-    padding: 1rem;
-    padding-bottom: .25rem;
 }

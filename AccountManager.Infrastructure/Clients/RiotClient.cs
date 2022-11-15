@@ -21,6 +21,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly ILogger<RiotClient> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMapper _autoMapper;
+        private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly IRiotTokenClient _riotTokenClient;
         private readonly RiotApiUri _riotApiUri;
         private readonly RiotTokenRequest valorantRequest = new RiotTokenRequest
@@ -49,28 +50,21 @@ namespace AccountManager.Infrastructure.Clients
                 {"kr", "apse" }
             }).ToImmutableDictionary();
         public RiotClient(IHttpClientFactory httpClientFactory, IOptions<RiotApiUri> riotApiOptions,
-            IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotClient> logger)
+            IMapper autoMapper, IRiotTokenClient riotTokenClient, ILogger<RiotClient> logger, 
+            IRiotThirdPartyClient riot3rdPartyClient)
         {
             _httpClientFactory = httpClientFactory;
             _autoMapper = autoMapper;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
             _riotApiUri = riotApiOptions.Value;
+            _riot3rdPartyClient = riot3rdPartyClient;
         }
 
         public async Task<string?> GetExpectedClientVersion()
         {
-            var client = _httpClientFactory.CreateClient("Valorant3rdParty");
-            try
-            {
-                var response = await client.GetFromJsonAsync<ExpectedClientVersionResponse>($"/v1/version");
-                return response?.Data?.RiotClientVersion;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError("Unable to get current riot client version! Message: {Message}", ex.Message);
-                throw;
-            }
+            var versionInfo = await _riot3rdPartyClient.GetRiotVersionInfoAsync();
+            return versionInfo?.Data?.RiotClientVersion;
         }
 
         public async Task<string?> GetPuuId(Account account)
