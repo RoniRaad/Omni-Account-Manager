@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Enums;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Blazor.State;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -9,7 +10,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
     {
         private AccountListItemSettings _settings { get; set; } = new AccountListItemSettings();
         [Parameter, EditorRequired]
-        public Account Account { get; set; } = new ();
+        public IAccountListItem Account { get; set; }
         [Parameter]
         public bool RenderButtons { get; set; }
         [Parameter, EditorRequired]
@@ -24,7 +25,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         {
             get
             {
-                if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered || Account.AccountType == AccountType.TeamFightTactics) 
+                if (graphIsHovered || dragSymbolIsHovered || !cardIsHovered || Account.Account.AccountType == AccountType.TeamFightTactics) 
                     return "";
                 return "box-shadow: 0px 0px 6px #424040; cursor: pointer;";
             }
@@ -41,11 +42,11 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         protected override void OnParametersSet()
         {
-            if (!_accountItemSettings.Settings.TryGetValue(Account.Guid, out var settings))
+            if (!_accountItemSettings.Settings.TryGetValue(Account.Account.Guid, out var settings))
             {
-                settings = new() { AccountGuid = Account.Guid };
+                settings = new() { AccountGuid = Account.Account.Guid };
             }
-            _accountItemSettings.Settings[Account.Guid] = settings;
+            _accountItemSettings.Settings[Account.Account.Guid] = settings;
             _settings = settings;
 
             base.OnParametersSet();

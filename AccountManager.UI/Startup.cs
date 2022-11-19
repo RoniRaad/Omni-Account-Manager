@@ -25,6 +25,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using AccountManager.Blazor.State;
 
 namespace AccountManager.UI
 {
@@ -78,6 +79,9 @@ namespace AccountManager.UI
             services.AddSingleton<RiotTokenClient>();
             services.AddSingleton<GeneralFileSystemService>(); 
 
+
+            services.AddSingleton<AccountListState>(); 
+
             services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
             services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
             services.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
@@ -113,6 +117,12 @@ namespace AccountManager.UI
                     .AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
                     .AddImplementation<RiotTokenService>(AccountType.Valorant)
                     .Build();
+
+            services.AddFactory<AccountType, IAccountListItem>()
+                .AddImplementation<LeagueAccountListItem>(AccountType.League)
+                .AddImplementation<TeamFightTacticsAccountListItem>(AccountType.TeamFightTactics)
+                .AddImplementation<ValorantAccountListItem>(AccountType.Valorant)
+                .Build();
         }
     }
 }

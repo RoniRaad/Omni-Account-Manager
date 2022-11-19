@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Attributes;
+using AccountManager.Blazor.State;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
@@ -11,28 +12,25 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         [Parameter]
         public Account Account { get; set; } = new();
         private Account _account = new();
-
-        List<ValorantSkinLevelResponse>? storeFrontSkins;
+        [CascadingParameter]
+        public IAccountListItem? AccountListItem { get; set; }
+        private ValorantAccountListItem? _accountListItem;
 
         protected override void OnParametersSet()
         {
+            if (AccountListItem is not null)
+                _accountListItem = AccountListItem as ValorantAccountListItem;
+
             if (_account != Account)
             {
                 _account = Account;
 
-                Task.Run(async () =>
-                {
-                    try
+                if (_accountListItem is not null)
+                    Task.Run(async () =>
                     {
-                        storeFrontSkins = await _valorantClient.GetValorantShopDeals(Account);
-                    }
-                    catch
-                    {
-                        storeFrontSkins = new();
-                    }
-
-                    await InvokeAsync(() => StateHasChanged());
-                });
+                        await _accountListItem.RefreshData();
+                        await InvokeAsync(() => StateHasChanged());
+                    });
             }
         }
     }

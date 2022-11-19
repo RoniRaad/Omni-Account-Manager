@@ -10,13 +10,13 @@
 @inject IAlertService _alertService
 
 
-@if (storeFrontSkins is null)
+@if (_accountListItem?.PageData?.StoreFrontSkins is null)
 {
     <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
 }
-else if (storeFrontSkins?.Any() is not true)
+else if (_accountListItem?.PageData?.StoreFrontSkins?.Any() is not true)
 {
     <h5 class="no-data-label">No data available</h5>
 }
@@ -27,8 +27,8 @@ else
         <div class="skins-display-container">
             @for (int i = 0; i < 4; i++)
             {
-                <div class="skin-container" title="@storeFrontSkins[i].Data.DisplayName: @storeFrontSkins[i].Data.Price VP">
-                    <img class="skin-icon" src="@storeFrontSkins[i].Data.DisplayIcon" />
+                <div class="skin-container" title="@_accountListItem?.PageData?.StoreFrontSkins[i].Data.DisplayName: @_accountListItem?.PageData?.StoreFrontSkins[i].Data.Price VP">
+                    <img class="skin-icon" src="@_accountListItem?.PageData?.StoreFrontSkins[i].Data.DisplayIcon" />
                 </div>
             }
         </div>

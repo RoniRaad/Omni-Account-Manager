@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
 using AccountManager.Core.Attributes;
+using AccountManager.Blazor.State;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
@@ -11,7 +12,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         private Account _account = new();
         [Parameter]
         public Account Account { get; set; } = new();
-        LineGraph? displayGraph;
+        [CascadingParameter]
+        public IAccountListItem? AccountListItem { get; set; }
+        private LeagueAccountListItem? _accountListItem;
         LineChart<CoordinatePair>? lineChart;
 
         private readonly LineChartOptions lineChartOptions = new()
@@ -76,11 +79,13 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         async Task HandleRedraw()
         {
             lineChart?.Clear();
-            if (lineChart is null)
+            if (lineChart is null || _accountListItem is null)
                 return;
-            var datasets = displayGraph;
+
+            var datasets = _accountListItem?.PageData?.Wins?.Chart;
             if (datasets is null)
                 return;
+
             datasets.Data = datasets.Data.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
             var chartDatasets = datasets.Data.Select((dataset) => new LineChartDataset<CoordinatePair>
             {
@@ -100,23 +105,25 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
+            {
                 await HandleRedraw();
+                if (_accountListItem is not null)
+                    _accountListItem.DataRefreshed += async (caller, e) =>
+                    {
+                        await HandleRedraw();
+                        await InvokeAsync(() => StateHasChanged());
+                    };
+                }
         }
 
         protected override async Task OnParametersSetAsync()
         {
+            if (AccountListItem is not null)
+                _accountListItem = AccountListItem as LeagueAccountListItem;
+
             if (_account != Account)
             {
                 _account = Account;
-
-                try
-                {
-                    displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
-                }
-                catch
-                {
-                    displayGraph = new();
-                }
 
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());

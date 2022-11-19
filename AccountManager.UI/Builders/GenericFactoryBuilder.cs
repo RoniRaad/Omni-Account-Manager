@@ -20,7 +20,7 @@ namespace AccountManager.UI.Builders
         }
         public IGenericFactoryBuilder<TKey, TInterface> AddImplementation<TImplementation>(TKey key) where TImplementation : class, TInterface
         {
-            _services.AddSingleton<TImplementation>();
+            _services.AddTransient<TImplementation>();
             _implementations.Add(key, typeof(TImplementation));
             return this;
         }

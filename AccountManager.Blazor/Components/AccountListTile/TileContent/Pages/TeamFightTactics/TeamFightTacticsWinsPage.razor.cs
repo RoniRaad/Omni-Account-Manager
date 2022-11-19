@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
 using AccountManager.Core.Attributes;
+using AccountManager.Blazor.State;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.TeamFightTactics
 {
@@ -11,6 +12,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
         private Account _account = new();
         [Parameter]
         public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public IAccountListItem? AccountListItem { get; set; }
+        private TeamFightTacticsAccountListItem? _accountListItem;
 
         LineChart<CoordinatePair>? lineChart;
         private readonly LineChartOptions lineChartOptions = new()
@@ -75,11 +79,13 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
         async Task HandleRedraw()
         {
             lineChart?.Clear();
-            if (lineChart is null)
+            if (lineChart is null || _accountListItem?.PageData?.Wins?.Chart is null)
                 return;
-            var datasets = displayGraph;
+
+            var datasets = _accountListItem.PageData.Wins.Chart;
             if (datasets is null)
                 return;
+
             datasets.Data = datasets.Data.OrderBy((data) => string.IsNullOrEmpty(data.ColorHex) ? 1 : 0).ToList();
             var chartDatasets = datasets.Data.Select((dataset) => new LineChartDataset<CoordinatePair>
             {
@@ -104,30 +110,26 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
         {
             if (firstRender)
             {
-                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+                if (_accountListItem?.PageData?.Wins?.Chart is not null)
+                    _accountListItem.PageData.Wins.Chart = await _tftGraphService.GetRankedPlacementOffset(Account);
+
                 await HandleRedraw();
             }
         }
 
         protected override async Task OnParametersSetAsync()
         {
+            if (AccountListItem is not null)
+                _accountListItem = AccountListItem as TeamFightTacticsAccountListItem;
+
             if (_account != Account)
             {
                 _account = Account;
-                try
-                {
-                    displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
-                }
-                catch
-                {
-                    displayGraph = new();
-                }
 
                 await HandleRedraw();
             }
         }
 
-        LineGraph? displayGraph;
         private readonly List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
         private readonly List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
     }

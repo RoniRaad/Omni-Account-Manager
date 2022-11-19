@@ -23,13 +23,13 @@
 <CascadingValue Value="_settings">
     <div class="card" style="@cardStyle">
         <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
-            <TileTopBar Title="@Account?.Id" AccountType="@(Account?.AccountType ?? 0)" MouseEnterDragLogo="() => dragSymbolIsHovered = true" MouseExitDragLogo="() => dragSymbolIsHovered = false" ></TileTopBar>
+            <TileTopBar Title="@Account.Account?.Id" AccountType="@(Account.Account?.AccountType ?? 0)" MouseEnterDragLogo="() => dragSymbolIsHovered = true" MouseExitDragLogo="() => dragSymbolIsHovered = false"></TileTopBar>
         </div>
 	    <ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
-		    <TileContent Account="Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
+            <TileContent Account="Account.Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
 	    </ul>
 	    <div class="container account-btn-container">
-            <ButtonContainer Account="Account" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
+            <ButtonContainer Account="Account.Account" OpenEditModal="OpenEditModal" ReloadList="ReloadList"></ButtonContainer>
 	    </div>
     </div>
 </CascadingValue>
@@ -37,6 +37,6 @@
 
 @if (showFullTile)
 {
-    <SingleAccountModalFrame Account="Account" Close="() => {showFullTile = false; InvokeAsync(() => StateHasChanged());}"></SingleAccountModalFrame>
+    <SingleAccountModalFrame Account="Account.Account" Close="() => {showFullTile = false; InvokeAsync(() => StateHasChanged());}"></SingleAccountModalFrame>
 }
 

@@ -7,16 +7,16 @@
 @inject IAlertService _alertService
 @inject ILeagueGraphService _leagueGraphService
 
-@if (displayGraph is null)
+@if (_accountListItem?.PageData?.Wins?.Chart is null)
 {
     <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
 }
-else if (displayGraph?.Data?.Any() is not true)
+else if (_accountListItem?.PageData?.Wins?.Chart?.Data?.Any() is not true)
 {
     <h5 class="no-data-label">No data available</h5>
 }
 
-<LineChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
+<LineChart Class="@(_accountListItem?.PageData?.Wins?.Chart?.Data?.Any() is not true ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
 
