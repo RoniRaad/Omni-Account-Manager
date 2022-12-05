@@ -15,6 +15,30 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         [Parameter]
         public EventCallback MouseExitGraph { get; set; }
+        public Rank? Rank { get; set; }
+
+        private IPlatformService _platformService;
+        private Account _account = new();
+
+        protected override async Task OnInitializedAsync()
+        {
+
+            if (Account is null)
+                return;
+
+            _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
+        }
+
+        protected override async Task OnParametersSetAsync()
+        {
+            if (_account != Account)
+            {
+                _account = Account;
+                var rankResponse = await _platformService.TryFetchRank(Account);
+                Rank = rankResponse.Item2;
+                await InvokeAsync(() => StateHasChanged());
+            }
+        }
 
         public void RefreshData()
         {
@@ -33,12 +57,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             Account = new Account()
             {
                 AccountType = Account.AccountType,
-                Guid = Account.Guid,
                 Id = Account.Id,
+                Name = Account.Name,
                 PlatformId = Account.PlatformId,
                 Password = Account.Password,
                 Username = Account.Username,
-                Rank = Account.Rank,
             };
 
             InvokeAsync(() => StateHasChanged());

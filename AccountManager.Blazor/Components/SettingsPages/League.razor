@@ -39,7 +39,7 @@
                             <select class="form-select" @onchange="AccountCredentialsChanged">
                                 @foreach (var acc in _state.Accounts.Where((acc) => acc.AccountType == Core.Enums.AccountType.League))
                                 {
-                                    <option value="@acc.Guid" selected="@(_settings.Settings.AccountToUseCredentials == acc.Guid)" >@acc.Id</option>
+                                    <option value="@acc.Id" selected="@(_settings.Settings.AccountToUseCredentials == acc.Id)" >@acc.Name</option>
                                 }
                             </select>
                         </label>
@@ -55,7 +55,7 @@
     {
         if (_settings.Settings.AccountToUseCredentials is null)
         {
-            _settings.Settings.AccountToUseCredentials = _state?.Accounts?.FirstOrDefault((acc) => acc.AccountType == Core.Enums.AccountType.League)?.Guid;
+            _settings.Settings.AccountToUseCredentials = _state?.Accounts?.FirstOrDefault((acc) => acc.AccountType == Core.Enums.AccountType.League)?.Id;
         }
 
         return base.OnInitializedAsync();

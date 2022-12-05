@@ -60,7 +60,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             await SetEpicGamesTokenFile(tokens.Username ?? "", tokens.Name ?? "", tokens.LastName ?? "", tokens.DisplayName ?? "", tokens.RefreshToken);
             await Task.Delay(2000);
 
-            var gameId = await _persistantCache.GetStringAsync($"{account.Guid}.SelectedEpicGame");
+            var gameId = await _persistantCache.GetStringAsync($"{account.Id}.SelectedEpicGame");
             if (!string.IsNullOrEmpty(gameId) && gameId != "none")
             {
                 if (!TryLaunchEpicGamesGame(gameId))
@@ -79,29 +79,30 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        public Task<(bool, Rank)> TryFetchRank(Account account)
+        public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.epicgames.rank";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
-                return Task.FromResult((true, rank));
+            var rank = await _persistantCache.GetAsync<Rank>(rankCacheString);
+            if ( rank is not null )
+                return (true, rank);
 
             rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    return Task.FromResult((false, rank));
+                    return (false, rank);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                    await _persistantCache.SetAsync(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return Task.FromResult((false, new Rank()));
+                    return (false, new Rank());
 
-                return Task.FromResult((true, rank));
+                return (true, rank);
             }
             catch
             {
-                return Task.FromResult((false, new Rank()));
+                return (false, new Rank());
             }
         }
 

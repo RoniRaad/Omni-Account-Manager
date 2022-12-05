@@ -80,7 +80,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
                 catch
                 {
-                    _alertService.AddErrorAlert($"Unable to display average ranked ACS for account {Account.Id}.");
+                    _alertService.AddErrorAlert($"Unable to display average ranked ACS for account {Account.Name}.");
                 }
 
                 await HandleRedraw();

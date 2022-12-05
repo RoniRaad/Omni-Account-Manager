@@ -27,27 +27,27 @@ else
         <div class="steam-game-list-item">
             @if (selectedEpicGame == "none")
             {
-                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steam-game-@Account.Guid" value="none" checked="checked" />
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Id" name="steam-game-@Account.Id" value="none" checked="checked" />
             }
             else
             {
-                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Guid" name="steam-game-@Account.Guid" value="none" />
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="radio-default-@Account.Id" name="steam-game-@Account.Id" value="none" />
             }
 
-            <label class="form-check-label" for="radio-default-@Account.Guid">None</label>
+            <label class="form-check-label" for="radio-default-@Account.Id">None</label>
         </div>
         @foreach (var game in Games)
         {
             <div class="steam-game-list-item">
             @if (selectedEpicGame == @game.AppId)
             {
-                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Guid" name="steam-game-@Account.Guid" value="@game.AppId" checked="checked"/>
+                <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Id" name="steam-game-@Account.Id" value="@game.AppId" checked="checked"/>
             }
             else
             {
-                    <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Guid" name="steam-game-@Account.Guid" value="@game.AppId" />
+                    <input @onchange="(args) => OnRadioClicked(args)" class="form-check-input" type="radio" id="@game.AppId-@Account.Id" name="steam-game-@Account.Id" value="@game.AppId" />
             }
-            <label class="form-check-label" for="@game.AppId-@Account.Guid">@game.Name</label>
+            <label class="form-check-label" for="@game.AppId-@Account.Id">@game.Name</label>
         </div>
         }
     </div>

@@ -13,7 +13,7 @@ namespace AccountManager.Blazor.Pages
         {
             _appState.UpdateAccounts();
             _accountFilterService.OnFilterChanged += () => LoadList();
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
+            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
         }
 
         protected override void OnAfterRender(bool firstRender)
@@ -26,7 +26,7 @@ namespace AccountManager.Blazor.Pages
                     await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
                 });
             }
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
+            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
         }
 
         public void SaveList()
@@ -36,7 +36,7 @@ namespace AccountManager.Blazor.Pages
 
         public void LoadList()
         {
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
+            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
             InvokeAsync(() => StateHasChanged());
         }
 

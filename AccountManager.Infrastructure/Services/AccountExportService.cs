@@ -25,7 +25,7 @@ namespace AccountManager.Infrastructure.Services
 		{
 			var accounts = await _fileSystemService.ReadUnmanagedData<List<Account>>(filePath, password);
             _appState.Accounts.AddRange(accounts.Where((account) =>
-				!_appState.Accounts.Exists((acc) => acc.Guid == account.Guid)));
+				!_appState.Accounts.Exists((acc) => acc.Id == account.Id)));
 
             _appState.SaveAccounts();
         }

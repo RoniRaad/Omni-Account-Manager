@@ -77,25 +77,6 @@ namespace AccountManager.Tests.Core.Services
             Assert.Equal(value, accounts);
         }
 
-        [Fact]
-        public async Task GetAllAccounts_UpdatesRank_WhenNewerDataIsReturned()
-        {
-            // Arrange
-            var fixture = new Fixture();
-            var accounts = fixture.Create<List<Account>>();
-            accounts.ForEach((account) => account.PlatformId = "");
-
-            _iOService.Setup((x) => x.ReadData<List<Account>>(It.IsAny<string>())).Returns(accounts);
-            _platformServiceFactory.Setup((x) => x.CreateImplementation(It.IsAny<AccountType>())).Returns(_platformService.Object);
-            _platformService.Setup((x) => x.TryFetchId(It.IsAny<Account>())).ReturnsAsync((true, "UpdatedId"));
-            _platformService.Setup((x) => x.TryFetchRank(It.IsAny<Account>())).ReturnsAsync((true, new Rank() { Tier = "TestTier"}));
-
-            // Act
-            var value = await _sut.GetAllAccountsAsync();
-
-            // Assert
-            Assert.True(value.TrueForAll((x) => x?.Rank?.Tier == "TestTier"));
-        }
 
         [Fact]
         public async Task GetAllAccounts_UpdatesPlatformId_WhenPlatformIdIsEmptyOrNull()

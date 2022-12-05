@@ -20,7 +20,7 @@ namespace AccountManager.Core.Services
         public async Task RemoveAccountAsync(Account account)
         {
             var accounts = await GetAllAccountsMinAsync();
-            accounts.RemoveAll((acc) => acc?.Guid == account.Guid);
+            accounts.RemoveAll((acc) => acc?.Id == account.Id);
             await WriteAllAccountsAsync(accounts);
             OnAccountListChanged.Invoke();
         }
@@ -38,15 +38,6 @@ namespace AccountManager.Core.Services
 
                 if (string.IsNullOrEmpty(account.PlatformId))
                     accountTasks.Add(Task.Run(async () => account.PlatformId = (await platformService.TryFetchId(account)).Item2));
-
-                var updateRankTask = Task.Run(async () =>
-                {
-                    var rank = (await platformService.TryFetchRank(account)).Item2;
-                    if (!string.IsNullOrEmpty(rank.Tier))
-                        account.Rank = rank;
-                });
-
-                accountTasks.Add(updateRankTask);
             }
 
             await Task.WhenAll(accountTasks);

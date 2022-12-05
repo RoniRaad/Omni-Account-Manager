@@ -115,7 +115,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
                 catch
                 {
-                    _alertService.AddErrorAlert($"Unable to display ranked win graph account {Account.Id}.");
+                    _alertService.AddErrorAlert($"Unable to display ranked win graph account {Account.Name}.");
                 }
 
                 await HandleRedraw();

@@ -78,7 +78,7 @@ namespace AccountManager.Infrastructure.Clients
             jwtSecurityToken.Payload.TryGetValue("sub", out var puuid);
 
             if (puuid?.ToString() is null)
-                _logger.LogError("Unable to get puuid for riot account! Account ID: {AccountId}, Account Username: {Username}", account.Id, account.Username);
+                _logger.LogError("Unable to get puuid for riot account! Account ID: {AccountId}, Account Username: {Username}", account.Name, account.Username);
 
             return puuid?.ToString() ?? "";
         }

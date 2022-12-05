@@ -22,12 +22,12 @@ namespace AccountManager.Blazor.Components
         }
         public void Submit()
         {
-            var account = _appState.Accounts.FirstOrDefault((acc) => acc.Guid == Account.Guid);
+            var account = _appState.Accounts.FirstOrDefault((acc) => acc.Id == Account.Id);
             if (account is null)
                 return;
 
             account.Password = Account.Password;
-            account.Id = Account.Id;
+            account.Name = Account.Name;
 
             _appState.SaveAccounts();
             Close();
