@@ -1,4 +1,5 @@
 ﻿@using AccountManager.Blazor.Components.AccountListTile.TileContent.Pages
+@using AccountManager.Core.Enums
 @using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
 @using AccountManager.Infrastructure.CachedClients
@@ -7,18 +8,19 @@
 @inject ILeagueClient _leagueClient 
 @inject IDistributedCache _distributedCache
 @inject IMemoryCache _memoryCache
+@inject IGenericFactory<AccountType, IPlatformService> _platformServiceFactory
 
 <li class="list-group-item" style="padding:8px">
     <span class="oi oi-reload" @onclick="RefreshData" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph" />
     <div>
         <p class="account-title">@Account?.Username</p>
-        @if (string.IsNullOrEmpty(Account?.Rank?.Tier) && string.IsNullOrEmpty(Account?.Rank?.Ranking))
+        @if (string.IsNullOrEmpty(Rank?.Tier) && string.IsNullOrEmpty(Rank?.Ranking))
         {
             <p class="account-rank">N/A</p>
         }
         else
         {
-            <p class="account-rank" style="color:@Account?.Rank?.HexColor">@Account?.Rank?.Tier @Account?.Rank?.Ranking</p>
+            <p class="account-rank" style="color:@Rank?.HexColor">@Rank?.Tier @Rank?.Ranking</p>
         }
         <div class="tile-content-wrapper" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph">
             <TileContentData Account="Account"></TileContentData>

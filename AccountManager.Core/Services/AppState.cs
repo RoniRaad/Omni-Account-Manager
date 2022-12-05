@@ -38,7 +38,7 @@ namespace AccountManager.Core.Services
 
         public async Task IpcLogin(IpcLoginParameter loginParam)
         {
-            var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
+            var relevantAccount = Accounts.FirstOrDefault((account) => account.Id == loginParam.Guid);
 
             if (relevantAccount is not null)
                 await _accountService.LoginAsync(relevantAccount);
@@ -62,8 +62,7 @@ namespace AccountManager.Core.Services
             var fullAccounts = new List<Account>(await _accountService.GetAllAccountsAsync());
             for (int i = 0; i < Accounts.Count; i++)
             {
-                Accounts[i].Rank = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.Rank ?? Accounts[i].Rank;
-                Accounts[i].PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.PlatformId ?? Accounts[i].PlatformId;
+                Accounts[i].PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Id == updatedAccount.Id)?.PlatformId ?? Accounts[i].PlatformId;
             }
 
             SaveAccounts();

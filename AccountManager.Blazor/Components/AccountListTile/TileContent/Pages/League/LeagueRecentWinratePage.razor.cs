@@ -101,7 +101,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 catch
                 {
-                    _alertService.AddErrorAlert($"Unable to display league winrate by champ for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to display league winrate by champ for account {Account.Name}");
                 }
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());

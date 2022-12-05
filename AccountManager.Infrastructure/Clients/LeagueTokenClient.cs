@@ -120,7 +120,7 @@ namespace AccountManager.Infrastructure.Clients
             }
             else
             {
-                account = _state.Accounts.FirstOrDefault((acc) => acc.Guid == _leagueSettings.Settings.AccountToUseCredentials);
+                account = _state.Accounts.FirstOrDefault((acc) => acc.Id == _leagueSettings.Settings.AccountToUseCredentials);
             }
 
             if (account is null)

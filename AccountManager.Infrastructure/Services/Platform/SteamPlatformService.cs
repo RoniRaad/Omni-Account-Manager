@@ -49,7 +49,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         public async Task Login(Account account)
         {
             var args = "";
-            var steamGameToLaunch = await _persistantCache.GetStringAsync($"{account.Guid}.SelectedSteamGame");
+            var steamGameToLaunch = await _persistantCache.GetStringAsync($"{account.Id}.SelectedSteamGame");
             if (steamGameToLaunch is not null && steamGameToLaunch != "none")
                 args = $"-applaunch {steamGameToLaunch}";
 

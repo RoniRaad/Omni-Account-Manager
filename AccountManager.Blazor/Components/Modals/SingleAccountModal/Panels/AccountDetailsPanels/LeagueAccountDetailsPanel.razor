@@ -1,6 +1,10 @@
 ﻿@attribute [SingleAccountInfoPanel(Core.Enums.AccountType.League)]
 @using AccountManager.Core.Attributes
+@using AccountManager.Core.Enums
+@using AccountManager.Core.Interfaces
 @using AccountManager.Core.Models
+@inject IGenericFactory<AccountType, IPlatformService> _platformServiceFactory 
+
  <div class="title-container">
     <h2 class="" style="">League of Legends</h2>
 </div>
@@ -9,7 +13,7 @@
         <div class="mb-3 row">
             <label for="staticEmail" class="col-5 col-form-label">Name</label>
             <div class="col-7">
-                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Id">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Name">
             </div>
         </div>
         <div class="mb-3 row">
@@ -21,7 +25,7 @@
         <div class="mb-3 row">
             <label for="staticEmail" class="col-5 col-form-label">Rank</label>
             <div class="col-7">
-                <input type="text" readonly="" class="form-control-plaintext" value="@Account?.Rank?.Tier @Account?.Rank?.Ranking">
+                <input type="text" readonly="" class="form-control-plaintext" value="@Rank?.Tier @Rank?.Ranking">
             </div>
         </div>
         <div class="mb-3 row">
@@ -38,8 +42,31 @@
 @code {
     [Parameter]
     public Account? Account { get; set; }
+    public Rank? Rank { get; set; }
 
+    private IPlatformService _platformService;
     private bool passwordVisible = false;
+    private Account _account = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (Account is null)
+            return;
+
+        _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_account != Account)
+        {
+            _account = Account;
+            var rankResponse = await _platformService.TryFetchRank(Account);
+            Rank = rankResponse.Item2;
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
 
     public string PasswordType
     {

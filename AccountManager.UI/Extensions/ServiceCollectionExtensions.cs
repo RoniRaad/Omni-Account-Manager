@@ -54,7 +54,7 @@ namespace AccountManager.UI.Extensions
                                 await authService.LoginAsync(password);
                                 var accountService = services.GetRequiredService<IAccountService>();
                                 var accounts = await accountService.GetAllAccountsMinAsync();
-                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Guid.ToString() == parsedArgs["login"]) ?? new());
+                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Id.ToString() == parsedArgs["login"]) ?? new());
                                 Environment.Exit(0);
                             }
                         }
