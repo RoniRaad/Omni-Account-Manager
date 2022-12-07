@@ -9,9 +9,9 @@ namespace AccountManager.Blazor.Pages
         private bool addAccountPrompt { get; set; } = false;
         private int amountOfAccountsFilered;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            _appState.UpdateAccounts();
+            await _appState.UpdateAccounts();
             _accountFilterService.OnFilterChanged += () => LoadList();
             amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
         }

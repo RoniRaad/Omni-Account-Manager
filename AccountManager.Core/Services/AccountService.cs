@@ -6,15 +6,13 @@ namespace AccountManager.Core.Services
 {
     public sealed class AccountService : IAccountService
     {
-        private readonly IGeneralFileSystemService _iOService;
-        private readonly IAuthService _authService;
         private readonly IGenericFactory<AccountType, IPlatformService> _platformServiceFactory;
+        private readonly IAccountRepository _accountRepository;
         public event Action OnAccountListChanged = delegate { };
-        public AccountService(IGeneralFileSystemService iOService, IAuthService authService, IGenericFactory<AccountType, IPlatformService> platformServiceFactory)
+        public AccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory, IAccountRepository accountRepository)
         {
-            _iOService = iOService;
-            _authService = authService;
             _platformServiceFactory = platformServiceFactory;
+            _accountRepository = accountRepository;
         }
 
         public async Task RemoveAccountAsync(Account account)
@@ -47,7 +45,7 @@ namespace AccountManager.Core.Services
 
         public async Task<List<Account>> GetAllAccountsMinAsync()
         {
-            var accounts = await _iOService.ReadDataAsync<List<Account>>(_authService.PasswordHash);
+            var accounts = await _accountRepository.GetAll();
             return accounts;
         }
 
@@ -59,7 +57,18 @@ namespace AccountManager.Core.Services
 
         public async Task WriteAllAccountsAsync(List<Account> accounts)
         {
-            await _iOService.WriteDataAsync(accounts, _authService.PasswordHash);
+            foreach (var account in accounts)
+            {
+                var oldAccount = _accountRepository.Get(account.Id);
+                if (oldAccount is null)
+                {
+                    await _accountRepository.Create(account);
+                }
+                else
+                {
+                    await _accountRepository.Update(account);
+                }
+            }
         }
     }
 }

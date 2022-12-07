@@ -25,6 +25,10 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using AccountManager.Infrastructure.Repositories;
+using Dapper;
+using System.Data;
+using AccountManager.Infrastructure.TypeHandlers;
 
 namespace AccountManager.UI
 {
@@ -49,6 +53,7 @@ namespace AccountManager.UI
             services.Configure<RiotApiUri>(configuration.GetSection("RiotApiUri"));
             services.Configure<AboutEndpoints>(configuration.GetSection("AboutEndpoints"));
             services.Configure<EpicGamesApiUri>(configuration.GetSection("EpicGamesApiUri"));
+            services.Configure<AccountSqliteDatabaseConfig>(configuration.GetSection("AccountSqliteDatabaseConfig"));
             services.AddSingleton<IAlertService, AlertService>();
             services.AddSingleton<IAccountFilterService, AccountFilterService>();
             services.AddState();
@@ -65,6 +70,8 @@ namespace AccountManager.UI
             services.AddSingleton<IGeneralFileSystemService, CachedGeneralFileSystemService>();
             services.AddSingleton<IAccountExportService, AccountExportService>();
             services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
+            services.AddSingleton<IDataMigrationService, DataMigrationService>();
+            services.AddSingleton<IAccountRepository, AccountSqliteRepository>();
 
             // Cached Objects
             services.AddSingleton<RiotThirdPartyClient>();
@@ -113,6 +120,10 @@ namespace AccountManager.UI
                     .AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
                     .AddImplementation<RiotTokenService>(AccountType.Valorant)
                     .Build();
+
+            SqlMapper.AddTypeHandler(new SqliteGuidTypeHandler());
+            SqlMapper.RemoveTypeMap(typeof(Guid));
+            SqlMapper.RemoveTypeMap(typeof(Guid?));
         }
     }
 }
