@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Components;
 
 namespace AccountManager.Blazor.Components
@@ -29,7 +30,7 @@ namespace AccountManager.Blazor.Components
             account.Password = Account.Password;
             account.Name = Account.Name;
 
-            _appState.SaveAccounts();
+            _accountRepository.Update(account);
             Close();
         }
     }
