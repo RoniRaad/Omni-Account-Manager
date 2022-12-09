@@ -4,6 +4,6 @@
     {
         public Guid AccountGuid { get; set; } = Guid.Empty;
         public bool ShowAccountDetails { get; set; } = true;
-        public int ListOrder { get; set; } = 0;
+        public int ListOrder { get; set; } = int.MaxValue;
     }
 }

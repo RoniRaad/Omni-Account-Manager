@@ -67,7 +67,7 @@ namespace AccountManager.Core.Services
                 if (_accountItemSettings.Settings.TryGetValue(acc.Id, out var settings))
                     return settings.ListOrder;
 
-                return 0;
+                return int.MaxValue;
             }
             ).ToList();
 
