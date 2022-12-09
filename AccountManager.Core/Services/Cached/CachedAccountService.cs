@@ -5,6 +5,7 @@ using AccountManager.Core.Models;
 using AccountManager.Core.Static;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Principal;
 
 namespace AccountManager.Core.Services.Cached
 {
@@ -16,14 +17,13 @@ namespace AccountManager.Core.Services.Cached
         private readonly AccountService _accountService;
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
-        private readonly SemaphoreSlim accountWriteSemaphore = new(1, 1);
         public event Action OnAccountListChanged = delegate { };
-        public CachedAccountService(GenericFactory<AccountType, IPlatformService> platformServiceFactory
-            , IMemoryCache memoryCache, IDistributedCache persistantCache, IAccountRepository accountRepository)
+        public CachedAccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory
+            , IMemoryCache memoryCache, IDistributedCache persistantCache, IAccountEncryptedRepository accountRepository, IAuthService authService)
         {
             _memoryCache = memoryCache;
             _persistantCache = persistantCache;
-            _accountService = new(platformServiceFactory, accountRepository);
+            _accountService = new(platformServiceFactory, accountRepository, authService);
             _accountService.OnAccountListChanged += () => OnAccountListChanged.Invoke();
         }
 
@@ -31,7 +31,7 @@ namespace AccountManager.Core.Services.Cached
         {
             _memoryCache.Remove(minAccountCacheKey);
             _memoryCache.Remove(accountCacheKey);
-            await _accountService.RemoveAccountAsync(account);
+            await _accountService.DeleteAccountAsync(account);
         }
 
         public async Task<List<Account>> GetAllAccountsAsync()
@@ -42,27 +42,29 @@ namespace AccountManager.Core.Services.Cached
             }) ?? new();
         }
 
-        public async Task<List<Account>> GetAllAccountsMinAsync()
-        {
-            return await _memoryCache.GetOrCreateAsync(minAccountCacheKey, async (entry) =>
-            {
-                return await _accountService.GetAllAccountsMinAsync();
-            }) ?? new();
-        }
-
         public async Task LoginAsync(Account account)
         {
             await _persistantCache.SetAsync($"{account.Username}.riot.skip.auth", false);
             await _accountService.LoginAsync(account);
         }
 
-        public async Task WriteAllAccountsAsync(List<Account> accounts)
+
+        public async Task DeleteAccountAsync(Account account)
         {
-            accountWriteSemaphore.Wait();
-            _memoryCache.Remove(accountCacheKey);
-            _memoryCache.Remove(minAccountCacheKey);
-            await _accountService.WriteAllAccountsAsync(accounts);
-            accountWriteSemaphore.Release();
+            await _accountService.DeleteAccountAsync(account);
+        }
+
+        public async Task<Account?> GetAccountAsync(Guid id)
+        {
+            return await _memoryCache.GetOrCreateAsync($"{nameof(AccountService)}.{id}", async (entry) =>
+            {
+                return await _accountService.GetAccountAsync(id);
+            }) ?? new();
+        }
+
+        public async Task SaveAccountAsync(Account account)
+        {
+            await _accountService.SaveAccountAsync(account);
         }
     }
 }

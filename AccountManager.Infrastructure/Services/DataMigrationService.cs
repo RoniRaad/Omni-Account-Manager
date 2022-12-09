@@ -7,33 +7,28 @@ namespace AccountManager.Infrastructure.Services
 {
     public class DataMigrationService : IDataMigrationService
     {
-        private readonly IAuthService _authService;
         private readonly IGeneralFileSystemService _fileSystemService;
         private readonly ILogger<DataMigrationService> _logger;
-        public DataMigrationService(IAuthService authService, IGeneralFileSystemService fileSystemService,
+        public DataMigrationService(IGeneralFileSystemService fileSystemService,
             ILogger<DataMigrationService> logger)
         {
-            _authService = authService;
             _fileSystemService = fileSystemService;
             _logger = logger;
         }
 
-        public async Task<List<Account>?> GetAccountsFromEncryptedJsonFile()
+        public async Task<List<Account>?> GetAccountsFromEncryptedJsonFile(string password)
         {
-            if (!_authService.LoggedIn)
-            {
-                return null;
-            }
-
-            _logger.LogInformation("Attempting to migrate accounts to sql...");
+            _logger.LogInformation("Attempting to get accounts from encrypted json file...");
 
             try
             {
-                var accounts = await _fileSystemService.ReadDataAsync<List<Account>>(_authService.PasswordHash);
+                var accounts = await _fileSystemService.ReadDataAsync<List<Account>>(password);
                 return accounts;
             }
             catch
             {
+                _logger.LogError("Unable to get accounts from encrypted json file...");
+
                 return null;
             }
         }

@@ -10,7 +10,7 @@ namespace AccountManager.Tests.Core.Services
 {
     public sealed class AccountServiceTests
     {
-        private readonly Mock<IAccountRepository> _accountRepo;
+        private readonly Mock<IAccountEncryptedRepository> _accountRepo;
         private readonly Mock<IAuthService> _authService;
         private readonly Mock<IGenericFactory<AccountType, IPlatformService>> _platformServiceFactory;
         private readonly Mock<IPlatformService> _platformService;
@@ -18,10 +18,10 @@ namespace AccountManager.Tests.Core.Services
 
         public AccountServiceTests()
         {
-            _accountRepo = new Mock<IAccountRepository>();
+            _accountRepo = new Mock<IAccountEncryptedRepository>();
             _authService = new Mock<IAuthService>();
             _platformServiceFactory = new Mock<IGenericFactory<AccountType, IPlatformService>>();
-            _sut = new AccountService(_platformServiceFactory.Object, _accountRepo.Object);
+            _sut = new AccountService(_platformServiceFactory.Object, _accountRepo.Object, _authService.Object);
             _platformService = new Mock<IPlatformService>();
         }
 
@@ -37,7 +37,7 @@ namespace AccountManager.Tests.Core.Services
             //_iOService.Setup((x) => x.WriteData<List<Account>>(It.IsAny<List<Account>>(), It.IsAny<string>()));
 
             // Act
-            _sut.RemoveAccountAsync(testAccount);
+            _sut.DeleteAccountAsync(testAccount);
 
             // Assert
             Assert.DoesNotContain(testAccount, accounts);
@@ -53,7 +53,7 @@ namespace AccountManager.Tests.Core.Services
            // _iOService.Setup((x) => x.ReadData<List<Account>>(It.IsAny<string>())).Returns(accounts);
 
             // Act
-            var value = await _sut.GetAllAccountsMinAsync();
+            var value = await _sut.GetAllAccountsAsync();
 
             // Assert
             Assert.Equal(accounts, value);

@@ -21,7 +21,7 @@ namespace AccountManager.Blazor.Components
         {
             get { return passwordVisible ? "var(--primary-dark)" : "var(--secondary-dark)"; }
         }
-        public void Submit()
+        public async Task Submit()
         {
             var account = _appState.Accounts.FirstOrDefault((acc) => acc.Id == Account.Id);
             if (account is null)
@@ -30,7 +30,7 @@ namespace AccountManager.Blazor.Components
             account.Password = Account.Password;
             account.Name = Account.Name;
 
-            _accountRepository.Update(account);
+            await _accountService.SaveAccountAsync(account);
             Close();
         }
     }

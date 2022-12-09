@@ -23,12 +23,13 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IEpicGamesLibraryService _epicGamesLibraryService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IEpicGamesExternalAuthService _epicGamesExternalAuthService;
+        private readonly IAccountService _accountService;
         private readonly IAppState _appState;
 
-        public EpicGamesPlatformService( IAlertService alertService,
+        public EpicGamesPlatformService(IAlertService alertService,
             IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
             ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
-            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, IAppState appState)
+            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, IAppState appState, IAccountService accountService)
         {
             _alertService = alertService;
             _memoryCache = memoryCache;
@@ -38,6 +39,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _persistantCache = persistantCache;
             _epicGamesLibraryService = epicGamesLibraryService;
             _appState = appState;
+            _accountService = accountService;
         }
 
         public async Task Login(Account account)
@@ -53,7 +55,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (string.IsNullOrEmpty(account.PlatformId))
             {
                 account.PlatformId = tokens.Id;
-                _appState.SaveAccounts();
+                await _accountService.SaveAccountAsync(account);
             }
 
             CloseEpicGamesClient();

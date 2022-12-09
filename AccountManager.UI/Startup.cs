@@ -29,6 +29,7 @@ using AccountManager.Infrastructure.Repositories;
 using Dapper;
 using System.Data;
 using AccountManager.Infrastructure.TypeHandlers;
+using AccountManager.Core.Services.Cached;
 
 namespace AccountManager.UI
 {
@@ -71,7 +72,7 @@ namespace AccountManager.UI
             services.AddSingleton<IAccountExportService, AccountExportService>();
             services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
             services.AddSingleton<IDataMigrationService, DataMigrationService>();
-            services.AddSingleton<IAccountRepository, AccountSqliteRepository>();
+            services.AddSingleton<IAccountEncryptedRepository, AccountSqliteRepository>();
 
             // Cached Objects
             services.AddSingleton<RiotThirdPartyClient>();
@@ -103,7 +104,7 @@ namespace AccountManager.UI
             })
             .AddBootstrapProviders()
             .AddFontAwesomeIcons();
-            services.AddSingleton<IAccountService, AccountService>();
+            services.AddSingleton<IAccountService, CachedAccountService>();
             services.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
             services.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
             services.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();

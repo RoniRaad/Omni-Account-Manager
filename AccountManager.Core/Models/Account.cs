@@ -1,5 +1,4 @@
 ﻿using AccountManager.Core.Enums;
-using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
 namespace AccountManager.Core.Models

@@ -4,6 +4,6 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IDataMigrationService
     {
-        Task<List<Account>?> GetAccountsFromEncryptedJsonFile();
+        Task<List<Account>?> GetAccountsFromEncryptedJsonFile(string password);
     }
 }
