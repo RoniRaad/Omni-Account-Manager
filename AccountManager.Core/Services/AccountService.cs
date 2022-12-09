@@ -7,26 +7,49 @@ namespace AccountManager.Core.Services
     public sealed class AccountService : IAccountService
     {
         private readonly IGenericFactory<AccountType, IPlatformService> _platformServiceFactory;
-        private readonly IAccountRepository _accountRepository;
+        private readonly IAccountEncryptedRepository _accountRepository;
+        private readonly IAuthService _authService;
         public event Action OnAccountListChanged = delegate { };
-        public AccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory, IAccountRepository accountRepository)
+        public AccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory, IAccountEncryptedRepository accountRepository, IAuthService authService)
         {
             _platformServiceFactory = platformServiceFactory;
             _accountRepository = accountRepository;
+            _authService = authService;
         }
 
-        public async Task RemoveAccountAsync(Account account)
+        public async Task DeleteAccountAsync(Account account)
         {
-            var accounts = await GetAllAccountsMinAsync();
-            accounts.RemoveAll((acc) => acc?.Id == account.Id);
-            await WriteAllAccountsAsync(accounts);
+            await _accountRepository.Delete(account.Id, _authService.PasswordHash);
             OnAccountListChanged.Invoke();
         }
 
+        public async Task SaveAccountAsync(Account account)
+        {
+            var currentAccount = _accountRepository.Get(account.Id, _authService.PasswordHash);
+
+            if (currentAccount is null)
+            {
+                await _accountRepository.Create(account, _authService.PasswordHash);
+            }
+            else
+            {
+                await _accountRepository.Update(account, _authService.PasswordHash);
+            }
+
+            OnAccountListChanged.Invoke();
+        }
+
+        public async Task<Account?> GetAccountAsync(Guid id)
+        {
+            return await _accountRepository.Get(id, _authService.PasswordHash);
+        }
+
+
         public async Task<List<Account>> GetAllAccountsAsync()
         {
+            bool platformIdUpdated = false;
             List<Task> accountTasks = new();
-            var accounts = await GetAllAccountsMinAsync();
+            var accounts = await _accountRepository.GetAll(_authService.PasswordHash);
 
             var accountsCount = accounts.Count;
             for (int i = 0; i < accountsCount; i++)
@@ -35,17 +58,23 @@ namespace AccountManager.Core.Services
                 var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
 
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    accountTasks.Add(Task.Run(async () => account.PlatformId = (await platformService.TryFetchId(account)).Item2));
+                {
+                    accountTasks.Add(Task.Run(async () =>
+                    {
+                        account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                        await SaveAccountAsync(account);
+                        platformIdUpdated = true;
+                    }));
+                }
             }
 
-            await Task.WhenAll(accountTasks);
+            _ = Task.Run(async () =>
+            {
+                await Task.WhenAll(accountTasks);
+                if (platformIdUpdated)
+                    OnAccountListChanged.Invoke();
+            });
 
-            return accounts;
-        }
-
-        public async Task<List<Account>> GetAllAccountsMinAsync()
-        {
-            var accounts = await _accountRepository.GetAll();
             return accounts;
         }
 
@@ -53,22 +82,6 @@ namespace AccountManager.Core.Services
         {
             var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
             await platformService.Login(account);
-        }
-
-        public async Task WriteAllAccountsAsync(List<Account> accounts)
-        {
-            foreach (var account in accounts)
-            {
-                var oldAccount = _accountRepository.Get(account.Id);
-                if (oldAccount is null)
-                {
-                    await _accountRepository.Create(account);
-                }
-                else
-                {
-                    await _accountRepository.Update(account);
-                }
-            }
         }
     }
 }

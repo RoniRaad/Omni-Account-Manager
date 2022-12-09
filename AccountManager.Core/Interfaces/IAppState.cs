@@ -9,7 +9,7 @@ namespace AccountManager.Core.Interfaces
         bool IsInitialized { get; set; }
 
         Task IpcLogin(AppState.IpcLoginParameter loginParam);
-        void SaveAccounts();
+        Task SaveAccountOrder();
         void StartUpdateTimer();
         Task UpdateAccounts();
     }

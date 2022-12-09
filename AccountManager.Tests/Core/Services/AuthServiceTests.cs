@@ -12,7 +12,7 @@ namespace AccountManager.Tests.Core.Services
         private readonly Mock<IGeneralFileSystemService> _iOService;
         private readonly Mock<IAlertService> _alertService;
         private readonly Mock<IDistributedCache> _persistantCache;
-        private readonly AuthService _sut;
+        private readonly SqliteAuthService _sut;
 
         public AuthServiceTests()
         {

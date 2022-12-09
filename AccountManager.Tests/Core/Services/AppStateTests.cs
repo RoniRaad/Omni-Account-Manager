@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services;
 using Moq;
@@ -10,12 +11,14 @@ namespace AccountManager.Tests.Core.Services
     {
         private readonly Mock<IAccountService> _accountService;
         private readonly Mock<IIpcService> _ipcService;
+        private readonly Mock<IUserSettingsService<Dictionary<Guid, AccountListItemSettings>>> _accountListItemSettings;
         private readonly IAppState _sut;
         public AppStateTests()
         {
             _accountService = new();
             _ipcService = new();
-            _sut = new AppState(_accountService.Object, _ipcService.Object);
+            _accountListItemSettings = new();
+            _sut = new AppState(_accountService.Object, _ipcService.Object, _accountListItemSettings.Object);
         }
 
         [Fact]
@@ -67,9 +70,8 @@ namespace AccountManager.Tests.Core.Services
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(minAccounts);
             _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == updatedPlatformId )))).Verifiable();
 
             // Act
             await _sut.UpdateAccounts();
@@ -98,9 +100,8 @@ namespace AccountManager.Tests.Core.Services
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(minAccounts);
             _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == "UpdatedPlatformId" ))));
 
             // Act
             await _sut.UpdateAccounts();

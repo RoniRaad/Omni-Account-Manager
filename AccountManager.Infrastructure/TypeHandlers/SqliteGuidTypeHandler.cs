@@ -7,7 +7,7 @@ namespace AccountManager.Infrastructure.TypeHandlers
     {
         public override void SetValue(IDbDataParameter parameter, Guid guid)
         {
-            parameter.Value = guid.ToString();
+            parameter.Value = guid.ToString().ToUpper();
         }
 
         public override Guid Parse(object value)

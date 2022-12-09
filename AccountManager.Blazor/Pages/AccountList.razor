@@ -18,7 +18,7 @@
 <div class="container-fluid">
     <div class="row" style="--bs-gutter-x: 0rem">
         @try{
-            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccounts()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
+            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccountOrder()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
                 <AccountListTile Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
             </Dropzone>
         }
@@ -37,7 +37,7 @@
         </div>
         
 
-        <div id="new-account-placeholder" class="placeholder-account-tile">
+        <div id="new-account-placeholder" style="display:none" class="placeholder-account-tile">
             <div class="card card-placeholder">
                 <ul class="list-group list-group-flush">
                     <li @onclick="()=>addAccountPrompt=true" class="inner-card clickable-card list-group-item list-group-item-placeholder">
