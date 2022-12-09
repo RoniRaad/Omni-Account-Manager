@@ -1,5 +1,4 @@
 ﻿using AccountManager.Core.Interfaces;
-using AccountManager.Core.Models;
 using AccountManager.Core.Static;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -12,12 +11,14 @@ namespace AccountManager.Core.Services
         private readonly IDistributedCache _persistantCache;
         public string PasswordHash { get; set; } = "";
         public bool LoggedIn { get; set; }
-        public bool AuthInitialized { get; set; } = true;
-        public SqliteAuthService(IAccountEncryptedRepository accountRepository, IAlertService alertService, IDistributedCache persistantCache)
+        public bool AuthInitialized { get; set; }
+        public SqliteAuthService(IAccountEncryptedRepository accountRepository, IAlertService alertService,
+            IDistributedCache persistantCache, IGeneralFileSystemService fileSystemService)
         {
             _accountRepository = accountRepository;
             _alertService = alertService;
             _persistantCache = persistantCache;
+            AuthInitialized = fileSystemService.ValidateData();
         }
 
         public async Task LoginAsync(string password)

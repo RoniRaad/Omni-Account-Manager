@@ -63,7 +63,13 @@ namespace AccountManager.Core.Services
         {
             var accounts = await _accountService.GetAllAccountsAsync();
             accounts = accounts.OrderBy((acc) =>
-            _accountItemSettings?.Settings[acc.Id]?.ListOrder).ToList();
+            {
+                if (_accountItemSettings.Settings.TryGetValue(acc.Id, out var settings))
+                    return settings.ListOrder;
+
+                return 0;
+            }
+            ).ToList();
 
             Accounts = accounts;
             IsInitialized = true;                               

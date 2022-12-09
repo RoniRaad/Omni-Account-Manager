@@ -43,7 +43,8 @@ namespace AccountManager.UI.Extensions
                 services.AddSingleton<IAuthService>((services) =>
                 {
                     var persistantCache = services.GetRequiredService<IDistributedCache>();
-                    var authService = new SqliteAuthService(services.GetRequiredService<IAccountEncryptedRepository>(), services.GetRequiredService<AlertService>(), persistantCache);
+                    var authService = new SqliteAuthService(services.GetRequiredService<IAccountEncryptedRepository>(), 
+                        services.GetRequiredService<AlertService>(), persistantCache, services.GetRequiredService<IGeneralFileSystemService>());
 
                     Task.Run(async () =>
                     {

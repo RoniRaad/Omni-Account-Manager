@@ -32,5 +32,22 @@ namespace AccountManager.Infrastructure.Services
                 return null;
             }
         }
+
+        public bool TryDecryptJsonFile(string password)
+        {
+            _logger.LogInformation("Attempting to decrypt json file...");
+
+            try
+            {
+                var accounts = _fileSystemService.ReadData<List<Account>>(password);
+                return true;
+            }
+            catch
+            {
+                _logger.LogError("Unable to decrypt json file...");
+
+                return false;
+            }
+        }
     }
 }

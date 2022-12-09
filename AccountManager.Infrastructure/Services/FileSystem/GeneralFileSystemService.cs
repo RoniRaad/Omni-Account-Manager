@@ -39,13 +39,10 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         {
             var fileName = StringEncryption.Hash(typeof(List<Account>).Name);
             fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
-            var filePath = Path.Combine(DataPath, $"{fileName}.dat");
+            var jsonFilePath = Path.Combine(DataPath, $"{fileName}.dat");
+            var sqliteDbPath = Path.Combine(DataPath, $"accounts.db");
 
-            if (!File.Exists(filePath))
-                return false;
-            else
-                return true;
-
+            return File.Exists(jsonFilePath) || File.Exists(sqliteDbPath);
         }
 
         public bool TryReadEncryptedData(string password)
