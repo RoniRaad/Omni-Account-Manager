@@ -12,7 +12,6 @@ namespace AccountManager.Core.Services.Cached
     public sealed class CachedAccountService : IAccountService
     {
         private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
-        private const string minAccountCacheKey = $"{nameof(AccountService)}.minaccountlist";
 
         private readonly AccountService _accountService;
         private readonly IMemoryCache _memoryCache;
