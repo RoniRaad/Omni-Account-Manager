@@ -10,7 +10,8 @@ namespace AccountManager.Core.Services
         private readonly IAccountEncryptedRepository _accountRepository;
         private readonly IAuthService _authService;
         public event Action OnAccountListChanged = delegate { };
-        public AccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory, IAccountEncryptedRepository accountRepository, IAuthService authService)
+        public AccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory, 
+            IAccountEncryptedRepository accountRepository, IAuthService authService)
         {
             _platformServiceFactory = platformServiceFactory;
             _accountRepository = accountRepository;
@@ -43,7 +44,6 @@ namespace AccountManager.Core.Services
         {
             return await _accountRepository.Get(id, _authService.PasswordHash);
         }
-
 
         public async Task<List<Account>> GetAllAccountsAsync()
         {

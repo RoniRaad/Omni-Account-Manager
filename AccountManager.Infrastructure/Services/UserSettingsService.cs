@@ -40,6 +40,7 @@ namespace AccountManager.Infrastructure.Services
             }
 
             await _authService.ChangePasswordAsync(changeRequest.OldPassword, changeRequest.NewPassword);
+            _alertService.AddInfoAlert("Password changed successfully!");
             return true;
         }
 
