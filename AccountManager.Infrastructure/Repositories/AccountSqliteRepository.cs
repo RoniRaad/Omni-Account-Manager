@@ -2,6 +2,7 @@
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Static;
+using AccountManager.Infrastructure.Services.FileSystem;
 using Dapper;
 using KeyedSemaphores;
 using Microsoft.Data.Sqlite;
@@ -16,7 +17,9 @@ namespace AccountManager.Infrastructure.Repositories
         private readonly AccountSqliteDatabaseConfig _databaseConfig;
         private readonly ILogger<AccountSqliteRepository> _logger;
         private readonly IDataMigrationService _dataMigrationService;
+        private readonly string DatabasePath;
         private bool Initialized = false;
+
 
         public AccountSqliteRepository(IOptions<AccountSqliteDatabaseConfig> accountSqliteDbConfig,
             ILogger<AccountSqliteRepository> logger, IDataMigrationService dataMigrationService)
@@ -24,6 +27,7 @@ namespace AccountManager.Infrastructure.Repositories
             _databaseConfig = accountSqliteDbConfig.Value;
             _logger = logger;
             _dataMigrationService = dataMigrationService;
+            DatabasePath = Path.Combine(GeneralFileSystemService.DataPath, _databaseConfig.FileName);
         }
 
         public async Task<Account?> Get(Guid id, string password)
@@ -33,13 +37,13 @@ namespace AccountManager.Infrastructure.Repositories
                 await InitializeDatabaseAsync(password);
             }
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
             using var connection = new SqliteConnection(connectionString);
 
             var sql = "SELECT * FROM Account WHERE Id=@Id;";
             try
             {
-                var account = await connection.QuerySingleAsync<Account>(sql, new { Id = id });
+                var account = await connection.QuerySingleOrDefaultAsync<Account>(sql, new { Id = id });
                 return account;
             }
             catch
@@ -57,7 +61,7 @@ namespace AccountManager.Infrastructure.Repositories
                 await InitializeDatabaseAsync(password);
             }
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
             using var connection = new SqliteConnection(connectionString);
 
             var sql = "SELECT * FROM Account;";
@@ -81,7 +85,7 @@ namespace AccountManager.Infrastructure.Repositories
                 await InitializeDatabaseAsync(password);
             }
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
             using var connection = new SqliteConnection(connectionString);
 
             _logger.LogInformation("Attempting to create account with username {Username}", account.Username);
@@ -107,7 +111,7 @@ namespace AccountManager.Infrastructure.Repositories
                 await InitializeDatabaseAsync(password);
             }
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
             using var connection = new SqliteConnection(connectionString);
 
             _logger.LogInformation("Attempting to update account with username {Username}", account.Username);
@@ -134,7 +138,7 @@ namespace AccountManager.Infrastructure.Repositories
                 await InitializeDatabaseAsync(password);
             }
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
             using var connection = new SqliteConnection(connectionString);
 
             _logger.LogInformation("Attempting to delete account with id {Guid}", id);
@@ -156,26 +160,31 @@ namespace AccountManager.Infrastructure.Repositories
         {
             _logger.LogInformation("Attempting to decrypt account database");
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
-            using var connection = new SqliteConnection(connectionString);
+            if (File.Exists(DatabasePath))
+            {
+                var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
+                using var connection = new SqliteConnection(connectionString);
 
-            try
-            {
-                connection.Open();
-                connection.Close();
-                return true;
+                try
+                {
+                    connection.Open();
+                    connection.Close();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
-            catch
-            {
-                return false;
-            }
+
+            return _dataMigrationService.TryDecryptJsonFile(password);
         }
 
         public bool TryChangePassword(string oldPassword, string newPassword)
         {
             _logger.LogInformation("Attempting to decrypt account database");
 
-            var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, oldPassword);
+            var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, oldPassword);
             using var connection = new SqliteConnection(connectionString);
 
             try
@@ -196,7 +205,7 @@ namespace AccountManager.Infrastructure.Repositories
 
                 _logger.LogInformation("Attempting to initialize account database");
 
-                var connectionString = string.Format("Data Source={0};Password={1};", _databaseConfig.FileName, password);
+                var connectionString = string.Format("Data Source={0};Password={1};", DatabasePath, password);
                 using var connection = new SqliteConnection(connectionString);
 
                 try

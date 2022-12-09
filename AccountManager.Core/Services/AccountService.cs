@@ -25,7 +25,7 @@ namespace AccountManager.Core.Services
 
         public async Task SaveAccountAsync(Account account)
         {
-            var currentAccount = _accountRepository.Get(account.Id, _authService.PasswordHash);
+            var currentAccount = await _accountRepository.Get(account.Id, _authService.PasswordHash);
 
             if (currentAccount is null)
             {

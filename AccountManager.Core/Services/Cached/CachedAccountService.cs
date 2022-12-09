@@ -27,13 +27,6 @@ namespace AccountManager.Core.Services.Cached
             _accountService.OnAccountListChanged += () => OnAccountListChanged.Invoke();
         }
 
-        public async Task RemoveAccountAsync(Account account)
-        {
-            _memoryCache.Remove(minAccountCacheKey);
-            _memoryCache.Remove(accountCacheKey);
-            await _accountService.DeleteAccountAsync(account);
-        }
-
         public async Task<List<Account>> GetAllAccountsAsync()
         {
             return await _memoryCache.GetOrCreateAsync(accountCacheKey, async (entry) =>
@@ -48,9 +41,10 @@ namespace AccountManager.Core.Services.Cached
             await _accountService.LoginAsync(account);
         }
 
-
         public async Task DeleteAccountAsync(Account account)
         {
+            _memoryCache.Remove($"{nameof(AccountService)}.{account.Id}");
+            _memoryCache.Remove(accountCacheKey);
             await _accountService.DeleteAccountAsync(account);
         }
 
@@ -64,6 +58,7 @@ namespace AccountManager.Core.Services.Cached
 
         public async Task SaveAccountAsync(Account account)
         {
+            _memoryCache.Remove(accountCacheKey);
             await _accountService.SaveAccountAsync(account);
         }
     }
