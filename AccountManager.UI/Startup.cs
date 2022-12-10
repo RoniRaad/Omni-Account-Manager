@@ -30,6 +30,7 @@ using Dapper;
 using System.Data;
 using AccountManager.Infrastructure.TypeHandlers;
 using AccountManager.Core.Services.Cached;
+using AccountManager.Infrastructure.CachedRepositories;
 
 namespace AccountManager.UI
 {
@@ -85,6 +86,7 @@ namespace AccountManager.UI
             services.AddSingleton<LeagueGraphService>();
             services.AddSingleton<RiotTokenClient>();
             services.AddSingleton<GeneralFileSystemService>(); 
+            services.AddSingleton<AccountSqliteRepository>();
 
             services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
             services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
@@ -93,6 +95,7 @@ namespace AccountManager.UI
             services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
             services.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             services.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
+            services.AddSingleton<IAccountEncryptedRepository>((services) => new CachedAccountRepository(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<AccountSqliteRepository>()));
             services.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
             services.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
             services.AddSingleton<IIpcService, IpcService>();

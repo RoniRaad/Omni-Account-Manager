@@ -1,14 +1,12 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
-using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Services.FileSystem;
 using Dapper;
 using KeyedSemaphores;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Data;
 
 namespace AccountManager.Infrastructure.Repositories
 {
