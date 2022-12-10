@@ -39,7 +39,7 @@ namespace AccountManager.Infrastructure.Services
 
             try
             {
-                var accounts = _fileSystemService.ReadData<List<Account>>(password);
+                _fileSystemService.ReadData<List<Account>>(password);
                 return true;
             }
             catch
