@@ -12,16 +12,14 @@ namespace AccountManager.Core.Services.GraphServices
     {
         private readonly ILeagueClient _leagueClient;
         private readonly IRiotClient _riotClient;
-        private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         const AccountType accountType = AccountType.TeamFightTactics;
         const string cacheKeyFormat = "{0}.{1}.{2}";
         public TeamFightTacticsGraphService(ILeagueClient leagueClient, IRiotClient riotClient,
-            IMemoryCache memoryCache, IDistributedCache persistantCache)
+            IDistributedCache persistantCache)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
-            _memoryCache = memoryCache;
             _persistantCache = persistantCache;
         }
         public async Task<LineGraph> GetRankedPlacementOffset(Account account)

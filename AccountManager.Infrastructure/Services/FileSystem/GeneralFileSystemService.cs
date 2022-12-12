@@ -2,6 +2,7 @@
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
 using KeyedSemaphores;
+using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
@@ -11,8 +12,8 @@ namespace AccountManager.Infrastructure.Services.FileSystem
     {
         public static string DataPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Multi-Account-Manager");
-        private readonly IMemoryCache _memoryCache;
-        public GeneralFileSystemService(IMemoryCache memoryCache)
+        private readonly IAppCache _memoryCache;
+        public GeneralFileSystemService(IAppCache memoryCache)
         {
             _memoryCache = memoryCache;
         }
@@ -266,7 +267,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             using (KeyedSemaphore.Lock(cacheKey))
             {
-                return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+                return _memoryCache.GetOrAdd(cacheKey, (entry) =>
                 {
                     return File.ReadAllText(filePath);
                 }) ?? "";
@@ -282,7 +283,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             using (await KeyedSemaphore.LockAsync(cacheKey))
             {
-                return await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+                return await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
                 {
                     return await File.ReadAllTextAsync(filePath);
                 }) ?? "";
