@@ -74,6 +74,7 @@ namespace AccountManager.UI
             services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
             services.AddSingleton<IDataMigrationService, DataMigrationService>();
             services.AddSingleton<IAccountEncryptedRepository, AccountSqliteRepository>();
+            services.AddSingleton<IBackupService, BackupService>();
             services.AddLazyCache();
 
             // Cached Objects

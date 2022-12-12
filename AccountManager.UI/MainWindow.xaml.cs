@@ -1,5 +1,8 @@
 ﻿using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
+using AccountManager.Core.Interfaces;
+using AccountManager.Infrastructure.Services;
 using AccountManager.Infrastructure.Services.FileSystem;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +31,11 @@ namespace AccountManager.UI
 
             Resources.Add("services", builtServiceProvider);
 
-			InitializeComponent();
+            var backupService = builtServiceProvider.GetRequiredService<IBackupService>();
+            Task.Run(backupService.CreateBackup);
+            Task.Run(backupService.ClearOldBackups);
+
+            InitializeComponent();
 			TrySetVersionNumber();
         }
 
