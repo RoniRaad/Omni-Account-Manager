@@ -18,26 +18,26 @@ namespace AccountManager.Infrastructure.Services.Platform
             ?? ".", "ShortcutIcons", "epic-logo.ico");
         private readonly IAlertService _alertService;
         private readonly ILogger<EpicGamesPlatformService> _logger;
-        private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly IEpicGamesLibraryService _epicGamesLibraryService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IEpicGamesExternalAuthService _epicGamesExternalAuthService;
+        private readonly IAccountService _accountService;
         private readonly IAppState _appState;
 
-        public EpicGamesPlatformService( IAlertService alertService,
-            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
-            ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
-            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, IAppState appState)
+        public EpicGamesPlatformService(IAlertService alertService,
+            IUserSettingsService<GeneralSettings> settingsService, ILogger<EpicGamesPlatformService> logger,
+            IEpicGamesExternalAuthService epicGamesExternalAuthService, IDistributedCache persistantCache, 
+            IEpicGamesLibraryService epicGamesLibraryService, IAppState appState, IAccountService accountService)
         {
             _alertService = alertService;
-            _memoryCache = memoryCache;
             _settingsService = settingsService;
             _logger = logger;
             _epicGamesExternalAuthService = epicGamesExternalAuthService;
             _persistantCache = persistantCache;
             _epicGamesLibraryService = epicGamesLibraryService;
             _appState = appState;
+            _accountService = accountService;
         }
 
         public async Task Login(Account account)
@@ -53,14 +53,14 @@ namespace AccountManager.Infrastructure.Services.Platform
             if (string.IsNullOrEmpty(account.PlatformId))
             {
                 account.PlatformId = tokens.Id;
-                _appState.SaveAccounts();
+                await _accountService.SaveAccountAsync(account);
             }
 
             CloseEpicGamesClient();
             await SetEpicGamesTokenFile(tokens.Username ?? "", tokens.Name ?? "", tokens.LastName ?? "", tokens.DisplayName ?? "", tokens.RefreshToken);
             await Task.Delay(2000);
 
-            var gameId = await _persistantCache.GetStringAsync($"{account.Guid}.SelectedEpicGame");
+            var gameId = await _persistantCache.GetStringAsync($"{account.Id}.SelectedEpicGame");
             if (!string.IsNullOrEmpty(gameId) && gameId != "none")
             {
                 if (!TryLaunchEpicGamesGame(gameId))
@@ -79,29 +79,30 @@ namespace AccountManager.Infrastructure.Services.Platform
             }
         }
 
-        public Task<(bool, Rank)> TryFetchRank(Account account)
+        public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.epicgames.rank";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
-                return Task.FromResult((true, rank));
+            var rank = await _persistantCache.GetAsync<Rank>(rankCacheString);
+            if ( rank is not null )
+                return (true, rank);
 
             rank = new Rank();
             try
             {
                 if (string.IsNullOrEmpty(account.PlatformId))
-                    return Task.FromResult((false, rank));
+                    return (false, rank);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                    await _persistantCache.SetAsync(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
-                    return Task.FromResult((false, new Rank()));
+                    return (false, new Rank());
 
-                return Task.FromResult((true, rank));
+                return (true, rank);
             }
             catch
             {
-                return Task.FromResult((false, new Rank()));
+                return (false, new Rank());
             }
         }
 

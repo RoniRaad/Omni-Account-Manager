@@ -21,6 +21,7 @@ using AccountManager.Core.Static;
 using System.Linq;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames;
+using AccountManager.Core.Models.UserSettings;
 
 namespace AccountManager.UI.Extensions
 {
@@ -42,7 +43,8 @@ namespace AccountManager.UI.Extensions
                 services.AddSingleton<IAuthService>((services) =>
                 {
                     var persistantCache = services.GetRequiredService<IDistributedCache>();
-                    var authService = new AuthService(services.GetRequiredService<IGeneralFileSystemService>(), services.GetRequiredService<AlertService>(), persistantCache);
+                    var authService = new SqliteAuthService(services.GetRequiredService<IAccountEncryptedRepository>(), 
+                        services.GetRequiredService<AlertService>(), persistantCache, services.GetRequiredService<IGeneralFileSystemService>());
 
                     Task.Run(async () =>
                     {
@@ -53,8 +55,8 @@ namespace AccountManager.UI.Extensions
                             {
                                 await authService.LoginAsync(password);
                                 var accountService = services.GetRequiredService<IAccountService>();
-                                var accounts = await accountService.GetAllAccountsMinAsync();
-                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Guid.ToString() == parsedArgs["login"]) ?? new());
+                                var accounts = await accountService.GetAllAccountsAsync();
+                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Id.ToString() == parsedArgs["login"]) ?? new());
                                 Environment.Exit(0);
                             }
                         }
@@ -64,7 +66,7 @@ namespace AccountManager.UI.Extensions
                 });
             }
             else
-                services.AddSingleton<IAuthService, AuthService>();
+                services.AddSingleton<IAuthService, SqliteAuthService>();
 
             return services;
         }
@@ -93,7 +95,8 @@ namespace AccountManager.UI.Extensions
                     {
                         services.AddSingleton<IAppState, AppState>((services) =>
                         {
-                            var appState = new AppState(services.GetRequiredService<IAccountService>(), services.GetRequiredService<IIpcService>());
+                            var appState = new AppState(services.GetRequiredService<IAccountService>(), 
+                                services.GetRequiredService<IIpcService>(), services.GetRequiredService<IUserSettingsService<Dictionary<Guid, AccountListItemSettings>>>());
                             Task.Run(async () =>
                             {
                                 await appState.IpcLogin(new AppState.IpcLoginParameter() { Guid = new Guid(parsedArgs[LoginCommand]) });

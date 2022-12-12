@@ -36,7 +36,7 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was an issue getting valorant game history for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                _logger.LogError("There was an issue getting valorant game history for account {Id} with guid {Guid}. {Exception}", account.Name, account.Id, ex.Message);
                 throw;
             }
 
@@ -96,7 +96,7 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was an issue getting ranked ACS for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                _logger.LogError("There was an issue getting ranked ACS for account {Id} with guid {Guid}. {Exception}", account.Name, account.Id, ex.Message);
                 throw;
             }
 
@@ -147,7 +147,7 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was an issue getting the recently used operators pie chart for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                _logger.LogError("There was an issue getting the recently used operators pie chart for account {Id} with guid {Guid}. {Exception}", account.Name, account.Id, ex.Message);
                 throw;
             }
 
@@ -188,7 +188,7 @@ namespace AccountManager.Core.Services.GraphServices
             }
             catch (Exception ex)
             {
-                _logger.LogError("There was an issue getting the ranked rr change for account {Id} with guid {Guid}. {Exception}", account.Id, account.Guid, ex.Message);
+                _logger.LogError("There was an issue getting the ranked rr change for account {Id} with guid {Guid}. {Exception}", account.Name, account.Id, ex.Message);
                 throw;
             }
 

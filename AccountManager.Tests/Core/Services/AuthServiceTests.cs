@@ -12,14 +12,16 @@ namespace AccountManager.Tests.Core.Services
         private readonly Mock<IGeneralFileSystemService> _iOService;
         private readonly Mock<IAlertService> _alertService;
         private readonly Mock<IDistributedCache> _persistantCache;
-        private readonly AuthService _sut;
+        private readonly Mock<IAccountEncryptedRepository> _accountRepo;
+        private readonly SqliteAuthService _sut;
 
         public AuthServiceTests()
         {
             _iOService = new Mock<IGeneralFileSystemService>();
             _alertService = new Mock<IAlertService>();
             _persistantCache = new Mock<IDistributedCache>();
-            _sut = new(_iOService.Object, _alertService.Object, _persistantCache.Object);
+            _accountRepo = new Mock<IAccountEncryptedRepository>();
+            _sut = new(_accountRepo.Object, _alertService.Object, _persistantCache.Object, _iOService.Object);
         }
 
         [Fact]

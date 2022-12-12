@@ -15,6 +15,7 @@ using AccountManager.Core.Models.RiotGames;
 using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
+using AccountManager.Core.Static;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -26,7 +27,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly IAlertService _alertService;
         private readonly ILogger<LeaguePlatformService> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IRiotTokenClient _riotTokenClient;
@@ -35,7 +36,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             ?? ".", "ShortcutIcons", "league-logo.ico");
         public LeaguePlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType,
             ITokenService> tokenServiceFactory, IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService,
-            IAlertService alertService, IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
+            IAlertService alertService, IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> settingsService,
             IRiotTokenClient riotTokenClient, ILogger<LeaguePlatformService> logger)
         {
             _leagueClient = leagueClient;
@@ -44,7 +45,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
-            _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
             _settingsService = settingsService;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
@@ -64,7 +65,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.leagueoflegends.rank";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+            var rank = await _persistantCache.GetAsync<Rank>(rankCacheString);
+            if ( rank is not null)
                 return (true, rank);
             
             rank = new Rank();
@@ -78,7 +80,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 rank = await _leagueClient.GetSummonerRankByPuuidAsync(account);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                    await _persistantCache.SetAsync(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
                     return (false, new Rank());

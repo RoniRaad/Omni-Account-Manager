@@ -32,7 +32,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         public void SetGame(string appId)
         {
-            _persistantCache.SetString($"{Account.Guid}.SelectedEpicGame", appId);
+            _persistantCache.SetString($"{Account.Id}.SelectedEpicGame", appId);
         }
 
         public void OnRadioClicked(ChangeEventArgs args)
@@ -44,7 +44,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
         {
             Games.Clear();
 
-            selectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
+            selectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
 
             if (!_steamLibraryService.TryGetInstalledGames(out var gameManifests))
                 return;
@@ -54,7 +54,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
-            var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedEpicGame") ?? "none";
+            var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
             if (cachedSelectedGame != selectedEpicGame)
             {
                 selectedEpicGame = cachedSelectedGame;

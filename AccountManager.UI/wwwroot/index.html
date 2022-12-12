@@ -27,6 +27,11 @@
             const childElement = document.getElementById(childId);
             parentElement.append(childElement);
         };
+
+        window.showElement = (elementId) => {
+            const element = document.getElementById(elementId);
+            element.style.display = "initial";
+        };
     </script>
     <div id="blazor-error-ui">
         An unhandled error has occurred.

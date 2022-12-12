@@ -9,34 +9,27 @@ namespace AccountManager.Blazor.Pages
         private bool addAccountPrompt { get; set; } = false;
         private int amountOfAccountsFilered;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            _appState.UpdateAccounts();
+            await _appState.UpdateAccounts();
             _accountFilterService.OnFilterChanged += () => LoadList();
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
+            amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
         }
 
-        protected override void OnAfterRender(bool firstRender)
+        protected async override Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
-                Task.Run(async () =>
-                {
-                    await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "filter-indicator");
-                    await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
-                });
+                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "filter-indicator");
+                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
+                await _jsRuntime.InvokeVoidAsync("showElement", "new-account-placeholder");
             }
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
-        }
-
-        public void SaveList()
-        {
-            _appState.SaveAccounts();
+            amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
         }
 
         public void LoadList()
         {
-            amountOfAccountsFilered = _appState.Accounts.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Id?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false);
+            amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
             InvokeAsync(() => StateHasChanged());
         }
 

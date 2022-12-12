@@ -32,7 +32,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         public void SetGame(string appId)
         {
-            _persistantCache.SetString($"{Account.Guid}.SelectedSteamGame", appId);
+            _persistantCache.SetString($"{Account.Id}.SelectedSteamGame", appId);
         }
 
         public void OnRadioClicked(ChangeEventArgs args)
@@ -44,7 +44,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         {
             Games.Clear();
 
-            selectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            selectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
             if (!File.Exists(Path.Combine(_generalSettings.Settings.SteamInstallDirectory, "steam.exe")))
             {
                 steamInstallNotFound = true;
@@ -60,7 +60,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
-            var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Guid}.SelectedSteamGame") ?? "none";
+            var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
             if (cachedSelectedGame != selectedSteamGame)
             {
                 selectedSteamGame = cachedSelectedGame;

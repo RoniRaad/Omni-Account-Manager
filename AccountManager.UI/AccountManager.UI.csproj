@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -15,6 +15,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
+		<PackageReference Include="LazyCache.AspNetCore" Version="2.4.0" />
 		<PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
@@ -49,7 +50,7 @@
 		<PackageReference Include="Blazorise.Bootstrap" Version="1.0.4" />
 		<PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="6.0.200-preview.13.2865" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0-preview.1.22076.8" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 	</ItemGroup>
 
