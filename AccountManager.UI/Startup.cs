@@ -27,10 +27,10 @@ using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using AccountManager.Infrastructure.Repositories;
 using Dapper;
-using System.Data;
 using AccountManager.Infrastructure.TypeHandlers;
 using AccountManager.Core.Services.Cached;
 using AccountManager.Infrastructure.CachedRepositories;
+using LazyCache;
 
 namespace AccountManager.UI
 {
@@ -74,6 +74,7 @@ namespace AccountManager.UI
             services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
             services.AddSingleton<IDataMigrationService, DataMigrationService>();
             services.AddSingleton<IAccountEncryptedRepository, AccountSqliteRepository>();
+            services.AddLazyCache();
 
             // Cached Objects
             services.AddSingleton<RiotThirdPartyClient>();
@@ -88,11 +89,11 @@ namespace AccountManager.UI
             services.AddSingleton<GeneralFileSystemService>(); 
             services.AddSingleton<AccountSqliteRepository>();
 
-            services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
-            services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
-            services.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
-            services.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
-            services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
+            services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<RiotTokenClient>()));
+            services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<LeagueTokenClient>()));
+            services.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
+            services.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<RiotClient>()));
+            services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<LeagueClient>()));
             services.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             services.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
             services.AddSingleton<IAccountEncryptedRepository>((services) => new CachedAccountRepository(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<AccountSqliteRepository>()));

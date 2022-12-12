@@ -6,14 +6,15 @@ using AccountManager.Core.Static;
 using AccountManager.Core.Models.RiotGames.Requests;
 using System.Web;
 using AccountManager.Infrastructure.Clients;
+using LazyCache;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
     public sealed class CachedRiotTokenClient : IRiotTokenClient
     {
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IRiotTokenClient _riotTokenClient;
-        public CachedRiotTokenClient(IMemoryCache memoryCache, IRiotTokenClient riotTokenClient)
+        public CachedRiotTokenClient(IAppCache memoryCache, IRiotTokenClient riotTokenClient)
         {
             _memoryCache = memoryCache;
             _riotTokenClient = riotTokenClient;
@@ -22,7 +23,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<string?> GetEntitlementToken(string accessToken)
         {
             var cacheKey = $"{accessToken}.{nameof(GetEntitlementToken)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55);
@@ -33,7 +34,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<string?> GetExpectedClientVersion()
         {
             var cacheKey = nameof(GetExpectedClientVersion);
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     return await _riotTokenClient.GetExpectedClientVersion();
@@ -43,7 +44,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<RiotAuthTokensResponse> GetRiotTokens(RiotTokenRequest request, Account account)
         {
             var cacheKey = $"{account.Username}.{request.GetHashId()}.{nameof(GetRiotTokens)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     var riotTokens = await _riotTokenClient.GetRiotTokens(request, account);
