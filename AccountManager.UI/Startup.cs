@@ -96,7 +96,7 @@ namespace AccountManager.UI
             services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<LeagueClient>()));
             services.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             services.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
-            services.AddSingleton<IAccountEncryptedRepository>((services) => new CachedAccountRepository(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<AccountSqliteRepository>()));
+            services.AddSingleton<IAccountEncryptedRepository>((services) => new CachedAccountRepository(services.GetRequiredService<IAppCache>(), services.GetRequiredService<AccountSqliteRepository>()));
             services.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
             services.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
             services.AddSingleton<IIpcService, IpcService>();

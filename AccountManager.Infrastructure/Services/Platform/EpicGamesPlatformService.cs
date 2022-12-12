@@ -18,7 +18,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             ?? ".", "ShortcutIcons", "epic-logo.ico");
         private readonly IAlertService _alertService;
         private readonly ILogger<EpicGamesPlatformService> _logger;
-        private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly IEpicGamesLibraryService _epicGamesLibraryService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
@@ -27,12 +26,11 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IAppState _appState;
 
         public EpicGamesPlatformService(IAlertService alertService,
-            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService,
-            ILogger<EpicGamesPlatformService> logger, IEpicGamesExternalAuthService epicGamesExternalAuthService,
-            IDistributedCache persistantCache, IEpicGamesLibraryService epicGamesLibraryService, IAppState appState, IAccountService accountService)
+            IUserSettingsService<GeneralSettings> settingsService, ILogger<EpicGamesPlatformService> logger,
+            IEpicGamesExternalAuthService epicGamesExternalAuthService, IDistributedCache persistantCache, 
+            IEpicGamesLibraryService epicGamesLibraryService, IAppState appState, IAccountService accountService)
         {
             _alertService = alertService;
-            _memoryCache = memoryCache;
             _settingsService = settingsService;
             _logger = logger;
             _epicGamesExternalAuthService = epicGamesExternalAuthService;

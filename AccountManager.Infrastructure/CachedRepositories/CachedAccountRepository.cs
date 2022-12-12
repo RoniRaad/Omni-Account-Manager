@@ -1,16 +1,17 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Infrastructure.CachedRepositories
 {
     public class CachedAccountRepository : IAccountEncryptedRepository
     {
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IAccountEncryptedRepository _repo;
 
-        public CachedAccountRepository(IMemoryCache memoryCache, IAccountEncryptedRepository repo)
+        public CachedAccountRepository(IAppCache memoryCache, IAccountEncryptedRepository repo)
         {
             _memoryCache = memoryCache;
             _repo = repo;
@@ -18,7 +19,7 @@ namespace AccountManager.Infrastructure.CachedRepositories
 
         public async Task<Account?> Get(Guid id, string password)
         {
-            return await _memoryCache.GetOrCreateAsync($"{nameof(CachedAccountRepository)}.{nameof(Get)}.{id}", async (entry) =>
+            return await _memoryCache.GetOrAddAsync($"{nameof(CachedAccountRepository)}.{nameof(Get)}.{id}", async (entry) =>
             {
                 return await _repo.Get(id, password);
             });
@@ -26,7 +27,7 @@ namespace AccountManager.Infrastructure.CachedRepositories
 
         public async Task<List<Account>> GetAll(string password)
         {
-            return await _memoryCache.GetOrCreateAsync($"{nameof(CachedAccountRepository)}.{nameof(GetAll)}", async (entry) =>
+            return await _memoryCache.GetOrAddAsync($"{nameof(CachedAccountRepository)}.{nameof(GetAll)}", async (entry) =>
             {
                 return await _repo.GetAll(password);
             }) ?? new();
