@@ -5,15 +5,16 @@ using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Models;
+using LazyCache;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
     public sealed class CachedRiotThirdPartyClient : IRiotThirdPartyClient
     {
         private readonly IRiotThirdPartyClient _riotThirdPartyClient;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
 
-        public CachedRiotThirdPartyClient(RiotThirdPartyClient riotThirdPartyClient, IMemoryCache memoryCache)
+        public CachedRiotThirdPartyClient(RiotThirdPartyClient riotThirdPartyClient, IAppCache memoryCache)
         {
             _riotThirdPartyClient = riotThirdPartyClient;
             _memoryCache = memoryCache;
@@ -22,7 +23,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<RiotVersionInfo?> GetRiotVersionInfoAsync()
         {
             var cacheKey = $"{nameof(GetRiotVersionInfoAsync)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     return await _riotThirdPartyClient.GetRiotVersionInfoAsync();
@@ -32,7 +33,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<ValorantOperatorsResponse> GetValorantOperators()
         {
             var cacheKey = $"{nameof(GetValorantOperators)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     return await _riotThirdPartyClient.GetValorantOperators();
@@ -42,7 +43,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<ValorantSkinLevelResponse> GetValorantSkinFromUuid(string uuid)
         {
             var cacheKey = $"{nameof(GetValorantSkinFromUuid)}.{uuid}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     return await _riotThirdPartyClient.GetValorantSkinFromUuid(uuid);

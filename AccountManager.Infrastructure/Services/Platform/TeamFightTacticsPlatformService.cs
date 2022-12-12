@@ -17,6 +17,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using AccountManager.Core.Models.RiotGames;
+using Microsoft.Extensions.Caching.Distributed;
+using AccountManager.Core.Static;
 
 namespace AccountManager.Infrastructure.Services.Platform
 {
@@ -28,7 +30,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly HttpClient _httpClient;
         private readonly IAlertService _alertService;
         private readonly ILogger<TeamFightTacticsPlatformService> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
         private readonly IRiotTokenClient _riotTokenClient;
@@ -36,8 +38,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
             ?? ".", "ShortcutIcons", "tft-logo.ico");
         public TeamFightTacticsPlatformService(ILeagueClient leagueClient, IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
-            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService, 
-            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IRiotTokenClient riotTokenClient, ILogger<TeamFightTacticsPlatformService> logger)
+            IHttpClientFactory httpClientFactory, IRiotFileSystemService riotFileSystemService, IAlertService alertService,
+            IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> settingsService, IRiotTokenClient riotTokenClient, ILogger<TeamFightTacticsPlatformService> logger)
         {
             _leagueClient = leagueClient;
             _riotClient = riotClient;
@@ -45,7 +47,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotFileSystemService;
             _alertService = alertService;
-            _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
             _settingsService = settingsService;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
@@ -80,7 +82,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.teamfighttactics.rank";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+            var rank = await _persistantCache.GetAsync<Rank>(rankCacheString);
+            if (rank is not null)
                 return (true, rank);
 
             rank = new Rank();
@@ -94,7 +97,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 rank = await _leagueClient.GetTFTRankByPuuidAsync(account);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                    await _persistantCache.SetAsync(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
                     return (false, new Rank());

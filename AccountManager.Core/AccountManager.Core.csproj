@@ -8,8 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.1" />
+    <PackageReference Include="Config.Net" Version="5.1.5" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
     <PackageReference Include="Gameloop.Vdf.JsonConverter" Version="0.2.1" />
+    <PackageReference Include="LazyCache.AspNetCore" Version="2.4.0" />
     <PackageReference Include="Microsoft.Data.Services.Client" Version="5.8.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0-preview.4.22229.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0-preview.4.22229.4" />
@@ -17,6 +19,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Cached\" />
   </ItemGroup>
 
 </Project>

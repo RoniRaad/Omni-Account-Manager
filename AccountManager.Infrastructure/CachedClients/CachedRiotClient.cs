@@ -1,18 +1,15 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.RiotGames;
-using Microsoft.Extensions.Caching.Memory;
-using AccountManager.Core.Static;
-using AccountManager.Core.Models.RiotGames.Requests;
-using System.Web;
+using LazyCache;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
     public partial class CachedRiotClient : IRiotClient
     {
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IRiotClient _riotClient;
-        public CachedRiotClient(IMemoryCache memoryCache,
+        public CachedRiotClient(IAppCache memoryCache,
             IRiotClient riotclient)
         {
             _memoryCache = memoryCache;
@@ -22,7 +19,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public Task<string?> GetPuuId(Account account)
         {
             var cacheKey = $"{account.Username}.{nameof(GetPuuId)}";
-            return _memoryCache.GetOrCreateAsync(cacheKey,
+            return _memoryCache.GetOrAddAsync(cacheKey,
                 (entry) =>
                 {
                     return _riotClient.GetPuuId(account);
@@ -32,7 +29,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public Task<string?> GetExpectedClientVersion()
         {
             var cacheKey = nameof(GetExpectedClientVersion);
-            return _memoryCache.GetOrCreateAsync(cacheKey,
+            return _memoryCache.GetOrAddAsync(cacheKey,
                 (entry) =>
                 {
                     return _riotClient.GetExpectedClientVersion();
@@ -42,7 +39,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<RegionInfo> GetRegionInfo(Account account)
         {
             var cacheKey = $"{account.Username}.{nameof(GetRegionInfo)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 (entry) =>
                 {
                     return _riotClient.GetRegionInfo(account);

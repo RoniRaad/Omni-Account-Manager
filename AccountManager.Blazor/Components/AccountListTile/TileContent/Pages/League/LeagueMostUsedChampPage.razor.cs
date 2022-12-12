@@ -69,7 +69,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
                 catch
                 {
-                    _alertService.AddErrorAlert($"Unable to display league most used champs for account {Account.Id}");
+                    _alertService.AddErrorAlert($"Unable to display league most used champs for account {Account.Name}");
                 }
                 await HandleRedraw();
                 await InvokeAsync(() => StateHasChanged());

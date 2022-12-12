@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Static;
+using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AccountManager.Infrastructure.Services.FileSystem
@@ -8,9 +9,9 @@ namespace AccountManager.Infrastructure.Services.FileSystem
     {
         public static string DataPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Multi-Account-Manager");
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly GeneralFileSystemService _generalFileSystemService;
-        public CachedGeneralFileSystemService(IMemoryCache memoryCache, GeneralFileSystemService generalFileSystemService)
+        public CachedGeneralFileSystemService(IAppCache memoryCache, GeneralFileSystemService generalFileSystemService)
         {
             _memoryCache = memoryCache;
             _generalFileSystemService = generalFileSystemService;
@@ -29,7 +30,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public bool IsFileLocked(string filePath)
         {
             var cacheKey = $"{filePath}.{nameof(IsFileLocked)}";
-            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            return _memoryCache.GetOrAdd(cacheKey, (entry) =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1);
                 return _generalFileSystemService.IsFileLocked(filePath);
@@ -98,7 +99,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
             var cacheKey = $"{filePath}.FileData";
 
-            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            return _memoryCache.GetOrAdd(cacheKey, (entry) =>
             {
                 return _generalFileSystemService.ReadData<T>(password);
             }) ?? new T();
@@ -115,7 +116,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
             var cacheKey = $"{filePath}.FileData";
 
-            return _memoryCache.GetOrCreate(cacheKey, (entry) =>
+            return _memoryCache.GetOrAdd(cacheKey, (entry) =>
             {
                 return  _generalFileSystemService.ReadData<T>();
             }) ?? new T();
@@ -132,7 +133,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
             var cacheKey = $"{filePath}.FileData";
 
-            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            return (await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
             {
                 return await _generalFileSystemService.ReadDataAsync<T>();
             })) ?? new T();
@@ -146,7 +147,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var filePath = Path.Combine(DataPath, $"{fileName}.dat");
             var cacheKey = $"{filePath}.FileData";
 
-            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            return (await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
             {
                 return await _generalFileSystemService.ReadDataAsync<T>(password);
             })) ?? new T();
@@ -160,7 +161,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public async Task<T> ReadDataAsync<T>(string filePath, string password) where T : new()
         {
             var cacheKey = $"FileContents.{filePath}";
-            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            return (await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
             {
                 return await _generalFileSystemService.ReadDataAsync<T>(password);
             })) ?? new T();
@@ -174,7 +175,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public async Task<T> ReadUnmanagedData<T>(string filePath, string password) where T : new()
         {
             var cacheKey = $"FileContentsUnmanaged.{filePath}";
-            return (await _memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
+            return (await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
             {
                 return await _generalFileSystemService.ReadUnmanagedData<T>(filePath, password);
             })) ?? new T();

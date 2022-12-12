@@ -1,6 +1,8 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.UserSettings;
 using AccountManager.Infrastructure.Services;
+using System.Security.Principal;
 using System.Text.Json;
 
 namespace AccountManager.Core.Services
@@ -8,9 +10,10 @@ namespace AccountManager.Core.Services
     public sealed class AppState : IAppState
     {
         private readonly IAccountService _accountService;
-        public List<Account> Accounts { get; set; }
+        private readonly IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings;
+        public List<Account>? Accounts { get; set; }
         public bool IsInitialized { get; set; } = false;
-        public AppState(IAccountService accountService, IIpcService ipcService)
+        public AppState(IAccountService accountService, IIpcService ipcService, IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> accountItemSettings)
         {
             _accountService = accountService;
             Task.Run(UpdateAccounts);
@@ -34,11 +37,12 @@ namespace AccountManager.Core.Services
                     }
                 }
             };
+            _accountItemSettings = accountItemSettings;
         }
 
         public async Task IpcLogin(IpcLoginParameter loginParam)
         {
-            var relevantAccount = Accounts.FirstOrDefault((account) => account.Guid == loginParam.Guid);
+            var relevantAccount = Accounts.FirstOrDefault((account) => account.Id == loginParam.Guid);
 
             if (relevantAccount is not null)
                 await _accountService.LoginAsync(relevantAccount);
@@ -57,23 +61,34 @@ namespace AccountManager.Core.Services
 
         public async Task UpdateAccounts()
         {
-            Accounts = await _accountService.GetAllAccountsMinAsync();
-
-            var fullAccounts = new List<Account>(await _accountService.GetAllAccountsAsync());
-            for (int i = 0; i < Accounts.Count; i++)
+            var accounts = await _accountService.GetAllAccountsAsync();
+            accounts = accounts.OrderBy((acc) =>
             {
-                Accounts[i].Rank = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.Rank ?? Accounts[i].Rank;
-                Accounts[i].PlatformId = fullAccounts.FirstOrDefault((updatedAccount) => Accounts[i].Guid == updatedAccount.Guid)?.PlatformId ?? Accounts[i].PlatformId;
+                if (_accountItemSettings.Settings.TryGetValue(acc.Id, out var settings))
+                    return settings.ListOrder;
+
+                return int.MaxValue;
             }
+            ).ToList();
 
-            SaveAccounts();
-
-            IsInitialized = true;
+            Accounts = accounts;
+            IsInitialized = true;                               
         }
 
-        public void SaveAccounts()
+        public async Task SaveAccountOrder()
         {
-            _accountService.WriteAllAccountsAsync(Accounts);
+            if (Accounts is null)
+                return;
+
+            for (int i = 0; i < Accounts.Count; i++)
+            {
+                if (_accountItemSettings.Settings.TryGetValue(Accounts[i].Id, out var settings))
+                {
+                    settings.ListOrder = i;
+                }
+            }
+
+            await _accountItemSettings.SaveAsync();
         }
 
         public class IpcLoginParameter

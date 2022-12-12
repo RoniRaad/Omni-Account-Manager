@@ -41,8 +41,8 @@ namespace AccountManager.Blazor.Components.AccountListTile
                 {
                     if (userConfirmed)
                     {
-                        _appState.Accounts.RemoveAll((acc) => acc.Guid == Account.Guid);
-                        _appState.SaveAccounts();
+                        _accountService.DeleteAccountAsync(Account);
+                        _appState.Accounts.RemoveAll((acc) => acc.Id == Account.Id);
                         ReloadList();
                     }
 
@@ -55,12 +55,12 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         public void CreateShortcut()
         {
-            if (Account?.Id is null)
+            if (Account?.Name is null)
                 return;
 
             var platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
             var icoPath = platformService.GetType()?.GetField("IcoFilePath", BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString() ?? "";
-            var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Id, Account.Guid, icoPath);
+            var successful = _shortcutService.TryCreateDesktopLoginShortcut(Account.Name, Account.Id, icoPath);
              
             if (successful)
                 _alertService.AddInfoAlert("Shortcut created successfully!");
@@ -70,7 +70,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         public void ExportAccount()
         {
-            if (Account?.Id is null)
+            if (Account?.Name is null)
                 return;
 
             exportAccountRequest = new() { Accounts = new() { Account } };

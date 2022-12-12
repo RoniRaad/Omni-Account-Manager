@@ -4,9 +4,7 @@ using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using System.Net;
-using System.Net.Http.Json;
 using AccountManager.Core.Static;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.AppSettings;
@@ -16,6 +14,7 @@ using System.Web;
 using KeyedSemaphores;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
+using LazyCache;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -24,7 +23,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAlertService _alertService;
         private readonly ILogger<RiotTokenClient> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly RiotApiUri _riotApiUri;
         private readonly IRiotThirdPartyClient _riot3rdPartyClient;
@@ -39,7 +38,7 @@ namespace AccountManager.Infrastructure.Clients
                             {"ap", "apse" },
                             {"kr", "apse" }
                         }.ToImmutableDictionary();
-        public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IMemoryCache memoryCache,
+        public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IAppCache memoryCache,
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, 
             ILogger<RiotTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient)
         {
@@ -84,7 +83,7 @@ namespace AccountManager.Infrastructure.Clients
             };
 
             if (authResponseContent?.Content?.Type == "response" && authResponseContent?.Cookies?.Ssid is not null)
-                _memoryCache.Set(sessionCacheKey, authResponseContent?.Cookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
+                _memoryCache.Add(sessionCacheKey, authResponseContent?.Cookies?.Ssid, DateTimeOffset.Now.AddMinutes(55));
 
             return authResponseContent;
         }
@@ -186,7 +185,7 @@ namespace AccountManager.Infrastructure.Clients
                         Cookies = responseCookies
                     };
 
-                    _memoryCache.Set(cacheKey, response, TimeSpan.FromMinutes(55));
+                    _memoryCache.Add(cacheKey, response, TimeSpan.FromMinutes(55));
 
                     return response;
 

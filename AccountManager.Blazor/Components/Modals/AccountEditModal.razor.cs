@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Components;
 
 namespace AccountManager.Blazor.Components
@@ -20,16 +21,16 @@ namespace AccountManager.Blazor.Components
         {
             get { return passwordVisible ? "var(--primary-dark)" : "var(--secondary-dark)"; }
         }
-        public void Submit()
+        public async Task Submit()
         {
-            var account = _appState.Accounts.FirstOrDefault((acc) => acc.Guid == Account.Guid);
+            var account = _appState.Accounts.FirstOrDefault((acc) => acc.Id == Account.Id);
             if (account is null)
                 return;
 
             account.Password = Account.Password;
-            account.Id = Account.Id;
+            account.Name = Account.Name;
 
-            _appState.SaveAccounts();
+            await _accountService.SaveAccountAsync(account);
             Close();
         }
     }

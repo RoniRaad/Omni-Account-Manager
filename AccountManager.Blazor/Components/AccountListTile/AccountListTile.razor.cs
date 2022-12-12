@@ -41,11 +41,11 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         protected override void OnParametersSet()
         {
-            if (!_accountItemSettings.Settings.TryGetValue(Account.Guid, out var settings))
+            if (!_accountItemSettings.Settings.TryGetValue(Account.Id, out var settings))
             {
-                settings = new() { AccountGuid = Account.Guid };
+                settings = new() { AccountGuid = Account.Id };
             }
-            _accountItemSettings.Settings[Account.Guid] = settings;
+            _accountItemSettings.Settings[Account.Id] = settings;
             _settings = settings;
 
             base.OnParametersSet();

@@ -1,7 +1,5 @@
-﻿using AccountManager.Core.Enums;
-using AccountManager.Core.Interfaces;
+﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Services;
 using AccountManager.Core.Static;
 
 namespace AccountManager.Infrastructure.Services
@@ -40,6 +38,7 @@ namespace AccountManager.Infrastructure.Services
             }
 
             await _authService.ChangePasswordAsync(changeRequest.OldPassword, changeRequest.NewPassword);
+            _alertService.AddInfoAlert("Password changed successfully!");
             return true;
         }
 

@@ -6,8 +6,10 @@ using AccountManager.Core.Models.EpicGames;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.UserSettings;
+using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services.FileSystem;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -26,7 +28,7 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IAlertService _alertService;
         private readonly ILogger<ValorantPlatformService> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _persistantCache;
         private readonly HttpClient _httpClient;
         private readonly IRiotTokenClient _riotTokenClient;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
@@ -35,7 +37,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             ?? ".", "ShortcutIcons", "valorant-logo.ico");
         public ValorantPlatformService(IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, IRiotFileSystemService riotLockFileService, IAlertService alertService,
-            IMemoryCache memoryCache, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient, 
+            IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> settingsService, IValorantClient valorantClient, 
             IRiotTokenClient riotTokenClient, ILogger<ValorantPlatformService> logger)
         {
             _riotClient = riotClient;
@@ -43,7 +45,7 @@ namespace AccountManager.Infrastructure.Services.Platform
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotLockFileService;
             _alertService = alertService;
-            _memoryCache = memoryCache;
+            _persistantCache = persistantCache;
             _settingsService = settingsService;
             _valorantClient = valorantClient;
             _riotTokenClient = riotTokenClient;
@@ -64,7 +66,8 @@ namespace AccountManager.Infrastructure.Services.Platform
         public async Task<(bool, Rank)> TryFetchRank(Account account)
         {
             var rankCacheString = $"{account.Username}.valorant.rank";
-            if (_memoryCache.TryGetValue(rankCacheString, out Rank? rank) && rank is not null)
+            var rank = await _persistantCache.GetAsync<Rank>(rankCacheString);
+            if (rank is not null)
                 return (true, rank);
 
             rank = new Rank();
@@ -78,7 +81,7 @@ namespace AccountManager.Infrastructure.Services.Platform
                 rank = await _valorantClient.GetValorantRank(account);
 
                 if (!string.IsNullOrEmpty(rank?.Tier))
-                    _memoryCache.Set(rankCacheString, rank, TimeSpan.FromHours(1));
+                    await _persistantCache.SetAsync(rankCacheString, rank, TimeSpan.FromHours(1));
 
                 if (rank is null)
                     return (false, new Rank());

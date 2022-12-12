@@ -25,6 +25,12 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using AccountManager.Infrastructure.Repositories;
+using Dapper;
+using AccountManager.Infrastructure.TypeHandlers;
+using AccountManager.Core.Services.Cached;
+using AccountManager.Infrastructure.CachedRepositories;
+using LazyCache;
 
 namespace AccountManager.UI
 {
@@ -49,6 +55,7 @@ namespace AccountManager.UI
             services.Configure<RiotApiUri>(configuration.GetSection("RiotApiUri"));
             services.Configure<AboutEndpoints>(configuration.GetSection("AboutEndpoints"));
             services.Configure<EpicGamesApiUri>(configuration.GetSection("EpicGamesApiUri"));
+            services.Configure<AccountSqliteDatabaseConfig>(configuration.GetSection("AccountSqliteDatabaseConfig"));
             services.AddSingleton<IAlertService, AlertService>();
             services.AddSingleton<IAccountFilterService, AccountFilterService>();
             services.AddState();
@@ -65,6 +72,10 @@ namespace AccountManager.UI
             services.AddSingleton<IGeneralFileSystemService, CachedGeneralFileSystemService>();
             services.AddSingleton<IAccountExportService, AccountExportService>();
             services.AddSingleton<IRiotThirdPartyClient, CachedRiotThirdPartyClient>();
+            services.AddSingleton<IDataMigrationService, DataMigrationService>();
+            services.AddSingleton<IAccountEncryptedRepository, AccountSqliteRepository>();
+            services.AddSingleton<IBackupService, BackupService>();
+            services.AddLazyCache();
 
             // Cached Objects
             services.AddSingleton<RiotThirdPartyClient>();
@@ -77,14 +88,16 @@ namespace AccountManager.UI
             services.AddSingleton<LeagueGraphService>();
             services.AddSingleton<RiotTokenClient>();
             services.AddSingleton<GeneralFileSystemService>(); 
+            services.AddSingleton<AccountSqliteRepository>();
 
-            services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotTokenClient>()));
-            services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueTokenClient>()));
-            services.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
-            services.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<RiotClient>()));
-            services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IMemoryCache>(), services.GetRequiredService<LeagueClient>()));
+            services.AddSingleton<IRiotTokenClient>((services) => new CachedRiotTokenClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<RiotTokenClient>()));
+            services.AddSingleton<ILeagueTokenClient>((services) => new CachedLeagueTokenClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<LeagueTokenClient>()));
+            services.AddSingleton<IValorantClient>((services) => new CachedValorantClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantClient>()));
+            services.AddSingleton<IRiotClient>((services) => new CachedRiotClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<RiotClient>()));
+            services.AddSingleton<ILeagueClient>((services) => new CachedLeagueClient(services.GetRequiredService<IAppCache>(), services.GetRequiredService<LeagueClient>()));
             services.AddSingleton<ILeagueGraphService>((services) => new CachedLeagueGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<LeagueGraphService>()));
             services.AddSingleton<IValorantGraphService>((services) => new CachedValorantGraphService(services.GetRequiredService<IDistributedCache>(), services.GetRequiredService<ValorantGraphService>()));
+            services.AddSingleton<IAccountEncryptedRepository>((services) => new CachedAccountRepository(services.GetRequiredService<IAppCache>(), services.GetRequiredService<AccountSqliteRepository>()));
             services.AddSingleton<IHttpRequestBuilder, CurlRequestBuilder>();
             services.AddSingleton<ITeamFightTacticsGraphService, TeamFightTacticsGraphService>();
             services.AddSingleton<IIpcService, IpcService>();
@@ -96,7 +109,7 @@ namespace AccountManager.UI
             })
             .AddBootstrapProviders()
             .AddFontAwesomeIcons();
-            services.AddSingleton<IAccountService, AccountService>();
+            services.AddSingleton<IAccountService, CachedAccountService>();
             services.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
             services.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();
             services.AddSingleton<IUserSettingsService<LeagueSettings>, UserSettingsService<LeagueSettings>>();
@@ -113,6 +126,10 @@ namespace AccountManager.UI
                     .AddImplementation<LeagueTokenService>(AccountType.TeamFightTactics)
                     .AddImplementation<RiotTokenService>(AccountType.Valorant)
                     .Build();
+
+            SqlMapper.AddTypeHandler(new SqliteGuidTypeHandler());
+            SqlMapper.RemoveTypeMap(typeof(Guid));
+            SqlMapper.RemoveTypeMap(typeof(Guid?));
         }
     }
 }

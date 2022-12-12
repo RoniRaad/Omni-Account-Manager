@@ -7,12 +7,14 @@ namespace AccountManager.Infrastructure.Services
 	public class AccountExportService : IAccountExportService
 	{
 		private readonly IGeneralFileSystemService _fileSystemService;
-		private readonly IAppState _appState;
+		private readonly IAccountService _accountService;
+        private readonly IAppState _appState;
 
-		public AccountExportService(IGeneralFileSystemService fileSystemService, IAppState appState)
+		public AccountExportService(IGeneralFileSystemService fileSystemService, IAppState appState, IAccountService accountService)
 		{
 			_fileSystemService = fileSystemService;
 			_appState = appState;
+			_accountService = accountService;
 		}
 
 		public async Task ExportAccountsAsync(List<Account> accounts, string password, string filePath)
@@ -25,9 +27,12 @@ namespace AccountManager.Infrastructure.Services
 		{
 			var accounts = await _fileSystemService.ReadUnmanagedData<List<Account>>(filePath, password);
             _appState.Accounts.AddRange(accounts.Where((account) =>
-				!_appState.Accounts.Exists((acc) => acc.Guid == account.Guid)));
+				!_appState.Accounts.Exists((acc) => acc.Id == account.Id)));
 
-            _appState.SaveAccounts();
+			foreach (var account in accounts)
+			{
+				await _accountService.SaveAccountAsync(account);
+			}
         }
 	}
 }

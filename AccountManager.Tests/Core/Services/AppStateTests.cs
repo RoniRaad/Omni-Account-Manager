@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Services;
 using AccountManager.Infrastructure.Services;
 using Moq;
@@ -10,12 +11,14 @@ namespace AccountManager.Tests.Core.Services
     {
         private readonly Mock<IAccountService> _accountService;
         private readonly Mock<IIpcService> _ipcService;
+        private readonly Mock<IUserSettingsService<Dictionary<Guid, AccountListItemSettings>>> _accountListItemSettings;
         private readonly IAppState _sut;
         public AppStateTests()
         {
             _accountService = new();
             _ipcService = new();
-            _sut = new AppState(_accountService.Object, _ipcService.Object);
+            _accountListItemSettings = new();
+            _sut = new AppState(_accountService.Object, _ipcService.Object, _accountListItemSettings.Object);
         }
 
         [Fact]
@@ -25,11 +28,10 @@ namespace AccountManager.Tests.Core.Services
             var account = new Account()
             {
                 AccountType = AccountManager.Core.Enums.AccountType.League,
-                Guid = Guid.NewGuid(),
-                Id = "TestId",
+                Id = Guid.NewGuid(),
+                Name = "TestId",
                 Password = "TestPassword",
                 PlatformId = "TestPlatformId",
-                Rank = new Rank { HexColor = "TestHex", Ranking = "TestRanking", Tier = "TestTier" },
                 Username = "TestUsername"
             };
             _sut.Accounts = new() { account };
@@ -37,7 +39,7 @@ namespace AccountManager.Tests.Core.Services
             _accountService.Setup((x) => x.LoginAsync(account)).Verifiable();
 
             // Act
-            await _sut.IpcLogin(new() { Guid = account.Guid });
+            await _sut.IpcLogin(new() { Guid = account.Id });
 
             // Assert
             Mock.Verify(_accountService);
@@ -55,22 +57,21 @@ namespace AccountManager.Tests.Core.Services
 
             var minAccounts = new List<Account>()
             {
-                new Account() { Guid = firstAccountGuid, Id = "TestId1"},
-                new Account() { Guid = secondAccountGuid, Id = "TestId2"},
-                new Account() { Guid = thirdAccountGuid, Id = "TestId3"}
+                new Account() { Id = firstAccountGuid, Name = "TestId1"},
+                new Account() { Id = secondAccountGuid, Name = "TestId2"},
+                new Account() { Id = thirdAccountGuid, Name = "TestId3"}
             };
             var fullAccounts = new List<Account>()
             {
-                new Account() { Guid = firstAccountGuid, Id = "TestId1", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }},
-                new Account() { Guid = secondAccountGuid, Id = "TestId2", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }},
-                new Account() { Guid = thirdAccountGuid, Id = "TestId3", PlatformId = updatedPlatformId, Rank = new(){ Ranking = updatedRanking }}
+                new Account() { Id = firstAccountGuid, Name = "TestId1", PlatformId = updatedPlatformId },
+                new Account() { Id = secondAccountGuid, Name = "TestId2", PlatformId = updatedPlatformId },
+                new Account() { Id = thirdAccountGuid, Name = "TestId3", PlatformId = updatedPlatformId }
             };
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(minAccounts);
             _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == updatedPlatformId && account.Rank.Ranking == updatedRanking)))).Verifiable();
 
             // Act
             await _sut.UpdateAccounts();
@@ -85,23 +86,22 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var minAccounts = new List<Account>()
             {
-                new Account() {Id = "TestId1"},
-                new Account() {Id = "TestId2"},
-                new Account() {Id = "TestId3"}
+                new Account() {Name = "TestId1"},
+                new Account() {Name = "TestId2"},
+                new Account() {Name = "TestId3"}
             };
 
             var fullAccounts = new List<Account>()
             {
-                new Account() {Id = "TestId1", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }},
-                new Account() {Id = "TestId2", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }},
-                new Account() {Id = "TestId3", PlatformId = "UpdatedPlatformId", Rank = new(){ Ranking = "UpdatedRanking" }}
+                new Account() {Name = "TestId1", PlatformId = "UpdatedPlatformId"},
+                new Account() {Name = "TestId2", PlatformId = "UpdatedPlatformId"},
+                new Account() {Name = "TestId3", PlatformId = "UpdatedPlatformId"}
             };
 
             _sut.Accounts = minAccounts;
 
-            _accountService.Setup((x) => x.GetAllAccountsMinAsync()).ReturnsAsync(minAccounts);
+            _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(minAccounts);
             _accountService.Setup((x) => x.GetAllAccountsAsync()).ReturnsAsync(fullAccounts);
-            _accountService.Setup((x) => x.WriteAllAccountsAsync(It.Is<List<Account>>((accounts) => accounts.TrueForAll((account) => account.PlatformId == "UpdatedPlatformId" && account.Rank.Ranking == "UpdatedRanking"))));
 
             // Act
             await _sut.UpdateAccounts();
