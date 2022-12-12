@@ -1,11 +1,9 @@
 ﻿using AccountManager.Core.Enums;
-using AccountManager.Core.Factories;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
+using LazyCache;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
-using System.Security.Principal;
 
 namespace AccountManager.Core.Services.Cached
 {
@@ -14,11 +12,11 @@ namespace AccountManager.Core.Services.Cached
         private const string accountCacheKey = $"{nameof(AccountService)}.accountlist";
 
         private readonly AccountService _accountService;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         public event Action OnAccountListChanged = delegate { };
         public CachedAccountService(IGenericFactory<AccountType, IPlatformService> platformServiceFactory
-            , IMemoryCache memoryCache, IDistributedCache persistantCache, IAccountEncryptedRepository accountRepository, IAuthService authService)
+            , IAppCache memoryCache, IDistributedCache persistantCache, IAccountEncryptedRepository accountRepository, IAuthService authService)
         {
             _memoryCache = memoryCache;
             _persistantCache = persistantCache;
@@ -28,7 +26,7 @@ namespace AccountManager.Core.Services.Cached
 
         public async Task<List<Account>> GetAllAccountsAsync()
         {
-            return await _memoryCache.GetOrCreateAsync(accountCacheKey, async (entry) =>
+            return await _memoryCache.GetOrAddAsync(accountCacheKey, async (entry) =>
             {
                 return await _accountService.GetAllAccountsAsync();
             }) ?? new();
@@ -49,7 +47,7 @@ namespace AccountManager.Core.Services.Cached
 
         public async Task<Account?> GetAccountAsync(Guid id)
         {
-            return await _memoryCache.GetOrCreateAsync($"{nameof(AccountService)}.{id}", async (entry) =>
+            return await _memoryCache.GetOrAddAsync($"{nameof(AccountService)}.{id}", async (entry) =>
             {
                 return await _accountService.GetAccountAsync(id);
             }) ?? new();

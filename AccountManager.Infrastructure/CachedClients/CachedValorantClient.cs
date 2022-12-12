@@ -4,6 +4,7 @@ using AccountManager.Core.Models.RiotGames.Valorant;
 using AccountManager.Core.Models.RiotGames.Valorant.Responses;
 using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Clients;
+using LazyCache;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Principal;
@@ -12,10 +13,10 @@ namespace AccountManager.Infrastructure.CachedClients
 {
     public sealed class CachedValorantClient : IValorantClient
     {
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private readonly IDistributedCache _persistantCache;
         private readonly IValorantClient _valorantClient;
-        public CachedValorantClient(IMemoryCache memoryCache, IDistributedCache persistantCache, IValorantClient valorantClient)
+        public CachedValorantClient(IAppCache memoryCache, IDistributedCache persistantCache, IValorantClient valorantClient)
         {
             _memoryCache = memoryCache;
             _persistantCache = persistantCache;
@@ -26,7 +27,7 @@ namespace AccountManager.Infrastructure.CachedClients
         {
             var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetValorantCompetitiveHistory)}";
 
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                async (entry) =>
                {
                    var value = await _valorantClient.GetValorantCompetitiveHistory(account);
@@ -41,7 +42,7 @@ namespace AccountManager.Infrastructure.CachedClients
         {
             var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetValorantGameHistory)}";
 
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                async (entry) =>
                {
                    var value = await _valorantClient.GetValorantGameHistory(account);
@@ -55,7 +56,7 @@ namespace AccountManager.Infrastructure.CachedClients
         public async Task<ValorantOperatorsResponse> GetValorantOperators()
         {
             var cacheKey = $"{nameof(GetValorantOperators)}";
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     var value = await _valorantClient.GetValorantOperators();
@@ -70,7 +71,7 @@ namespace AccountManager.Infrastructure.CachedClients
         {
             var cacheKey = $"{account.Username}.{account.AccountType}.{nameof(GetValorantRank)}";
 
-            return await _memoryCache.GetOrCreateAsync(cacheKey,
+            return await _memoryCache.GetOrAddAsync(cacheKey,
                 async (entry) =>
                 {
                     var value = await _valorantClient.GetValorantRank(account);

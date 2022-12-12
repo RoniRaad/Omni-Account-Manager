@@ -1,15 +1,16 @@
 ﻿using AccountManager.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Infrastructure.Clients;
+using LazyCache;
 
 namespace AccountManager.Infrastructure.CachedClients
 {
     public sealed class CachedLeagueTokenClient : ILeagueTokenClient
     {
         private readonly ILeagueTokenClient _tokenClient;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAppCache _memoryCache;
         private static readonly SemaphoreSlim semaphore = new(1, 1);
-        public CachedLeagueTokenClient(IMemoryCache memoryCache, ILeagueTokenClient tokenClient)
+        public CachedLeagueTokenClient(IAppCache memoryCache, ILeagueTokenClient tokenClient)
         {
             _memoryCache = memoryCache;
             _tokenClient = tokenClient;
@@ -34,7 +35,7 @@ namespace AccountManager.Infrastructure.CachedClients
                 sessionToken = await _tokenClient.GetLeagueSessionToken();
 
                 if (!string.IsNullOrEmpty(sessionToken))
-                    _memoryCache.Set(cacheKey, sessionToken);
+                    _memoryCache.Add(cacheKey, sessionToken);
 
                 return sessionToken;
             }
