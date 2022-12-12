@@ -16,9 +16,21 @@
 @inject IJSRuntime _jsRuntime
 @namespace AccountManager.Blazor.Pages
 <div class="container-fluid">
+
+    @if (_appState.Accounts is null){
+        <div class="row" style="--bs-gutter-x: 0rem">
+            <div class="display-content">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <PlaceholderAccountListTile></PlaceholderAccountListTile>
+                }
+            </div>
+        </div>
+    }
+
     <div class="row" style="--bs-gutter-x: 0rem">
         @try{
-            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccountOrder()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState.Accounts" TItem="Account">
+            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccountOrder()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState?.Accounts ?? new()" TItem="Account">
                 <AccountListTile Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
             </Dropzone>
         }
