@@ -69,6 +69,14 @@
             </tr>
             <tr>
                 <th scope="row">
+                    <p>Export Accounts</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick="() => { ShowExportAccountsModal = true; InvokeAsync(() => StateHasChanged()); }">Export Accounts</button>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
                     <p>Restart Client</p>
                 </th>
                 <td>
@@ -98,10 +106,16 @@
     <FolderPickerModal CurrentDirectory="@_settings.Settings.EpicGamesInstallDirectory" DirectoryChosen="(dir) => { _settings.Settings.EpicGamesInstallDirectory = dir is not null ? dir : _settings.Settings.EpicGamesInstallDirectory; ShowEpicFolderPicker = false; InvokeAsync(() => StateHasChanged()); }"></FolderPickerModal>
 }
 
+@if (ShowExportAccountsModal)
+{
+    <AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ExportAccountsModal Close="() => { ShowExportAccountsModal = false; InvokeAsync(() => StateHasChanged()); }"></AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ExportAccountsModal>
+}
+
 @code
 {
     public bool ShowChangePasswordPrompt { get; set; } = false;
     public bool ShowRiotFolderPicker { get; set; } = false;
     public bool ShowSteamFolderPicker { get; set; } = false;
     public bool ShowEpicFolderPicker { get; set; } = false;
+    public bool ShowExportAccountsModal { get; set; } = false;
 }
