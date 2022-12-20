@@ -1,0 +1,26 @@
+﻿.game-logo {
+    height:23px;
+    width: 23px;
+}
+
+label {
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.account-label {
+    padding: 5px;
+    background-color: var(--primary-light);
+    border-radius: 5px;
+    text-align: center;
+    margin: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+div{
+    cursor:pointer;
+}

@@ -32,6 +32,24 @@
             const element = document.getElementById(elementId);
             element.style.display = "initial";
         };
+
+        $(document).bind('DOMNodeInserted', function (e) {
+            if (e.target.classList.contains('modal'))
+            {
+                $("body").css({
+                    overflow: 'hidden',
+                });
+            }
+        });
+
+        $(document).bind('DOMNodeRemoved', function (e) {
+            if (e.target.classList.contains('modal')) {
+                $("body").css({
+                    overflow: 'auto',
+                });
+            }
+        });
+
     </script>
     <div id="blazor-error-ui">
         An unhandled error has occurred.
