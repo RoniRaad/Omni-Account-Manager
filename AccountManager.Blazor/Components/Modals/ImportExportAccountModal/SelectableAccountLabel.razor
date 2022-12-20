@@ -1,0 +1,81 @@
+﻿@namespace AccountManager.Blazor.Components.Modals.ImportExportAccountModal
+@using AccountManager.Core.Enums;
+@using AccountManager.Core.Interfaces;
+@using AccountManager.Core.Models;
+@using Microsoft.Extensions.Caching.Memory;
+@using System.Reflection;
+@inject IMemoryCache _memoryCache;
+@inject IGenericFactory<AccountType, IPlatformService> _platformServiceFactory;
+
+<div>
+    <div class="account-label" onclick="@(async () => await OnClick())" style="border: @(Selected ? "#36cf36" : "var(--secondary-dark)") solid 2px;">
+        @if (logoUrl.EndsWith("svg"))
+        {
+            <div class="game-logo">
+                <img src="@logoUrl" class="game-logo" />
+            </div>
+        }
+        else
+        {
+            <img src="@logoUrl" class="game-logo" />
+        }
+        <label>@Account?.Name</label>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Selected { get; set; } = false;
+
+    [Parameter]
+    public Account? Account { get; set; }
+
+    [Parameter]
+    public EventCallback<Account> OnSelected { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Account> OnDeselected { get; set; } = new();
+
+    private string logoUrl = "";
+
+    protected override void OnInitialized()
+    {
+        logoUrl = GetLogoUrl();
+        base.OnInitialized();
+    }
+
+    protected override void OnParametersSet()
+    {
+        logoUrl = GetLogoUrl();
+        base.OnParametersSet();
+    }
+
+    public string GetLogoUrl()
+    {
+        if (Account is null)
+            return "";
+
+        return _memoryCache?.GetOrCreate($"{nameof(GetLogoUrl)}.{Account.AccountType}", (entry) =>
+        {
+            var platformService = _platformServiceFactory?.CreateImplementation(Account.AccountType);
+
+            if (platformService is null)
+            {
+                entry.AbsoluteExpiration = DateTimeOffset.Now;
+                return null;
+            }
+
+            return platformService.GetType()?.GetField("WebIconFilePath", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.FlattenHierarchy | BindingFlags.Public)?.GetValue(null)?.ToString();
+        }) ?? "";
+    }
+
+    private async Task OnClick()
+    {
+        if (Selected)
+            await OnDeselected.InvokeAsync(Account);
+        else
+            await OnSelected.InvokeAsync(Account);
+
+        Selected = !Selected;
+    }
+}

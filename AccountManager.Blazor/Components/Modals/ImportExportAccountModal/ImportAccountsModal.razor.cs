@@ -1,19 +1,15 @@
 using AccountManager.Core.Models;
 using Microsoft.AspNetCore.Components;
-using SharpCompress.Common;
 
-namespace AccountManager.Blazor.Components.Modals
+namespace AccountManager.Blazor.Components.Modals.ImportExportAccountModal
 {
-    public partial class ImportExportAccountModal
+    public partial class ImportAccountsModal
     {
-        [Parameter]
-        public bool IsImport { get; set; } = true;
         [Parameter, EditorRequired]
         public ExportAccountRequest ExportAccountRequest { get; set; } = new();
         [Parameter, EditorRequired]
         public EventCallback Close { get; set; }
         private bool ShowFilePicker = false;
-        private string OperationName { get { return IsImport ? "Import" : "Export"; } }
         public async Task Submit()
         {
             if (string.IsNullOrEmpty(ExportAccountRequest.FilePath) || string.IsNullOrEmpty(ExportAccountRequest.Password))
@@ -21,23 +17,14 @@ namespace AccountManager.Blazor.Components.Modals
 
             try
             {
-                if (IsImport)
+                if (!File.Exists(ExportAccountRequest.FilePath))
                 {
-                    if (!File.Exists(ExportAccountRequest.FilePath))
-                    {
-                        _alertService.AddErrorAlert($"Could not find file {ExportAccountRequest.FilePath}. Please try another file.");
-                        return;
-                    }
+                    _alertService.AddErrorAlert($"Could not find file {ExportAccountRequest.FilePath}. Please try another file.");
+                    return;
+                }
 
-                    await _exportService.ImportAccountsAsync(ExportAccountRequest.Password,
-                                                             ExportAccountRequest.FilePath);
-                }
-                else
-                {
-                    await _exportService.ExportAccountsAsync(ExportAccountRequest.Accounts,
-                                   ExportAccountRequest.Password,
-                                   ExportAccountRequest.FilePath);
-                }
+                await _exportService.ImportAccountsAsync(ExportAccountRequest.Password,
+                                                            ExportAccountRequest.FilePath);
             }
             catch (UnauthorizedAccessException)
             {
