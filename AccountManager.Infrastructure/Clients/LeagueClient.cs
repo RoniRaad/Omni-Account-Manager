@@ -23,7 +23,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly IRiotClient _riotClient;
-        private const int historyLength = 15;
+        private const int historyLength = 40;
         public LeagueClient(IHttpClientFactory httpClientFactory,
             ILeagueTokenClient leagueTokenClient, IUserSettingsService<LeagueSettings> settings,
             IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IRiotClient riotClient, ILogger<LeagueClient> logger)

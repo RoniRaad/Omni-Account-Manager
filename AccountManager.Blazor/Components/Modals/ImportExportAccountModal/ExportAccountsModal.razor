@@ -1,0 +1,54 @@
+﻿@namespace AccountManager.Blazor.Components.Modals.ImportExportAccountModal
+@using AccountManager.Core.Interfaces
+@using AccountManager.Blazor.Components.Modals;
+@inject IAccountExportService _exportService
+@inject IAlertService _alertService
+@inject IAppState _appState;
+
+<div draggable="true" ondragstart="event.preventDefault(); event.stopPropagation();" class="modal show" style="display:block; color:var(--primary-dark);" tabindex="1" role="dialog">
+    <div class="modal-dialog" style="max-width: 625px;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Account</h5>
+                <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
+            </div>
+            <EditForm Model="@ExportAccountRequest">
+                <div class="modal-body">
+                    <label>Accounts</label>
+                    <div style="overflow: auto;
+                                max-height: 94px;
+                                min-height: 44px;
+                                display: grid;
+                                grid-template-columns: 25% 25% 25% 25%;
+                                margin-bottom: 5px;">
+                        @foreach (var account in _appState?.Accounts ?? new())
+                        {
+                            <SelectableAccountLabel Selected="ExportAccountRequest.Accounts.Contains(account)" OnSelected="@((account) => AddAccountFromRequest(account))" OnDeselected="@((account) => RemoveAccountFromRequest(account))" Account="account"></SelectableAccountLabel>
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="currentPassword">Export Password</label>
+                        <InputText style="margin-bottom:12px" type="password" class="form-control" id="exportPassword" @bind-Value="ExportAccountRequest.Password" placeholder=@($"Export Password") required></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label for="folderPath">File Path</label>
+                        <div class="input-group">
+                            <InputText id="folderPath" type="text" class="text-input form-control" placeholder="Ex: C:\Accounts\exportedAccount.omni" @bind-Value="ExportAccountRequest.FilePath" required></InputText>
+                            <div class="input-group-append">
+                                <span @onclick="() => ShowFilePicker = true" class="btn oi-folder" type="button"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark" @onclick="Submit">Export Account</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@if (ShowFilePicker)
+{
+    <FilePickerModal CurrentFileName="@(ExportAccountRequest.FilePath.Contains('.') ? Path.GetFileName(ExportAccountRequest.FilePath) : "ExportedAccount.omni")" CurrentDirectory="@(ExportAccountRequest.FilePath.Contains('.') ? Path.GetDirectoryName(ExportAccountRequest.FilePath) : ExportAccountRequest.FilePath)" FileChosen="(dir) => { ExportAccountRequest.FilePath = dir is not null ? dir : ExportAccountRequest.FilePath; ShowFilePicker = false; }"></FilePickerModal>
+}
