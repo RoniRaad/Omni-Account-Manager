@@ -23,7 +23,6 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly IRiotClient _riotClient;
-        private const int historyLength = 40;
         public LeagueClient(IHttpClientFactory httpClientFactory,
             ILeagueTokenClient leagueTokenClient, IUserSettingsService<LeagueSettings> settings,
             IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IRiotClient riotClient, ILogger<LeagueClient> logger)
@@ -125,7 +124,7 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
             {
-                var matchHistoryRequest = await client.GetAsync($"/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex=0&count={historyLength}");
+                var matchHistoryRequest = await client.GetAsync($"/match-history-query/v1/products/lol/player/{account.PlatformId}/SUMMARY?startIndex=0&count={_settings.Settings.AmountOfMatchesForGraphs}");
                 var matchHistory = await matchHistoryRequest.Content.ReadFromJsonAsync<MatchHistoryResponse>();
 
                 return matchHistory;
@@ -176,7 +175,7 @@ namespace AccountManager.Infrastructure.Clients
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
             {
-                var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistory>($"/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex=0&count={historyLength}");
+                var rankResponse = await client.GetFromJsonAsync<TeamFightTacticsMatchHistory>($"/match-history-query/v1/products/tft/player/{account.PlatformId}/SUMMARY?startIndex=0&count={_settings.Settings.AmountOfMatchesForGraphs}");
 
                 return rankResponse;
             }
