@@ -5,7 +5,7 @@ namespace AccountManager.Blazor.Components.Modals.ImportExportAccountModal
 {
     public partial class ExportAccountsModal
     {
-        [Parameter, EditorRequired]
+        [Parameter]
         public ExportAccountRequest ExportAccountRequest { get; set; } = new();
         [Parameter, EditorRequired]
         public EventCallback Close { get; set; }
