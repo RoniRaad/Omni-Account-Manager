@@ -151,7 +151,7 @@ namespace AccountManager.Core.Services.GraphServices
 
                 var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
 
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping?.Key ?? "Unknown")?.Where((matchGrouping) => matchGrouping is not null)?.ToList() ?? new();
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => (matchGrouping?.Key ?? "Unknown") + $" ({matchGrouping?.Count()})")?.Where((matchGrouping) => matchGrouping is not null)?.ToList() ?? new();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -193,7 +193,7 @@ namespace AccountManager.Core.Services.GraphServices
 
                 barChart = new();
                 var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => matchGrouping?.Key ?? "Unknown")?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => (matchGrouping?.Key ?? "Unknown") + $" ({matchGrouping?.Count()})")?.Where((matchGrouping) => matchGrouping is not null).ToList();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {

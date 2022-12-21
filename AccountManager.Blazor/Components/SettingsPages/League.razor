@@ -12,6 +12,7 @@
 
 <div class="container main">
     <EditForm Model="@_settings.Settings">
+        <DataAnnotationsValidator />
         <table>
             <tbody>
                 <tr>
@@ -45,6 +46,15 @@
                         </label>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">
+                        <p>Amount of matches to display on graphs (1-40)</p>
+                    </th>
+                    <td>
+                        <InputNumber min="1" max="40" class="number-input form-control" @bind-Value="_settings.Settings.AmountOfMatchesForGraphs"></InputNumber>
+                        <span class="btn-text-save btn btn-dark" @onclick=SaveAmountOfMatches type="submit">Save</span>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </EditForm>
@@ -68,5 +78,11 @@
                 _settings.Settings.AccountToUseCredentials = selectedGuid;
 
         await _settings.SaveAsync();
+    }
+
+    private async Task SaveAmountOfMatches()
+    {
+        if (_settings.Settings.AmountOfMatchesForGraphs <= 40 && _settings.Settings.AmountOfMatchesForGraphs >= 1)
+            await _settings.SaveAsync();
     }
 }
