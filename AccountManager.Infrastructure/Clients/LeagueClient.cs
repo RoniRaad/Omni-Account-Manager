@@ -1,6 +1,5 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.AppSettings;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
@@ -8,7 +7,6 @@ using AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 using AccountManager.Core.Models.UserSettings;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -20,18 +18,16 @@ namespace AccountManager.Infrastructure.Clients
         private readonly ILeagueTokenClient _leagueTokenClient;
         private readonly ILogger<LeagueClient> _logger;
         private readonly IUserSettingsService<LeagueSettings> _settings;
-        private readonly RiotApiUri _riotApiUri;
         private readonly IMapper _autoMapper;
         private readonly IRiotClient _riotClient;
         public LeagueClient(IHttpClientFactory httpClientFactory,
             ILeagueTokenClient leagueTokenClient, IUserSettingsService<LeagueSettings> settings,
-            IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IRiotClient riotClient, ILogger<LeagueClient> logger)
+            IMapper autoMapper, IRiotClient riotClient, ILogger<LeagueClient> logger)
         {
             _httpClientFactory = httpClientFactory;
             _leagueTokenClient = leagueTokenClient;
             _httpClientFactory = httpClientFactory;
             _settings = settings;
-            _riotApiUri = riotApiOptions.Value;
             _autoMapper = autoMapper;
             _riotClient = riotClient;
             _logger = logger;
