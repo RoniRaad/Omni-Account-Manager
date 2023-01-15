@@ -31,6 +31,7 @@ using AccountManager.Infrastructure.TypeHandlers;
 using AccountManager.Core.Services.Cached;
 using AccountManager.Infrastructure.CachedRepositories;
 using LazyCache;
+using AsyncKeyedLock;
 
 namespace AccountManager.UI
 {
@@ -75,6 +76,11 @@ namespace AccountManager.UI
             services.AddSingleton<IDataMigrationService, DataMigrationService>();
             services.AddSingleton<IAccountEncryptedRepository, AccountSqliteRepository>();
             services.AddSingleton<IBackupService, BackupService>();
+            services.AddSingleton(new AsyncKeyedLocker<string>(o =>
+            {
+                o.PoolSize = 20;
+                o.PoolInitialFill = 1;
+            }));
             services.AddLazyCache();
 
             // Cached Objects

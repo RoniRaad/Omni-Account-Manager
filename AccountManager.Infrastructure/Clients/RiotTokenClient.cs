@@ -11,10 +11,10 @@ using AccountManager.Core.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using AutoMapper;
 using System.Web;
-using KeyedSemaphores;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using LazyCache;
+using AsyncKeyedLock;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -29,6 +29,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly IMapper _autoMapper;
         private readonly IHttpRequestBuilder _curlRequestBuilder;
+        private readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
         public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
                         {
                             {"na", "usw" },
@@ -40,7 +41,7 @@ namespace AccountManager.Infrastructure.Clients
                         }.ToImmutableDictionary();
         public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IAppCache memoryCache,
             IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, 
-            ILogger<RiotTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient)
+            ILogger<RiotTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient, AsyncKeyedLocker<string> asyncKeyedLocker)
         {
             _httpClientFactory = httpClientFactory;
             _alertService = alertService;
@@ -51,6 +52,7 @@ namespace AccountManager.Infrastructure.Clients
             _curlRequestBuilder = curlRequestBuilder;
             _logger = logger;
             _riot3rdPartyClient = riot3rdPartyClient;
+            _asyncKeyedLocker = asyncKeyedLocker;
         }
 
         public async Task<string?> GetExpectedClientVersion()
@@ -94,7 +96,7 @@ namespace AccountManager.Infrastructure.Clients
             RiotAuthCookies responseCookies;
             RiotAuthResponse? response;
 
-            using (await KeyedSemaphore.LockAsync(account.Username))
+            using (await _asyncKeyedLocker.LockAsync(account.Username).ConfigureAwait(false))
             {
                 try
                 {

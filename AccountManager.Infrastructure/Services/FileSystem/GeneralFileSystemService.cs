@@ -1,7 +1,7 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
 using AccountManager.Core.Static;
-using KeyedSemaphores;
+using AsyncKeyedLock;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
@@ -13,9 +13,11 @@ namespace AccountManager.Infrastructure.Services.FileSystem
         public static string DataPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Multi-Account-Manager");
         private readonly IAppCache _memoryCache;
-        public GeneralFileSystemService(IAppCache memoryCache)
+        private readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
+        public GeneralFileSystemService(IAppCache memoryCache, AsyncKeyedLocker<string> asyncKeyedLocker)
         {
             _memoryCache = memoryCache;
+            _asyncKeyedLocker = asyncKeyedLocker;
         }
 
         public static void InitializeFileSystem()
@@ -265,7 +267,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 return "";
             var cacheKey = $"{filePath}.FileContent";
 
-            using (KeyedSemaphore.Lock(cacheKey))
+            using (_asyncKeyedLocker.Lock(cacheKey))
             {
                 return _memoryCache.GetOrAdd(cacheKey, (entry) =>
                 {
@@ -281,7 +283,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
 
             var cacheKey = $"{filePath}.FileContent";
 
-            using (await KeyedSemaphore.LockAsync(cacheKey))
+            using (await _asyncKeyedLocker.LockAsync(cacheKey).ConfigureAwait(false))
             {
                 return await _memoryCache.GetOrAddAsync(cacheKey, async (entry) =>
                 {
@@ -304,7 +306,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
             var cacheKey = $"{filePath}.FileContent";
             _memoryCache.Remove(cacheKey);
 
-            using (KeyedSemaphore.Lock(cacheKey))
+            using (_asyncKeyedLocker.Lock(cacheKey))
             { 
                 File.WriteAllText(filePath, content);
             }
@@ -324,7 +326,7 @@ namespace AccountManager.Infrastructure.Services.FileSystem
                 Directory.CreateDirectory(dir);
             }
 
-            using (await KeyedSemaphore.LockAsync(cacheKey))
+            using (await _asyncKeyedLocker.LockAsync(cacheKey).ConfigureAwait(false))
             {
                 await File.WriteAllTextAsync(filePath, content);
             }

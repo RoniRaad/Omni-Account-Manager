@@ -2,8 +2,8 @@
 using AccountManager.Core.Models;
 using AccountManager.Core.Models.AppSettings;
 using AccountManager.Infrastructure.Services.FileSystem;
+using AsyncKeyedLock;
 using Dapper;
-using KeyedSemaphores;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,16 +15,18 @@ namespace AccountManager.Infrastructure.Repositories
         private readonly AccountSqliteDatabaseConfig _databaseConfig;
         private readonly ILogger<AccountSqliteRepository> _logger;
         private readonly IDataMigrationService _dataMigrationService;
+        private readonly AsyncKeyedLocker<string> _asyncKeyedLocker;
         private readonly string DatabasePath;
         private bool Initialized = false;
 
 
         public AccountSqliteRepository(IOptions<AccountSqliteDatabaseConfig> accountSqliteDbConfig,
-            ILogger<AccountSqliteRepository> logger, IDataMigrationService dataMigrationService)
+            ILogger<AccountSqliteRepository> logger, IDataMigrationService dataMigrationService, AsyncKeyedLocker<string> asyncKeyedLocker)
         {
             _databaseConfig = accountSqliteDbConfig.Value;
             _logger = logger;
             _dataMigrationService = dataMigrationService;
+            _asyncKeyedLocker = asyncKeyedLocker;
             DatabasePath = Path.Combine(GeneralFileSystemService.DataPath, _databaseConfig.FileName);
         }
 
@@ -198,7 +200,7 @@ namespace AccountManager.Infrastructure.Repositories
 
         private async Task InitializeDatabaseAsync(string password)
         {
-            using (await KeyedSemaphore.LockAsync("SqliteDbInit"))
+            using (await _asyncKeyedLocker.LockAsync("SqliteDbInit").ConfigureAwait(false))
             {
 
                 _logger.LogInformation("Attempting to initialize account database");
