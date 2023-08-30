@@ -72,7 +72,7 @@ namespace AccountManager.Infrastructure.Clients
                 .SetContent(request)
                 .AddCookies(cookieCollection)
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent(await GetRiotClientUserAgent())
+                .SetUserAgent("Rito")
                 .Post<TokenResponseWrapper>();
 
             var authResponseDeserialized = authResponse.ResponseContent;
