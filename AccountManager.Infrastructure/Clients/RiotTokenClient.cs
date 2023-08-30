@@ -72,7 +72,7 @@ namespace AccountManager.Infrastructure.Clients
                 .SetContent(request)
                 .AddCookies(cookieCollection)
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent("Rito")
+                .SetUserAgent("Rito") // This is a bypass for riot blocking our useragent.
                 .Post<TokenResponseWrapper>();
 
             var authResponseDeserialized = authResponse.ResponseContent;
