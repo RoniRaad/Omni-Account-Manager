@@ -101,11 +101,18 @@ namespace AccountManager.Infrastructure.Clients
                     var cookiesCacheKey = $"{nameof(RiotAuthenticate)}.{account.Username}.riot.authrequest.{request.GetHashId()}.cookies";
                     var cookies = await _persistantCache.GetAsync<RiotAuthCookies>(cookiesCacheKey);
 
-                    if (cookies is not null)
+                    try
                     {
-                        var token = await RefreshToken(request, cookies);
-                        if (token?.Content?.Type == "response")
-                            return token;
+                        if (cookies is not null)
+                        {
+                            var token = await RefreshToken(request, cookies);
+                            if (token?.Content?.Type == "response")
+                                return token;
+                        }
+                    }
+                    catch
+                    {
+                        _logger.LogError("Unable to refresh token. Attempting a login.");
                     }
 
                     if (await _persistantCache.GetAsync<bool>($"{account.Username}.riot.skip.auth"))
@@ -203,7 +210,7 @@ namespace AccountManager.Infrastructure.Clients
             var tokenResponse = await _curlRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}/")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
-                .SetUserAgent(await GetRiotClientUserAgent())
+                .SetUserAgent("Rito") // This is a bypass for riot blocking our useragent.
                 .AddCookies(cookies.GetCookies() ?? new())
                 .Get();
 
