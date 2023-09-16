@@ -27,7 +27,8 @@ namespace AccountManager.Core.Models.RiotGames.Valorant
 			"PLATINUM" ,
 			"DIAMOND" ,
 			"ASCENDANT" ,
-			"RADIANT"
+			"IMMORTAL",
+            "RADIANT"
 		}.ToImmutableList();
 	}
 }
