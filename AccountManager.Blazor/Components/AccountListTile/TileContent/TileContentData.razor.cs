@@ -3,6 +3,8 @@ using AccountManager.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Attributes;
+using AccountManager.Core.Static;
+using System.Security.Principal;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -23,7 +25,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             _accountItemSettings.OnSettingsSaved += () => InvokeAsync(() => StateHasChanged());
         }
 
-        protected override void OnParametersSet()
+        protected override async Task OnInitializedAsync()
         {
             if (_account != Account)
             {
@@ -46,7 +48,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
                 }) ?? new();
 
                 if (currentPages != pages)
-                    activePage = 0;
+                    activePage = await _persistantCache.GetOrCreateAsync($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", async () =>
+                    {
+                        return 0;
+                    });
             }
         }
 
@@ -58,18 +63,22 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             return "";
         }
 
-        private void IncrementPage()
+        private async Task IncrementPage()
         {
             activePage++;
             if (activePage >= pages?.Count)
                 activePage = 0;
+
+            await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
 
-        private void DecrementPage()
+        private async Task DecrementPage()
         {
             activePage--;
             if (activePage < 0)
                 activePage = pages.Count - 1;
+
+            await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
 
         private void SetPage(int pageNum)
