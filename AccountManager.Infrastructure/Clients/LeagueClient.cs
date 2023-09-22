@@ -1,5 +1,6 @@
 ﻿using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
+using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.League;
 using AccountManager.Core.Models.RiotGames.League.Requests;
 using AccountManager.Core.Models.RiotGames.League.Responses;
@@ -7,8 +8,10 @@ using AccountManager.Core.Models.RiotGames.TeamFightTactics.Responses;
 using AccountManager.Core.Models.UserSettings;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -52,8 +55,8 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
         {
             var sessionToken = await _leagueTokenClient.GetLeagueSessionToken();
-            var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"League{region.RegionId.ToUpper()}");
+            var region = await GetPlatformEdge(account);
+            var client = _httpClientFactory.CreateClient($"League{region.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
             try
@@ -115,8 +118,8 @@ namespace AccountManager.Infrastructure.Clients
                 return new();
 
             var token = await _leagueTokenClient.GetLeagueSessionToken();
-            var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
+            var regionInfo = await GetPlatformEdge(account);
+            var client = _httpClientFactory.CreateClient($"LeagueSession{regionInfo.ToUpper()}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
             {
@@ -166,8 +169,8 @@ namespace AccountManager.Infrastructure.Clients
                 return new();
 
             var token = await _leagueTokenClient.GetLeagueSessionToken();
-            var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
+            var region = await GetPlatformEdge(account);
+            var client = _httpClientFactory.CreateClient($"LeagueSession{region.ToUpper()}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
             {
@@ -181,6 +184,31 @@ namespace AccountManager.Infrastructure.Clients
                 throw;
             }
 
+        }
+
+        public async Task<string> GetPlatformEdge(Account account)
+        {
+            var userInfo = await _leagueTokenClient.GetUserInfo(account);
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(userInfo);
+            parsedIdToken.Payload.TryGetValue("lol", out object? leagueInfoJson);
+
+            if (leagueInfoJson is null)
+                return "";
+
+            var regionInfoJson = leagueInfoJson.ToString();
+
+            try
+            {
+                var region = JsonSerializer.Deserialize<LeagueTokenInfo>(regionInfoJson ?? "");
+                return region?.Pid ?? "";
+            }
+            catch
+            {
+                _logger.LogError("Unable to deserialize region info jwt for league account with username {username}", account.Username);
+            }
+
+            return "";
         }
     }
 }

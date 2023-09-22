@@ -15,6 +15,7 @@ using AutoMapper;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Security.Principal;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -64,9 +65,11 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("SSLBypass");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"riot:{token}")));
-            var sessionTokenResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-league-session/v1/league-session-token");
+            HttpResponseMessage sessionTokenResponse;
+
             try
             {
+                sessionTokenResponse = await client.GetAsync($"https://127.0.0.1:{port}/lol-league-session/v1/league-session-token");
                 sessionTokenResponse.EnsureSuccessStatusCode();
             }
             catch(HttpRequestException ex)
@@ -106,7 +109,7 @@ namespace AccountManager.Infrastructure.Clients
             var client = _httpClientFactory.CreateClient("CloudflareBypass");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var rankResponse = await client.GetAsync($"{_riotApiUri.LeagueNA}/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
+            var rankResponse = await client.GetAsync($"{_riotApiUri.League.LeagueNA1}/leagues-ledge/v2/rankedStats/puuid/fakepuuid");
             return rankResponse.IsSuccessStatusCode;
         }
 
@@ -132,18 +135,11 @@ namespace AccountManager.Infrastructure.Clients
                 return string.Empty;
 
             var leagueToken = await GetLeagueLoginToken(account);
+            var platformEdge = GetRegionFromLoginToken(leagueToken) ?? "NA1";
             if (string.IsNullOrEmpty(leagueToken))
                 return string.Empty;
 
-            var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
-
-            client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
-            JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
-            var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(leagueToken);
-            jwtToken.Payload.TryGetValue("region", out object? regionCode);
-
-            regionCode ??= "NA1";
+            var client = _httpClientFactory.CreateClient($"LeagueSession{platformEdge}");
 
             var sessionResponse = await client.PostAsJsonAsync($"/session-external/v1/session/create", new PostSessionsRequest
             {
@@ -153,7 +149,7 @@ namespace AccountManager.Infrastructure.Clients
                 },
                 Product = "lol",
                 PuuId = puuId,
-                Region = regionCode.ToString()
+                Region = platformEdge
             });
 
             try
@@ -175,18 +171,18 @@ namespace AccountManager.Infrastructure.Clients
         {
             string token;
             var riotToken = await _riotTokenClient.GetRiotTokens(riotTokenRequest, account);
-            var userInfo = await GetUserInfo(riotToken.AccessToken ?? "");
+            var userInfo = await GetUserInfo(account);
             var entitlement = await GetEntitlementJWT(riotToken.AccessToken ?? "");
+            var leagueInfo = GetLeagueInfoFromIdToken(riotToken.IdToken);
             if (string.IsNullOrEmpty(riotToken.AccessToken)
                 || string.IsNullOrEmpty(userInfo)
                 || string.IsNullOrEmpty(entitlement))
                 return string.Empty;
 
-            var region = await _riotClient.GetRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{region.CountryId.ToUpper()}");
+            var region = await _riotClient.GetValorantRegionInfo(account);
+            var client = _httpClientFactory.CreateClient($"LeagueSession{leagueInfo?.Pid ?? ""}");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken.AccessToken);
-            var leagueInfo = GetLeagueInfo(riotToken.IdToken);
             var countryId = leagueInfo?.Pid ?? "na1";
 
             var loginResponse = await client.PostAsJsonAsync($"/login-queue/v2/login/products/lol/regions/{countryId}", new LoginRequest
@@ -213,11 +209,13 @@ namespace AccountManager.Infrastructure.Clients
             return token;
         }
 
-        private async Task<string> GetUserInfo(string riotToken)
+        public async Task<string> GetUserInfo(Account account)
         {
+            var riotTokens = await _riotTokenClient.GetRiotTokens(riotTokenRequest, account);
+
             var response = await _curlRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Auth}/userinfo")
-            .SetBearerToken(riotToken)
+            .SetBearerToken(riotTokens.AccessToken)
             .SetUserAgent(await GetRiotClientUserAgent())
             .Get();
 
@@ -239,7 +237,16 @@ namespace AccountManager.Infrastructure.Clients
             return entitlement;
         }
 
-        private LeagueIdInfo? GetLeagueInfo(string idToken)
+        private string? GetRegionFromLoginToken(string idToken)
+        {
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(idToken);
+            parsedIdToken.Payload.TryGetValue("region", out object? region);
+
+            return region?.ToString() ?? "NA1";
+        }
+
+        private LeagueTokenInfo? GetLeagueInfoFromIdToken(string idToken)
         {
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(idToken);
@@ -247,7 +254,7 @@ namespace AccountManager.Infrastructure.Clients
             if (leagueInfoJson?.ToString() is null)
                 return null;
 
-            var leagueInfo = JsonSerializer.Deserialize<List<LeagueIdInfo>>(leagueInfoJson?.ToString() ?? "{}");
+            var leagueInfo = JsonSerializer.Deserialize<List<LeagueTokenInfo>>(leagueInfoJson?.ToString() ?? "{}");
 
             return leagueInfo?.FirstOrDefault();
         }
