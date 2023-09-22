@@ -140,6 +140,7 @@ namespace AccountManager.Infrastructure.Clients
                 return string.Empty;
 
             var client = _httpClientFactory.CreateClient($"LeagueSession{platformEdge}");
+            client.DefaultRequestHeaders.Authorization = new("Bearer", leagueToken);
 
             var sessionResponse = await client.PostAsJsonAsync($"/session-external/v1/session/create", new PostSessionsRequest
             {
@@ -237,10 +238,10 @@ namespace AccountManager.Infrastructure.Clients
             return entitlement;
         }
 
-        private string? GetRegionFromLoginToken(string idToken)
+        private string? GetRegionFromLoginToken(string loginToken)
         {
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(idToken);
+            var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(loginToken);
             parsedIdToken.Payload.TryGetValue("region", out object? region);
 
             return region?.ToString() ?? "NA1";
