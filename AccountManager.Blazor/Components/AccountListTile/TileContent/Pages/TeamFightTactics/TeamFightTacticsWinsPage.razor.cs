@@ -10,7 +10,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
     {
         private Account _account = new();
         [Parameter]
-        public Account Account { get; set; } = new();
+        public Account? Account { get; set; }
 
         LineChart<CoordinatePair>? lineChart;
         private readonly LineChartOptions lineChartOptions = new()
@@ -97,12 +97,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
         }
         protected override void OnInitialized()
         {
+            if (Account is null)
+                return;
+
             _account = Account;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if (firstRender && Account is not null)
             {
                 displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
                 await HandleRedraw();
@@ -111,7 +114,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
                 try

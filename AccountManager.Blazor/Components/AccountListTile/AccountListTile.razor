@@ -20,18 +20,20 @@
 @inject IAccountService _accountService
 @inherits LayoutComponentBase
 
-<CascadingValue Value="_settings">
-    <div class="card" style="@cardStyle">
-        <div class="card-body" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal" >
-            <TileTopBar Title="@Account?.Name" AccountType="@(Account?.AccountType ?? 0)" MouseEnterDragLogo="() => dragSymbolIsHovered = true" MouseExitDragLogo="() => dragSymbolIsHovered = false" ></TileTopBar>
+<CascadingValue Value="Account">
+    <CascadingValue Value="_settings">
+        <div @onmouseleave="(e) => CardUnHovered()" @onmouseenter="(e) => CardHovered()" class="card" style="@cardStyle">
+            <div class="card-body" @onclick="OpenSingleAccountModal">
+                <TileTopBar></TileTopBar>
+            </div>
+            <ul @onmouseleave="(e) => CardHovered()" @onmouseenter="(e) => CardUnHovered()" class="list-group list-group-flush" @onclick="OpenSingleAccountModal">
+		        <TileContent></TileContent>
+	        </ul>
+	        <div class="container account-btn-container">
+                <ButtonContainer OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
+	        </div>
         </div>
-	    <ul class="list-group list-group-flush" @onmouseout="() => cardIsHovered = false" @onmouseover="() => cardIsHovered = true" @onclick="OpenSingleAccountModal">
-		    <TileContent Account="Account" MouseEnterGraph="() => graphIsHovered = true" MouseExitGraph="() => graphIsHovered = false"></TileContent>
-	    </ul>
-	    <div class="container account-btn-container">
-            <ButtonContainer Account="Account" OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
-	    </div>
-    </div>
+        </CascadingValue>
 </CascadingValue>
 
 

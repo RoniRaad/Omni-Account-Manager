@@ -33,7 +33,9 @@
         @try
         {
             <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccountOrder()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState?.Accounts ?? new()" TItem="Account">
-                <AccountListTile Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
+                <CascadingValue Value="@context">
+                    <AccountListTile ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
+                </CascadingValue>
             </Dropzone>
         }
         catch{}

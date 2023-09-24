@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using Blazorise.Charts;
 using AccountManager.Core.Attributes;
+using AccountManager.Core.Static;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
@@ -9,8 +10,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     public partial class LeagueWinsPage
     {
         private Account _account = new();
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
         LineGraph? displayGraph;
         LineChart<CoordinatePair>? lineChart;
 
@@ -105,21 +106,50 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (Account is null)
+                return;
+
+            try
             {
-                _account = Account;
+                displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
+            }
+            catch
+            {
+                displayGraph = new();
+            }
 
-                try
+            for (var i = 0; i < displayGraph?.Data?.Count; i++)
+            {
+                var graph = displayGraph.Data[i];
+                var label = graph.Label;
+                var isHidden = await _persistantCache.GetOrCreateAsync<bool?>($"{nameof(LineGraph)}.{nameof(LeagueWinsPage)}.{Account.Id}.{label}", () =>
                 {
-                    displayGraph = await _leagueGraphService.GetRankedWinsGraph(Account);
-                }
-                catch
-                {
-                    displayGraph = new();
-                }
+                    if (label != "Solo")
+                        return Task.FromResult<bool?>(displayGraph.Data.Any(x => x.Label == "Solo") || i != 0);
 
-                await HandleRedraw();
-                await InvokeAsync(() => StateHasChanged());
+
+                    return Task.FromResult<bool?>(false);
+                });
+
+                graph.Hidden = isHidden.Value;
+            }
+
+            await HandleRedraw();
+            await InvokeAsync(() => StateHasChanged());
+        }
+
+        private async Task CacheDatasetHiddenStatus()
+        {
+            if (lineChart?.ElementId is null || Account is null)
+                return;
+
+            // This allows the values to actually update in the jsruntime
+            await Task.Delay(1);
+
+            var chartStatuses = await _jsRuntime.InvokeAsync<Dictionary<string, bool>>("chartFunctions.getDatasetHiddenStatus", new object[] { lineChart.ElementId });
+            foreach (var chartStatus in chartStatuses)
+            {
+                await _persistantCache.SetAsync<bool?>($"{nameof(LineGraph)}.{nameof(LeagueWinsPage)}.{Account.Id}.{chartStatus.Key}", chartStatus.Value);
             }
         }
 

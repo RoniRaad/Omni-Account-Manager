@@ -42,7 +42,7 @@
 
 @if (settingsModalOpen)
 {
-	<SettingsModal Close="@(() => {settingsModalOpen = false; _navManager.NavigateTo(_navManager.Uri, forceLoad: true); })"></SettingsModal>
+	<SettingsModal Close="@(() => {settingsModalOpen = false; _navManager.NavigateTo("/reload"); })"></SettingsModal>
 }
 
 @foreach (var request in _alertService.GetTwoFactorAuthRequests())

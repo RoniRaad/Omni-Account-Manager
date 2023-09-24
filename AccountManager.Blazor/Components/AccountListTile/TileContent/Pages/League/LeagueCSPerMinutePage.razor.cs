@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     public partial class LeagueCSPerMinutePage
     {
         [Parameter]
-        public Account Account { get; set; } = new();
+        public Account? Account { get; set; }
         BarChart? displayGraph;
         private Account _account = new();
         BarChart<double?>? barChart;
@@ -70,7 +70,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 

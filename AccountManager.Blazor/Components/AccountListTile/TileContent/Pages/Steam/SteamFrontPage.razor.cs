@@ -15,16 +15,22 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         private Account _account = new();
         private bool steamInstallNotFound = false;
         [Parameter]
-        public Account Account { get; set; } = new();
+        public Account? Account { get; set; }
         List<SteamGameManifest> Games { get; set; } = new();
 
         protected override void OnInitialized()
         {
+            if (Account is null)
+                return;
+
             _account = Account;
         }
 
         protected override async Task OnParametersSetAsync()
         {
+            if (Account is null)
+                return;
+
             _account = Account;
 
             await base.OnParametersSetAsync();
@@ -32,6 +38,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         public void SetGame(string appId)
         {
+            if (Account is null)
+                return;
+
             _persistantCache.SetString($"{Account.Id}.SelectedSteamGame", appId);
         }
 
@@ -42,6 +51,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         }
         public async Task RefreshGamesAsync()
         {
+            if (Account is null)
+                return;
+
             Games.Clear();
 
             selectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
@@ -60,6 +72,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
+            if (Account is null)
+                return;
+
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
             if (cachedSelectedGame != selectedSteamGame)
             {

@@ -31,6 +31,7 @@ using AccountManager.Infrastructure.TypeHandlers;
 using AccountManager.Core.Services.Cached;
 using AccountManager.Infrastructure.CachedRepositories;
 using LazyCache;
+using NeoSmart.Caching.Sqlite.AspNetCore;
 
 namespace AccountManager.UI
 {
@@ -38,7 +39,7 @@ namespace AccountManager.UI
     {
         public static void ConfigureServices(IServiceCollection services, IConfigurationRoot configuration)
         {
-            services.AddBlazorWebView();
+            services.AddWpfBlazorWebView();
             services.AddBlazorDragDrop();
             services.AddOptions();
             services.AddLogging(builder =>
@@ -109,6 +110,7 @@ namespace AccountManager.UI
             })
             .AddBootstrapProviders()
             .AddFontAwesomeIcons();
+            services.AddBlazorWebViewDeveloperTools();
             services.AddSingleton<IAccountService, CachedAccountService>();
             services.AddSingleton<IUserSettingsService<GeneralSettings>, UserSettingsService<GeneralSettings>>();
             services.AddSingleton<IUserSettingsService<SteamSettings>, UserSettingsService<SteamSettings>>();

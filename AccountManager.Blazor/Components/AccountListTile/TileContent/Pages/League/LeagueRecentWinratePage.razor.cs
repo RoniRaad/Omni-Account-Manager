@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     public partial class LeagueRecentWinratePage
     {
         [Parameter]
-        public Account Account { get; set; } = new();
+        public Account? Account { get; set; }
 
         private BarChart? displayGraph;
         private readonly List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), 
@@ -78,6 +78,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnInitializedAsync()
         {
+            if (Account is null)
+                return;
+
             _account = Account;
             displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
             await HandleRedraw();
@@ -91,7 +94,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 

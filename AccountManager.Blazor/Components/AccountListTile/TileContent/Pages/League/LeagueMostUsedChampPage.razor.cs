@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     public partial class LeagueMostUsedChampPage
     {
         [Parameter]
-        public Account Account { get; set; } = new();
+        public Account? Account { get; set; }
         PieChart? displayGraph;
         private Account _account = new();
         private PieChart<PieChartData>? pieChart;
@@ -59,7 +59,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 

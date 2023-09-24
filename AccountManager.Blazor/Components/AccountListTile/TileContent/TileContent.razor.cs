@@ -7,8 +7,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
     public partial class TileContent
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
 
         [Parameter]
         public EventCallback MouseEnterGraph { get; set; }
@@ -17,13 +17,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         public EventCallback MouseExitGraph { get; set; }
         public Rank? Rank { get; set; }
 
-        private IPlatformService _platformService;
-        private Account _account = new();
+        private IPlatformService? _platformService;
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
-
-            if (Account is null)
+            if (Account is null || _platformService is null)
                 return;
 
             _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
@@ -31,17 +29,19 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
-            {
-                _account = Account;
-                var rankResponse = await _platformService.TryFetchRank(Account);
-                Rank = rankResponse.Item2;
-                await InvokeAsync(() => StateHasChanged());
-            }
+            if (Account is null || _platformService is null)
+                return;
+
+            var rankResponse = await _platformService.TryFetchRank(Account);
+            Rank = rankResponse.Item2;
+            await InvokeAsync(() => StateHasChanged());
         }
 
         public void RefreshData()
         {
+            if (Account is null)
+                return;
+
             var cacheKeys = typeof(ILeagueGraphService).GetMembers()
             .Concat(typeof(IValorantGraphService).GetMembers())
             .Concat(typeof(ITeamFightTacticsGraphService).GetMembers())

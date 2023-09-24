@@ -15,10 +15,12 @@
 @if (Settings.ShowAccountDetails)
 {
     <div class="data-page-container">
-        @if (pages?.Count > 0)
-        {
-            <DynamicComponent Type="pages[activePage]" Parameters="pageParams"></DynamicComponent>
-        }
+        <CascadingValue Value="Account">
+            @if (pages?.Count > 0)
+            {
+                <DynamicComponent Type="pages[activePage]" Parameters="pageParams"></DynamicComponent>
+            }
+        </CascadingValue>
     </div>
     <div class="carousel-indicators">
         <div>

@@ -8,8 +8,8 @@ namespace AccountManager.Blazor.Components
     public partial class AccountEditModal
     {
 
-        [Parameter, EditorRequired]
-        public Account Account { get; set; } = new ();
+        [CascadingParameter, EditorRequired]
+        public Account? Account { get; set; }
         [Parameter, EditorRequired]
         public Action Close { get; set; } = delegate { };
         private bool passwordVisible = false;
@@ -23,6 +23,9 @@ namespace AccountManager.Blazor.Components
         }
         public async Task Submit()
         {
+            if (Account is null)
+                return;
+
             var account = _appState.Accounts.FirstOrDefault((acc) => acc.Id == Account.Id);
             if (account is null)
                 return;

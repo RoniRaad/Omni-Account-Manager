@@ -3,9 +3,12 @@
 @using AccountManager.Core.Models
 @using AccountManager.Core.Services
 @using Blazorise.Charts
+@using Microsoft.Extensions.Caching.Distributed;
 @inject IAppState _state
+@inject IDistributedCache _persistantCache
 @inject IAlertService _alertService
 @inject ILeagueGraphService _leagueGraphService
+@inject IJSRuntime _jsRuntime
 
 @if (displayGraph is null)
 {
@@ -18,5 +21,5 @@ else if (displayGraph?.Data?.Any() is not true)
     <h5 class="no-data-label">No data available</h5>
 }
 
-<LineChart Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
+<LineChart @onclick="CacheDatasetHiddenStatus" Class="@(displayGraph?.Data?.Any() is not true ? " d-none" : "")" @ref="lineChart" Options="lineChartOptions" TItem="CoordinatePair"></LineChart>
 

@@ -29,7 +29,7 @@
 
 @if (showImportModal)
 {
-	<AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ImportAccountsModal Close="() => { showImportModal = false; uriHelper.NavigateTo(uriHelper.Uri, forceLoad:true); }"></AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ImportAccountsModal>
+	<AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ImportAccountsModal Close="@(() => { showImportModal = false; uriHelper.NavigateTo("/reload"); })"></AccountManager.Blazor.Components.Modals.ImportExportAccountModal.ImportAccountsModal>
 }
 
 @code {

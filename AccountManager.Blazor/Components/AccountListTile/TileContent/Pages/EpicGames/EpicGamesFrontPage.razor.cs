@@ -11,27 +11,22 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
     [AccountTilePage(Core.Enums.AccountType.EpicGames, 0)]
     public partial class EpicGamesFrontPage
     {
-        private Account _account = new();
         private bool epicInstallNotFound = false;
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
         List<EpicGamesInstalledGame> Games { get; set; } = new();
-
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
 
         protected override async Task OnParametersSetAsync()
         {
-             _account = Account;
-
             await base.OnParametersSetAsync();
         }
         private string selectedEpicGame = "none";
 
         public void SetGame(string appId)
         {
+            if (Account is null)
+                return;
+
             _persistantCache.SetString($"{Account.Id}.SelectedEpicGame", appId);
         }
 
