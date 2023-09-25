@@ -16,7 +16,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         [Parameter, EditorRequired]
         public Action ReloadList { get; set; } = delegate { };
         [Parameter, EditorRequired]
-        public Action OpenEditModal { get; set; } = delegate { };
+        public EventCallback<Account> OpenEditModal { get; set; }
 
         private bool graphIsHovered = false;
         private bool cardIsHovered = false;
@@ -38,7 +38,20 @@ namespace AccountManager.Blazor.Components.AccountListTile
         {
             if (cardStyle == "")
                 return;
+
+            shouldRender = true;
             showFullTile = true;
+            StateHasChanged();
+            shouldRender = false;
+        }
+
+        private void CloseSingleAccountModal()
+        {
+            showFullTile = false;
+            
+            shouldRender = true;
+            InvokeAsync(() => StateHasChanged());
+            shouldRender = false;
         }
 
         private void CardHovered()

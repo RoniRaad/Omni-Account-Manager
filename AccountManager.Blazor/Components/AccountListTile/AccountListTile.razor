@@ -22,15 +22,15 @@
 
 <CascadingValue Value="Account">
     <CascadingValue Value="_settings">
-        <div @onmouseleave="(e) => CardUnHovered()" @onmouseenter="(e) => CardHovered()" class="card" style="@cardStyle">
+        <div @onmouseleave="CardUnHovered" @onmouseenter="CardHovered" class="card" style="@cardStyle">
             <div class="card-body" @onclick="OpenSingleAccountModal">
                 <TileTopBar></TileTopBar>
             </div>
-            <ul @onmouseleave="(e) => CardHovered()" @onmouseenter="(e) => CardUnHovered()" class="list-group list-group-flush" @onclick="OpenSingleAccountModal">
+            <ul @onmouseleave="CardHovered" @onmouseenter="CardUnHovered" class="list-group list-group-flush" @onclick="OpenSingleAccountModal">
 		        <TileContent></TileContent>
 	        </ul>
 	        <div class="container account-btn-container">
-                <ButtonContainer OpenEditModal="OpenEditModal" ReloadList="ReloadList" ></ButtonContainer>
+                <ButtonContainer OpenEditModal="OpenEditModal" ReloadList="ReloadList"></ButtonContainer>
 	        </div>
         </div>
         </CascadingValue>
@@ -39,6 +39,6 @@
 
 @if (showFullTile)
 {
-    <SingleAccountModalFrame Account="Account" Close="() => {showFullTile = false; InvokeAsync(() => StateHasChanged());}"></SingleAccountModalFrame>
+    <SingleAccountModalFrame Account="Account" Close="CloseSingleAccountModal"></SingleAccountModalFrame>
 }
 

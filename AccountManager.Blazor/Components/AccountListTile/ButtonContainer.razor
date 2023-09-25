@@ -34,7 +34,7 @@
 		<div class="dropdown dropend">
 			<span class="oi oi-wrench" title="Configure" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
 			<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-				<a class="dropdown-item" @onclick="OpenEditModal">Edit account details</a>
+				<a class="dropdown-item" @onclick="() => OpenEditModal.InvokeAsync(Account)">Edit account details</a>
 				<a class="dropdown-item" @onclick="ToggleContentViewAsync">Toggle content view</a>
 			</div>
 		</div>

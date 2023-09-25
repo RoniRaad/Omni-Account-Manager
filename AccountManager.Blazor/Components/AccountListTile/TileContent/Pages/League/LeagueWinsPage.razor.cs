@@ -14,6 +14,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         public Account? Account { get; set; }
         LineGraph? displayGraph;
         LineChart<CoordinatePair>? lineChart;
+        private bool shouldRender = false;
 
         private readonly LineChartOptions lineChartOptions = new()
         {
@@ -104,10 +105,17 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 await HandleRedraw();
         }
 
+        protected override bool ShouldRender()
+        {
+            return shouldRender;
+        }
+
         protected override async Task OnParametersSetAsync()
         {
-            if (Account is null)
+            if (Account is null || _account == Account)
                 return;
+
+            _account = Account;
 
             try
             {
@@ -135,7 +143,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             }
 
             await HandleRedraw();
+            shouldRender = true;
             await InvokeAsync(() => StateHasChanged());
+            shouldRender = false;
         }
 
         private async Task CacheDatasetHiddenStatus()

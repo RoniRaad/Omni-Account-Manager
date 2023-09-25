@@ -18,7 +18,7 @@
         <CascadingValue Value="Account">
             @if (pages?.Count > 0)
             {
-                <DynamicComponent Type="pages[activePage]" Parameters="pageParams"></DynamicComponent>
+                <DynamicComponent @key="activePage" Type="pages[activePage]" Parameters="pageParams"></DynamicComponent>
             }
         </CascadingValue>
     </div>

@@ -16,7 +16,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         public Action ReloadList { get; set; } = delegate { };
 
         [Parameter]
-        public Action OpenEditModal { get; set; } = () => { };
+        public EventCallback<Account> OpenEditModal { get; set; }
 
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";

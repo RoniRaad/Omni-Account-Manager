@@ -11,7 +11,7 @@
 @inject IGenericFactory<AccountType, IPlatformService> _platformServiceFactory
 
 <li class="list-group-item" style="padding:8px">
-    <span class="oi oi-reload" @onclick="RefreshData" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph" />
+    <span class="oi oi-reload" @onclick="RefreshData" @onmouseleave="MouseExitGraph" @onmouseenter="MouseEnterGraph" />
     <div>
         <p class="account-title">@Account?.Username</p>
         @if (string.IsNullOrEmpty(Rank?.Tier) && string.IsNullOrEmpty(Rank?.Ranking))
@@ -22,7 +22,7 @@
         {
             <p class="account-rank" style="color:@Rank?.HexColor">@Rank?.Tier @Rank?.Ranking</p>
         }
-        <div class="tile-content-wrapper" @onmouseout="MouseExitGraph" @onmouseover="MouseEnterGraph">
+        <div class="tile-content-wrapper" @onmouseleave="MouseExitGraph" @onmouseenter="MouseEnterGraph">
             <TileContentData></TileContentData>
         </div>
     </div>

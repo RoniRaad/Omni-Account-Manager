@@ -44,6 +44,19 @@ namespace AccountManager.Blazor.Pages
         {
             addAccountPrompt = false;
         }
+
+        public void OnDrop() => _appState.SaveAccountOrder();
+
+        public string AccountListItemClass(Account account)
+        {
+            return _accountFilterService.AccountTypeFilter.Contains(account.AccountType) && account?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none";
+        }
+
+        public void OpenEditModal(Account account)
+        {
+            editAccountTarget = account;
+            InvokeAsync(() => StateHasChanged());
+        }
     }
 }
 
