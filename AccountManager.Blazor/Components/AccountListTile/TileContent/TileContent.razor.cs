@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using AccountManager.Core.Interfaces;
 using AccountManager.Infrastructure.Clients;
+using System.Security.Principal;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
@@ -19,12 +20,14 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         public Rank? Rank { get; set; }
 
         private IPlatformService? _platformService;
+        private Account _account = new();
 
-        protected override void OnInitialized()
+        protected override void OnParametersSet()
         {
-            if (Account is null || _platformService is null)
+            if (_account == Account || _platformServiceFactory is null)
                 return;
 
+            _account = Account;
             _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
         }
 

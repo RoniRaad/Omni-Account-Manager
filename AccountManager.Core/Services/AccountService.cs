@@ -50,21 +50,28 @@ namespace AccountManager.Core.Services
             bool platformIdUpdated = false;
             List<Task> accountTasks = new();
             var accounts = await _accountRepository.GetAll(_authService.PasswordHash);
-
             var accountsCount = accounts.Count;
+
             for (int i = 0; i < accountsCount; i++)
             {
                 var account = accounts[i];
-                var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
-
-                if (string.IsNullOrEmpty(account.PlatformId))
+                if (string.IsNullOrEmpty(account.Username) || string.IsNullOrEmpty(account.Password) || string.IsNullOrEmpty(account.Name))
                 {
-                    accountTasks.Add(Task.Run(async () =>
+                    await DeleteAccountAsync(account);
+                }
+                else
+                {
+                    var platformService = _platformServiceFactory.CreateImplementation(account.AccountType);
+
+                    if (string.IsNullOrEmpty(account.PlatformId))
                     {
-                        account.PlatformId = (await platformService.TryFetchId(account)).Item2;
-                        await SaveAccountAsync(account);
-                        platformIdUpdated = true;
-                    }));
+                        accountTasks.Add(Task.Run(async () =>
+                        {
+                            account.PlatformId = (await platformService.TryFetchId(account)).Item2;
+                            await SaveAccountAsync(account);
+                            platformIdUpdated = true;
+                        }));
+                    }
                 }
             }
 
