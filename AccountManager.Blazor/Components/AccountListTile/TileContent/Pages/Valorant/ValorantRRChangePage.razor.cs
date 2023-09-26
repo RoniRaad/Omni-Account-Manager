@@ -8,8 +8,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     [AccountTilePage(Core.Enums.AccountType.Valorant, 1)]
     public partial class ValorantRRChangePage
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
 
         private Account _account = new();
         LineChart<CoordinatePair>? lineChart;
@@ -71,6 +73,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateValorantRRChange));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateValorantRRChange()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display RR change graph for account {Account.Name}.");
+            }
+
+            await HandleRedraw();
+        }
+
         async Task HandleRedraw()
         {
             lineChart?.Clear();
@@ -104,20 +129,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
         protected override async Task OnParametersSetAsync()
         {       
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 
-                try
-                {
-                    displayGraph = await _valorantGraphService.GetRankedRRChangeLineGraph(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display RR change graph for account {Account.Name}.");
-                }
-
-                await HandleRedraw();
+                await UpdateValorantRRChange();
             }
         }
 

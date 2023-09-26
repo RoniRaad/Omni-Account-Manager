@@ -18,6 +18,14 @@ namespace AccountManager.Blazor.Components
                 _accountFilterService.AccountTypeFilter.RemoveAll((type) => type == accountType);
 
             _accountFilterService.Save();
+            InvokeAsync(StateHasChanged);
         }
-    }
+
+        private void OnFilterInputChange(ChangeEventArgs e) 
+        { 
+            _accountFilterService.AccountNameFilter = e?.Value?.ToString() ?? string.Empty; 
+            _accountFilterService.Save();
+			InvokeAsync(StateHasChanged);
+		}
+	}
 }

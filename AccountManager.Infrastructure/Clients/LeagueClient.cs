@@ -55,7 +55,7 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<List<Queue>> GetRankQueuesByPuuidAsync(Account account)
         {
             var sessionToken = await _leagueTokenClient.GetLeagueSessionToken();
-            var region = await GetPlatformEdge(account);
+            var region = await GetPlatformEdge(account) ?? "NA1";
             var client = _httpClientFactory.CreateClient($"League{region.ToUpper()}");
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
@@ -118,7 +118,7 @@ namespace AccountManager.Infrastructure.Clients
                 return new();
 
             var token = await _leagueTokenClient.GetLeagueSessionToken();
-            var regionInfo = await GetPlatformEdge(account);
+            var regionInfo = await GetPlatformEdge(account) ?? "NA1";
             var client = _httpClientFactory.CreateClient($"LeagueSession{regionInfo.ToUpper()}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
@@ -169,7 +169,7 @@ namespace AccountManager.Infrastructure.Clients
                 return new();
 
             var token = await _leagueTokenClient.GetLeagueSessionToken();
-            var region = await GetPlatformEdge(account);
+            var region = await GetPlatformEdge(account) ?? "NA1";
             var client = _httpClientFactory.CreateClient($"LeagueSession{region.ToUpper()}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             try
@@ -186,29 +186,32 @@ namespace AccountManager.Infrastructure.Clients
 
         }
 
-        public async Task<string> GetPlatformEdge(Account account)
+        public async Task<string?> GetPlatformEdge(Account account)
         {
             var userInfo = await _leagueTokenClient.GetUserInfo(account);
+            if (string.IsNullOrEmpty(userInfo.Trim('\"')))
+                return null;
+
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(userInfo);
             parsedIdToken.Payload.TryGetValue("lol", out object? leagueInfoJson);
 
             if (leagueInfoJson is null)
-                return "";
+                return null;
 
             var regionInfoJson = leagueInfoJson.ToString();
 
             try
             {
                 var region = JsonSerializer.Deserialize<LeagueTokenInfo>(regionInfoJson ?? "");
-                return region?.Pid ?? "";
+                return region?.Pid ?? null;
             }
             catch
             {
                 _logger.LogError("Unable to deserialize region info jwt for league account with username {username}", account.Username);
             }
 
-            return "";
+            return null;
         }
     }
 }

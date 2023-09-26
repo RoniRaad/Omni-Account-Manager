@@ -14,13 +14,22 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
         private bool epicInstallNotFound = false;
         [CascadingParameter]
         public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         List<EpicGamesInstalledGame> Games { get; set; } = new();
+        private string selectedEpicGame = "none";
 
         protected override async Task OnParametersSetAsync()
         {
             await base.OnParametersSetAsync();
         }
-        private string selectedEpicGame = "none";
+        private async Task UpdateGames()
+        {
+            if (Account is null)
+                return;
+
+            await RefreshGamesAsync();
+        }
 
         public void SetGame(string appId)
         {
@@ -60,6 +69,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected async override Task OnInitializedAsync()
         {
+            RegisterTileDataRefresh(() => Task.Run(UpdateGames));
             await RefreshGamesAsync();
             await base.OnInitializedAsync();
         }

@@ -8,7 +8,7 @@ namespace AccountManager.Blazor.Pages
         protected async override Task OnInitializedAsync()
         {
             await Task.Delay(100);
-            _navigationManager.NavigateTo("/");
+            _navigationManager.NavigateTo("/accountlist");
         }
     }
 }

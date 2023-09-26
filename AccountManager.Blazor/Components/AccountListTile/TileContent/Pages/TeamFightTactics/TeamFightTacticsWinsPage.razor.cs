@@ -9,9 +9,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
     public partial class TeamFightTacticsWinsPage
     {
         private Account _account = new();
-        [Parameter]
-        public Account? Account { get; set; }
-
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         LineChart<CoordinatePair>? lineChart;
         private readonly LineChartOptions lineChartOptions = new()
         {
@@ -71,6 +72,28 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateWins));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateWins()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+            }
+            catch
+            {
+                displayGraph = new();
+            }
+
+            await HandleRedraw();
+        }
 
         async Task HandleRedraw()
         {
@@ -117,16 +140,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
             if (_account != Account && Account is not null)
             {
                 _account = Account;
-                try
-                {
-                    displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
-                }
-                catch
-                {
-                    displayGraph = new();
-                }
 
-                await HandleRedraw();
+                await UpdateWins();
             }
         }
 

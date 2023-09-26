@@ -10,6 +10,8 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     public partial class LeagueWinsPage
     {
         private Account _account = new();
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         [CascadingParameter]
         public Account? Account { get; set; }
         LineGraph? displayGraph;
@@ -98,24 +100,23 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             });
             await lineChart.AddDatasetsAndUpdate(chartDatasets.ToArray());
         }
-        
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+
+		protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+			if (firstRender)
                 await HandleRedraw();
         }
 
-        protected override bool ShouldRender()
+        protected override Task OnInitializedAsync()
         {
-            return shouldRender;
+            RegisterTileDataRefresh.Invoke(() => Task.Run(UpdateWins));
+            return base.OnInitializedAsync();
         }
 
-        protected override async Task OnParametersSetAsync()
+        private async Task UpdateWins()
         {
-            if (Account is null || _account == Account)
+            if (Account is null)
                 return;
-
-            _account = Account;
 
             try
             {
@@ -146,6 +147,16 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             shouldRender = true;
             await InvokeAsync(() => StateHasChanged());
             shouldRender = false;
+        }
+
+        protected override async Task OnParametersSetAsync()
+        {
+            if (Account is null || _account == Account)
+                return;
+
+            _account = Account;
+
+            await UpdateWins();
         }
 
         private async Task CacheDatasetHiddenStatus()

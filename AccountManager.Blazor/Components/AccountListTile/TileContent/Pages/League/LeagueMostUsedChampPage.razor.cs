@@ -8,8 +8,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     [AccountTilePage(Core.Enums.AccountType.League, 3)]
     public partial class LeagueMostUsedChampPage
     {
-        [Parameter]
-        public Account? Account { get; set; }
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         PieChart? displayGraph;
         private Account _account = new();
         private PieChart<PieChartData>? pieChart;
@@ -39,6 +41,28 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateMostUsedChamps));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateMostUsedChamps()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _leagueGraphService.GetRankedChampSelectPieChart(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display league most used champs for account {Account.Name}");
+            }
+            await HandleRedraw();
+        }
+
         async Task HandleRedraw()
         {
             pieChart?.Clear();
@@ -63,17 +87,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 _account = Account;
 
-                try
-                {
-                    displayGraph = await _leagueGraphService.GetRankedChampSelectPieChart(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display league most used champs for account {Account.Name}");
-                }
-                await HandleRedraw();
-                await InvokeAsync(() => StateHasChanged());
-
+                await UpdateMostUsedChamps();
             }
         }
 

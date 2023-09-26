@@ -8,9 +8,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     [AccountTilePage(Core.Enums.AccountType.League, 1)]
     public partial class LeagueRecentWinratePage
     {
-        [Parameter]
-        public Account? Account { get; set; }
-
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         private BarChart? displayGraph;
         private readonly List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), 
             ChartColor.FromRgba(54, 162, 235, 0.2f),
@@ -64,6 +65,28 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
             },
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateWinRate));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateWinRate()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display league winrate by champ for account {Account.Name}");
+            }
+            await HandleRedraw();
+        }
+
         async Task HandleRedraw()
         {
             barChart?.Clear();
@@ -74,16 +97,6 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 return;
             var chartDatasets = new BarChartDataset<double?> { Data = datasets?.Data?.Select((data) => data.Value).ToList(), BackgroundColor = backgroundColors, BorderColor = borderColors, BorderWidth = 1, Label = datasets?.Title, SkipNull = false };
             await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
-        }
-
-        protected override async Task OnInitializedAsync()
-        {
-            if (Account is null)
-                return;
-
-            _account = Account;
-            displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
-            await HandleRedraw();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -98,17 +111,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             {
                 _account = Account;
 
-                try
-                {
-                    displayGraph = await _leagueGraphService.GetRankedWinrateByChampBarChartAsync(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display league winrate by champ for account {Account.Name}");
-                }
-                await HandleRedraw();
-                await InvokeAsync(() => StateHasChanged());
-
+                await UpdateWinRate();
             }
         }
     }

@@ -1,5 +1,4 @@
 using AccountManager.Core.Static;
-using Microsoft.AspNetCore.Components;
 
 namespace AccountManager.Blazor.Shared
 {
@@ -34,25 +33,5 @@ namespace AccountManager.Blazor.Shared
             else
                 filterSidebarStyle = "transform: translate(-188px); animation: popin-translate .3s ease; width: 0px";
         }
-
-        public async Task LoginAsync()
-        {
-            await _authService.LoginAsync(Password);
-        }
-
-        public async Task RegisterAsync()
-        {
-            await _authService.RegisterAsync(Password);
-        }
-
-        public async Task RememberMeChanged(ChangeEventArgs e)
-        {
-            var isChecked = (bool)(e?.Value ?? false);
-            await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberMe, isChecked);
-            RememberMe = isChecked;
-
-            if (!isChecked)
-                await _persistantCache.RemoveAsync(CacheKeys.LoginCacheKeys.RememberedPassword);
-        } 
     }
 }

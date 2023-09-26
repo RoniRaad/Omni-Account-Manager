@@ -15,6 +15,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         [Parameter]
         public EventCallback MouseExitGraph { get; set; }
+        private event Action RefreshTileDataRequested = delegate { };
         public Rank? Rank { get; set; }
 
         private IPlatformService? _platformService;
@@ -41,12 +42,12 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         {
             if (Account is null)
                 return;
-
             var cacheKeys = typeof(ILeagueGraphService).GetMembers()
             .Concat(typeof(IValorantGraphService).GetMembers())
             .Concat(typeof(ITeamFightTacticsGraphService).GetMembers())
             .Concat(typeof(ILeagueClient).GetMembers())
-            .Concat(typeof(IValorantClient).GetMembers()).Select(method => $"{Account.Username}.{Account.AccountType}.{method.Name}");
+            .Concat(typeof(IValorantClient).GetMembers())
+            .Select(method => $"{Account.Username}.{Account.AccountType}.{method.Name}");
 
             foreach (var key in cacheKeys)
             {
@@ -64,7 +65,12 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
                 Username = Account.Username,
             };
 
-            InvokeAsync(() => StateHasChanged());
+            RefreshTileDataRequested.Invoke();
+        }
+
+        public void RegisterTileDataRefresh(Action callback)
+        {
+            RefreshTileDataRequested += callback;
         }
     }
 }

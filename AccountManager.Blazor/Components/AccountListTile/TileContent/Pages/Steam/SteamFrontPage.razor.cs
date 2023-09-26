@@ -17,18 +17,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         [Parameter]
         public Account? Account { get; set; }
         List<SteamGameManifest> Games { get; set; } = new();
-
-        protected override void OnInitialized()
-        {
-            if (Account is null)
-                return;
-
-            _account = Account;
-        }
-
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         protected override async Task OnParametersSetAsync()
         {
-            if (Account is null)
+            if (Account is null || Account != _account)
                 return;
 
             _account = Account;
@@ -88,6 +81,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         {
             await RefreshGamesAsync();
             await base.OnInitializedAsync();
+            RegisterTileDataRefresh(() => Task.Run(RefreshGamesAsync));
         }
     }
 }

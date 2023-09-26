@@ -21,7 +21,7 @@ namespace AccountManager.Core.Services
             AuthInitialized = fileSystemService.ValidateData();
         }
 
-        public async Task LoginAsync(string password)
+        public async Task<bool> LoginAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = _accountRepository.TryDecrypt(PasswordHash);
@@ -32,15 +32,19 @@ namespace AccountManager.Core.Services
 
             if (await _persistantCache.GetAsync<bool>(CacheKeys.LoginCacheKeys.RememberMe))
                 await _persistantCache.SetAsync(CacheKeys.LoginCacheKeys.RememberedPassword, password);
+
+            return LoggedIn;
         }
 
-        public async Task RegisterAsync(string password)
+        public async Task<bool> RegisterAsync(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = true;
-        }
 
-        public async Task ChangePasswordAsync(string oldPassword, string newPassword)
+			return LoggedIn;
+		}
+
+		public async Task ChangePasswordAsync(string oldPassword, string newPassword)
         {
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);

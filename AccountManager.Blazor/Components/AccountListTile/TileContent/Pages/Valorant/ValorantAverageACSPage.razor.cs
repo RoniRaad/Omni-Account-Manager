@@ -8,9 +8,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     [AccountTilePage(Core.Enums.AccountType.Valorant, 2)]
     public partial class ValorantAverageACSPage
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
-
+        [CascadingParameter]
+        public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         private Account _account = new();
         BarChart<double?>? barChart;
         private readonly BarChartOptions barChartOptions = new()
@@ -49,6 +50,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
             },
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateAverageACS));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateAverageACS()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _valorantGraphService.GetRankedACS(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display average ranked ACS for account {Account.Name}.");
+            }
+
+            await HandleRedraw();
+            await InvokeAsync(() => StateHasChanged());
+        }
 
         async Task HandleRedraw()
         {
@@ -70,21 +94,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 
-                try
-                {
-                    displayGraph = await _valorantGraphService.GetRankedACS(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display average ranked ACS for account {Account.Name}.");
-                }
-
-                await HandleRedraw();
-                await InvokeAsync(() => StateHasChanged());
+                await UpdateAverageACS();
             }
         }
 

@@ -180,8 +180,7 @@ namespace AccountManager.Infrastructure.Clients
                 || string.IsNullOrEmpty(entitlement))
                 return string.Empty;
 
-            var region = await _riotClient.GetValorantRegionInfo(account);
-            var client = _httpClientFactory.CreateClient($"LeagueSession{leagueInfo?.Pid ?? ""}");
+            var client = _httpClientFactory.CreateClient($"LeagueSession{leagueInfo?.Pid ?? "NA1"}");
 
             client.DefaultRequestHeaders.Authorization = new("Bearer", riotToken.AccessToken);
             var countryId = leagueInfo?.Pid ?? "na1";

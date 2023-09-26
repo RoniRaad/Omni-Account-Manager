@@ -23,7 +23,9 @@
             <p class="account-rank" style="color:@Rank?.HexColor">@Rank?.Tier @Rank?.Ranking</p>
         }
         <div class="tile-content-wrapper" @onmouseleave="MouseExitGraph" @onmouseenter="MouseEnterGraph">
+            <CascadingValue Value="RegisterTileDataRefresh" Name="RegisterTileDataRefresh">
             <TileContentData></TileContentData>
+        </CascadingValue>
         </div>
     </div>
 </li>

@@ -7,7 +7,7 @@
         string PasswordHash { get; set; }
 
         Task ChangePasswordAsync(string oldPassword, string newPassword);
-        Task LoginAsync(string password);
-        Task RegisterAsync(string password);
+        Task<bool> LoginAsync(string password);
+        Task<bool> RegisterAsync(string password);
     }
 }
