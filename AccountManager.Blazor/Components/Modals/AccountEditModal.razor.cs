@@ -8,7 +8,7 @@ namespace AccountManager.Blazor.Components
     public partial class AccountEditModal
     {
 
-        [CascadingParameter, EditorRequired]
+        [Parameter, EditorRequired]
         public Account? Account { get; set; }
         [Parameter, EditorRequired]
         public Action Close { get; set; } = delegate { };

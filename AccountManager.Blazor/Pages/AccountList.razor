@@ -34,7 +34,7 @@
         {
             <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="OnDrop" ItemWrapperClass="AccountListItemClass" Items="_appState?.Accounts ?? new()" TItem="Account">
                 <CascadingValue Value="@context">
-                    <AccountListTile @key="@context.Id" ReloadList="LoadList" RenderButtons="false" OpenEditModal="OpenEditModal"></AccountListTile>
+                    <AccountListTile @key="@context.Id" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="OpenEditModal"></AccountListTile>
                 </CascadingValue>
             </Dropzone>
         }

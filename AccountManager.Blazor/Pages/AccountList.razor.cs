@@ -25,10 +25,20 @@ namespace AccountManager.Blazor.Pages
 			}
 		}
 
-        public void LoadList()
+        public async Task LoadList()
         {
             amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
-            InvokeAsync(StateHasChanged);
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "filter-indicator");
+                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
+                await _jsRuntime.InvokeVoidAsync("showElement", "new-account-placeholder");
+            }
+            catch
+            {
+
+            }
+            await InvokeAsync(StateHasChanged);
         }
 
         public void StartAddAccount()

@@ -7,7 +7,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
     [SingleAccountPage("Data", Core.Enums.AccountType.Valorant, 1)]
     public partial class ValorantGraphPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]

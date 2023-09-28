@@ -239,6 +239,9 @@ namespace AccountManager.Infrastructure.Clients
 
         private string? GetRegionFromLoginToken(string loginToken)
         {
+            if (string.IsNullOrEmpty(loginToken))
+                return "NA1";
+
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var parsedIdToken = jwtSecurityTokenHandler.ReadJwtToken(loginToken);
             parsedIdToken.Payload.TryGetValue("region", out object? region);

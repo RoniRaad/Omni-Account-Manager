@@ -14,7 +14,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         private string selectedSteamGame = "none";
         private Account _account = new();
         private bool steamInstallNotFound = false;
-        [Parameter]
+        [CascadingParameter]
         public Account? Account { get; set; }
         List<SteamGameManifest> Games { get; set; } = new();
         [CascadingParameter(Name = "RegisterTileDataRefresh")]

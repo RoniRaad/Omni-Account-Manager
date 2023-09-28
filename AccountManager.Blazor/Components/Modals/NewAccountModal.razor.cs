@@ -17,6 +17,7 @@ namespace AccountManager.Blazor.Components.Modals
 
             _appState.Accounts.Add(NewAccount);
             _accountService.SaveAccountAsync(NewAccount);
+            _navManager.NavigateTo("/reload");
             Close();
         }
     }

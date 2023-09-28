@@ -20,27 +20,25 @@
         <div class="modal-content">
             <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
             @if (Account is not null){
-                <div class="info-panel-container">
-                    <InfoPanel Account="Account" Pages="GetPages(Account.AccountType).ToList()"></InfoPanel>
-                </div>
-                <div class="account-details-panel">
-                    <DynamicComponent Type="GetAccountDetailsPanel(Account.AccountType)" Parameters="@(new Dictionary<string, object>(){ {"Account", Account} })"></DynamicComponent>
-                </div>
+                <CascadingValue Value="Account">
+                    <div class="info-panel-container">
+                        <InfoPanel Pages="GetPages(Account.AccountType).ToList()"></InfoPanel>
+                    </div>
+                    <div class="account-details-panel">
+                            <DynamicComponent Type="GetAccountDetailsPanel(Account.AccountType)"></DynamicComponent>
+                    </div>
+                </CascadingValue>
             }
 	    </div>
 	</div>
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    [CascadingParameter, EditorRequired]
     public Account? Account { get; set; }
-    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     [Parameter, EditorRequired]
-    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public EventCallback Close { get; set; }
-    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     bool loginDisabled = false;
     string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";

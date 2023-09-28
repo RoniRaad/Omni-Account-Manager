@@ -7,7 +7,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Leagu
     [SingleAccountPage("Data", Core.Enums.AccountType.League)]
     public partial class LeagueGraphPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]

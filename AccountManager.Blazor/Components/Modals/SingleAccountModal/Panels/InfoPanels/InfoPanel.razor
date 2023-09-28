@@ -12,20 +12,18 @@
     [Parameter]
     public List<Type>? Pages { get; set; }
 
-    [Parameter]
+    [CascadingParameter]
     public Account? Account { get; set; }
 
     int pageIndex = 0;
     private Dictionary<string, object> parameters = new Dictionary<string, object>
         {
-            ["Account"] = new Account(),
             ["IncrementPage"] = () => { },
             ["DecrementPage"] = () => { },
     };
 
     protected override Task OnInitializedAsync()
     {
-        parameters["Account"] = Account ?? new();
         parameters["IncrementPage"] = (object)IncrementPage;
         parameters["DecrementPage"] = (object)DecrementPage;
         var page = Pages?.ElementAt(pageIndex);

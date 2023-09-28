@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Steam
     [SingleAccountPage("Game Select", Core.Enums.AccountType.Steam, 0)]
     public partial class SteamGameSelectPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]

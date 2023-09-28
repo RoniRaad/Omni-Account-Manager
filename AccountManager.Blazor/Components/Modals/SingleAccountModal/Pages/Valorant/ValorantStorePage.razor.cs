@@ -8,7 +8,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valor
     [SingleAccountPage("Store Front", Core.Enums.AccountType.Valorant, 0)]
     public partial class ValorantStorePage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]
