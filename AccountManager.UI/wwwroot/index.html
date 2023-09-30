@@ -19,49 +19,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script>
-        const $body = $("body");
-
-        const observer = new MutationObserver((mutationsList, observer) => {
-            const element = document.querySelector("#accounts-grid");
-            if (element && element.children.length > 1) {
-                window.appendElement("accounts-grid", "filter-indicator");
-                window.appendElement("accounts-grid", "new-account-placeholder");
-                window.showElement("new-account-placeholder");
-                observer.disconnect();
-            }
-        });
-
-        const modalObserver = new MutationObserver(mutationsList => {
-            for (let mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    for (let addedNode of mutation.addedNodes) {
-                        if (addedNode.classList && addedNode.classList.contains('modal')) {
-                            $body.css({ overflow: 'hidden' });
-                            return;
-                        }
-                    }
-                    for (let removedNode of mutation.removedNodes) {
-                        if (removedNode.classList && removedNode.classList.contains('modal')) {
-                            $body.css({ overflow: 'auto' });
-                            return;
-                        }
-                    }
-                }
-            }
-        });
         Chart.defaults.scale.ticks.autoSkipPadding = 50;
         Chart.defaults.scale.ticks.autoSkip = false;
 
-        window.appendElement = (parentId, childId) => {
-            const parentElement = document.getElementById(parentId);
-            const childElement = document.getElementById(childId);
-            parentElement.append(childElement);
-        };
-
-        window.showElement = (elementId) => {
-            const element = document.getElementById(elementId);
-            element.style.display = "initial";
-        };
         window.chartFunctions = {
             getDatasetHiddenStatus: function (chartId) {
                 var chart = Chart.getChart(chartId);
@@ -80,17 +40,6 @@
                 return result;
             }
         };
-        window.startObserver = () => {
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            })
-        };
-
-        modalObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-        })
     </script>
     <div id="blazor-error-ui">
         An unhandled error has occurred.

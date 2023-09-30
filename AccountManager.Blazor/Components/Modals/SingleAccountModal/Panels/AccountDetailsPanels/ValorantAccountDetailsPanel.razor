@@ -51,7 +51,7 @@
 
     protected override void OnInitialized()
     {
-        if (Account is null || _platformService is null)
+        if (Account is null || _platformService is not null)
             return;
 
         _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
