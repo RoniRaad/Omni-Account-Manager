@@ -1,0 +1,93 @@
+﻿body {
+}
+
+div .container-fluid {
+    font-family: Roboto;
+    background-color: var(--primary-light);
+    color: white
+}
+
+.row {
+    margin-right: 0px;
+}
+
+.plk-dd-draggable div {
+    cursor: grab;
+    border-style: dashed;
+    border-color: #ffffff21;
+    border-width: 1px;
+}
+
+div .col {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 0px;
+    align-content: flex-start;
+    font-size: 24px;
+    gap: 24px;
+    padding-bottom: 20px
+}
+
+    div .col span {
+        cursor: pointer
+    }
+
+div .modal {
+    display: block
+}
+
+.input-text {
+    margin-bottom: 12px
+}
+
+.inner-card {
+    background-color: var(--primary-light);
+    color: #d7d7d7 !important;
+}
+
+.clickable-card:hover {
+    background-color: var(--secondary-dark);
+    cursor: pointer;
+    color: #ffffff !important;
+}
+
+.card-placeholder {
+    color: white;
+    margin: 10px;
+    border: 1px dashed grey;
+    background-color: transparent
+}
+
+.filter-indicator-card {
+    color: white;
+    margin: 10px;
+    border: 1px solid #181818;
+    background-color: transparent
+}
+
+.list-group-item-placeholder {
+    color: white;
+    height: 289.6px;
+}
+
+.list-item-placeholder-div {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+p {
+    font-family: none;
+    font-size: 4rem;
+    user-select: none;
+}
+
+.container-fluid {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-top: -12px;
+    justify-content: space-between;
+}

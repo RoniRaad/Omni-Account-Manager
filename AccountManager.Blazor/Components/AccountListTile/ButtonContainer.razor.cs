@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components;
 using AccountManager.Core.Models;
 using System.Reflection;
 using AccountManager.Core.Models.UserSettings;
-using AccountManager.Blazor.Components.Modals;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
@@ -10,15 +9,14 @@ namespace AccountManager.Blazor.Components.AccountListTile
     {
         [CascadingParameter, EditorRequired]
         public AccountListItemSettings Settings { get; set; } = new();
-        [Parameter, EditorRequired]
-        public Account Account { get; set; } = new();
-
+        [CascadingParameter, EditorRequired]
+        public Account? Account { get; set; }
 
         [Parameter, EditorRequired]
         public Action ReloadList { get; set; } = delegate { };
 
         [Parameter]
-        public Action OpenEditModal { get; set; } = () => { };
+        public EventCallback<Account> OpenEditModal { get; set; }
 
         bool loginDisabled = false;
         string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
@@ -26,7 +24,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
         ExportAccountRequest? exportAccountRequest = null;
         async Task Login()
         {
-            if (loginDisabled)
+            if (loginDisabled || Account is null)
                 return;
             loginDisabled = true;
             await _accountService.LoginAsync(Account);
@@ -35,6 +33,9 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         public void Delete()
         {
+            if (Account is null)
+                return;
+
             deleteAccountConfirmationRequest = new ConfirmationRequest()
             {
                 Callback = (userConfirmed) =>
@@ -42,7 +43,7 @@ namespace AccountManager.Blazor.Components.AccountListTile
                     if (userConfirmed)
                     {
                         _accountService.DeleteAccountAsync(Account);
-                        _appState.Accounts.RemoveAll((acc) => acc.Id == Account.Id);
+                        _appState.Accounts?.RemoveAll((acc) => acc.Id == Account.Id);
                         ReloadList();
                     }
 

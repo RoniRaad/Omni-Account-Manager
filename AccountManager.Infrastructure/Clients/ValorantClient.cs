@@ -48,7 +48,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<ValorantRankedHistoryResponse?> GetValorantCompetitiveHistory(Account account)
         {
-            var region = await _riotClient.GetRegionInfo(account);
+            var region = await _riotClient.GetValorantRegionInfo(account);
             var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
             var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
@@ -75,7 +75,7 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<List<ValorantSkinLevelResponse>> GetValorantShopDeals(Account account)
         {
             ValorantShopOffers? shopOffers;
-            var region = await _riotClient.GetRegionInfo(account);
+            var region = await _riotClient.GetValorantRegionInfo(account);
             var valClient = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             valClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
             var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);
@@ -127,7 +127,7 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<IEnumerable<ValorantMatch>?> GetValorantGameHistory(Account account)
         {
             ValorantGameHistoryDataResponse? gameHistoryData;
-            var region = await _riotClient.GetRegionInfo(account);
+            var region = await _riotClient.GetValorantRegionInfo(account);
             var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             var expectedVersion = await _riotClient.GetExpectedClientVersion();
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", expectedVersion);
@@ -207,7 +207,7 @@ namespace AccountManager.Infrastructure.Clients
         private async Task<ValorantStoreTotalOffers?> GetAllShopOffers(Account account)
         {
             ValorantStoreTotalOffers? offers;
-            var region = await _riotClient.GetRegionInfo(account);
+            var region = await _riotClient.GetValorantRegionInfo(account);
             var client = _httpClientFactory.CreateClient($"Valorant{region.RegionId.ToUpper()}");
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-Riot-ClientVersion", await _riotClient.GetExpectedClientVersion());
             var riotTokens = await _riotTokenClient.GetRiotTokens(tokenRequest, account);

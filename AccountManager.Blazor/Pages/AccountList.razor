@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/accountlist"
 @using AccountManager.Blazor.Components
 @using AccountManager.Blazor.Components.AccountListTile
 @using AccountManager.Blazor.Components.Modals
@@ -32,36 +32,13 @@
     <div class="row" style="--bs-gutter-x: 0rem">
         @try
         {
-            <Dropzone Id="accounts-grid" Class="display-content" OnItemDrop="() => _appState.SaveAccountOrder()" ItemWrapperClass="@(acc => _accountFilterService.AccountTypeFilter.Contains(acc.AccountType) && acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none" )" Items="_appState?.Accounts ?? new()" TItem="Account">
-                <AccountListTile Account="@context" ReloadList="() => LoadList()" RenderButtons="false" OpenEditModal="() => {editAccountTarget = context; InvokeAsync(() => StateHasChanged());}"></AccountListTile>
+            <Dropzone Footer="NewAccountPlacehold" Id="accounts-grid" Class="display-content" OnItemDrop="OnDrop" ItemWrapperClass="AccountListItemClass" Items="_appState?.Accounts ?? new()" TItem="Account">
+                <CascadingValue Value="@context">
+                    <AccountListTile @key="@context.Id" ReloadList="LoadList" RenderButtons="false" OpenEditModal="OpenEditModal"></AccountListTile>
+                </CascadingValue>
             </Dropzone>
         }
         catch{}
-
-        <div title="@amountOfAccountsFilered accounts filtered" style="@(amountOfAccountsFilered > 0 ? "" : "display:none")" id="filter-indicator" class="filter-indicator">
-            <div class="card filter-indicator-card">
-                <ul class="list-group list-group-flush">
-                    <li class="inner-card list-group-item list-group-item-placeholder">
-                        <div class="list-item-placeholder-div">
-                            <p style="font-family: Roboto;">+@(amountOfAccountsFilered)</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        
-
-        <div id="new-account-placeholder" style="display:none" class="placeholder-account-tile">
-            <div class="card card-placeholder">
-                <ul class="list-group list-group-flush">
-                    <li @onclick="()=>addAccountPrompt=true" class="inner-card clickable-card list-group-item list-group-item-placeholder">
-                        <div class="list-item-placeholder-div">
-                            <p>+</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -73,4 +50,33 @@
 @if (editAccountTarget is not null)
 {
     <AccountEditModal Account="editAccountTarget" Close="() => {editAccountTarget = null; InvokeAsync(() => StateHasChanged());}"></AccountEditModal>
+}
+
+@code{
+    protected RenderFragment NewAccountPlacehold => __builder => 
+     {
+         <div title="@amountOfAccountsFilered accounts filtered" style="@(amountOfAccountsFilered > 0 ? "" : "display:none")" id="filter-indicator" class="filter-indicator">
+             <div class="card filter-indicator-card">
+                 <ul class="list-group list-group-flush">
+                     <li class="inner-card list-group-item list-group-item-placeholder">
+                         <div class="list-item-placeholder-div">
+                             <p style="font-family: Roboto;">+@(amountOfAccountsFilered)</p>
+                         </div>
+                     </li>
+                 </ul>
+             </div>
+         </div>
+
+         <div id="new-account-placeholder"  class="placeholder-account-tile">
+             <div class="card card-placeholder">
+                 <ul class="list-group list-group-flush">
+                     <li @onclick="()=>addAccountPrompt=true" class="inner-card clickable-card list-group-item list-group-item-placeholder">
+                         <div class="list-item-placeholder-div">
+                             <p>+</p>
+                         </div>
+                     </li>
+                 </ul>
+             </div>
+         </div>
+     };
 }

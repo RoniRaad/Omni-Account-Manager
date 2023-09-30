@@ -26,6 +26,7 @@ namespace AccountManager.Infrastructure.Services
 		public async Task ImportAccountsAsync(string password, string filePath)
 		{
 			var accounts = await _fileSystemService.ReadUnmanagedData<List<Account>>(filePath, password);
+			_appState.Accounts ??= new();
             _appState.Accounts.AddRange(accounts.Where((account) =>
 				!_appState.Accounts.Exists((acc) => acc.Id == account.Id)));
 

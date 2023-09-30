@@ -38,7 +38,7 @@
                     <td>
                         <label>
                             <select class="form-select" @onchange="AccountCredentialsChanged">
-                                @foreach (var acc in _state.Accounts.Where((acc) => acc.AccountType == Core.Enums.AccountType.League))
+                                @foreach (var acc in _state?.Accounts?.Where((acc) => acc.AccountType == Core.Enums.AccountType.League) ?? new List<Account>())
                                 {
                                     <option value="@acc.Id" selected="@(_settings.Settings.AccountToUseCredentials == acc.Id)" >@acc.Name</option>
                                 }

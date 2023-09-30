@@ -8,10 +8,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
     [AccountTilePage(Core.Enums.AccountType.TeamFightTactics, 0)]
     public partial class TeamFightTacticsWinsPage
     {
-        private Account _account = new();
-        [Parameter]
-        public Account Account { get; set; } = new();
-
+        private Account? _account = null;
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         LineChart<CoordinatePair>? lineChart;
         private readonly LineChartOptions lineChartOptions = new()
         {
@@ -71,6 +72,28 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateWins));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateWins()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
+            }
+            catch
+            {
+                displayGraph = new();
+            }
+
+            await HandleRedraw();
+        }
 
         async Task HandleRedraw()
         {
@@ -97,12 +120,15 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
         }
         protected override void OnInitialized()
         {
+            if (Account is null)
+                return;
+
             _account = Account;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if (firstRender && Account is not null)
             {
                 displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
                 await HandleRedraw();
@@ -111,19 +137,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
-                try
-                {
-                    displayGraph = await _tftGraphService.GetRankedPlacementOffset(Account);
-                }
-                catch
-                {
-                    displayGraph = new();
-                }
 
-                await HandleRedraw();
+                await UpdateWins();
             }
         }
 

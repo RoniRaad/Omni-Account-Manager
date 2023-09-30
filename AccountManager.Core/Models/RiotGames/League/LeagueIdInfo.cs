@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Models.RiotGames.League
 {
-    public sealed class LeagueIdInfo
+    public sealed class LeagueTokenInfo
     {
         [JsonPropertyName("uid")]
         public long Uid { get; set; }

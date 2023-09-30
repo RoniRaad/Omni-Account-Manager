@@ -37,8 +37,8 @@ namespace AccountManager.Core.Services.GraphServices
 
                 for (int i = matchHistoryResponse?.Games?.Count - 1 ?? 0; i >= 0; i--)
                 {
-                    var game = matchHistoryResponse?.Games?.ElementAt(i) ?? new();
-                    var queueName = queueMapping?.FirstOrDefault(queue => queue.QueueId == game?.Json?.QueueId);
+                    var game = matchHistoryResponse?.Games?[i] ?? new();
+                    var queueName = queueMapping?.Find(queue => queue.QueueId == game?.Json?.QueueId);
 
                     if (game is not null && 
                         game?.Json?.GameCreation is not null && 
@@ -149,9 +149,12 @@ namespace AccountManager.Core.Services.GraphServices
                 if (matchHistoryResponse is null)
                     return new();
 
-                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
+                var matchesGroupedByChamp = matchHistoryResponse.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
 
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => (matchGrouping?.Key ?? "Unknown") + $" ({matchGrouping?.Count()})")?.Where((matchGrouping) => matchGrouping is not null)?.ToList() ?? new();
+                barChart.Labels = matchesGroupedByChamp?
+                    .Where(matchGrouping => matchGrouping is not null)
+                    .Select(matchGrouping => $"{matchGrouping?.Key ?? "Unknown"} ({matchGrouping?.Count()})")
+                    .ToList() ?? new();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -165,7 +168,7 @@ namespace AccountManager.Core.Services.GraphServices
                 barChart.Title = "Recent Winrate";
                 barChart.Type = "percent";
 
-                return barChart ?? new();
+                return barChart;
             }
             catch
             {
@@ -189,11 +192,11 @@ namespace AccountManager.Core.Services.GraphServices
                 if (matchHistoryResponse is null)
                     return new();
 
-                matchHistoryResponse.Games = matchHistoryResponse?.Games?.Where((game) => game?.Json?.GameDuration > 15 * 60).ToList();
+                matchHistoryResponse.Games = matchHistoryResponse.Games?.Where((game) => game?.Json?.GameDuration > 15 * 60).ToList();
 
                 barChart = new();
-                var matchesGroupedByChamp = matchHistoryResponse?.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
-                barChart.Labels = matchesGroupedByChamp?.Select((matchGrouping) => (matchGrouping?.Key ?? "Unknown") + $" ({matchGrouping?.Count()})")?.Where((matchGrouping) => matchGrouping is not null).ToList();
+                var matchesGroupedByChamp = matchHistoryResponse.Games?.GroupBy((game) => game?.Json?.Participants?.FirstOrDefault((participant) => participant?.Puuid == account.PlatformId, null)?.ChampionName);
+                barChart.Labels = matchesGroupedByChamp?.Where(matchGrouping => matchGrouping is not null).Select((matchGrouping) => (matchGrouping?.Key ?? "Unknown") + $" ({matchGrouping?.Count()})").ToList();
 
                 var barChartData = matchesGroupedByChamp?.Select((matchGrouping) =>
                 {
@@ -218,7 +221,7 @@ namespace AccountManager.Core.Services.GraphServices
                 barChart.Data = barChartData ?? new List<BarChartData>();
                 barChart.Title = "Recent CS Per Minute";
 
-                return barChart ?? new();
+                return barChart;
             }
             catch
             {

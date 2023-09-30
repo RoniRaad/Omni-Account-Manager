@@ -55,11 +55,12 @@ namespace AccountManager.Core.Services.GraphServices
                                 // 4th place grants no value while going up and down adds 1 positive and negative value for each movement
                                 GraphValueChange = (game?.Json?.Participants?.First((participant) => participant.Puuid == account.PlatformId)?.Placement - 4) * -1 ?? 0,
                                 EndTime = DateTimeOffset.FromUnixTimeMilliseconds(game?.Metadata?.Timestamp ?? 0).ToLocalTime(),
-                                Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)?.Description
+                                Type = queueMapping?.FirstOrDefault((map) => map?.QueueId == game?.Json?.QueueId, null)
+                                    ?.Description
                                     ?.Replace("games", "")
-                                    ?.Replace("5v5", "")
-                                    ?.Replace("Ranked", "")
-                                    ?.Trim() ?? "Other"
+                                    .Replace("5v5", "")
+                                    .Replace("Ranked", "")
+                                    .Trim() ?? "Other"
                             };
 
                         return new();

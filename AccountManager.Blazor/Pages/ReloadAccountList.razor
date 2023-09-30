@@ -1,0 +1,22 @@
+﻿@page "/reload"
+@using System.Diagnostics
+@using AccountManager.Blazor.Components
+@using AccountManager.Blazor.Components.AccountListTile
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Services
+@using Microsoft.Extensions.Options
+@inject NavigationManager _navigationManager
+
+<div class="container-fluid">
+    <div class="row" style="--bs-gutter-x: 0rem">
+        <div class="display-content">
+            @for (int i = 0; i < 6; i++)
+            {
+                <PlaceholderAccountListTile></PlaceholderAccountListTile>
+            }
+        </div>
+    </div>
+</div>
+
+

@@ -5,13 +5,15 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Riot, 4)]
     [AccountTilePage(Core.Enums.AccountType.Valorant, 4)]
     public partial class ValorantMostUsedOpPage
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
-
-        private Account _account = new();
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
+        private Account? _account = null;
 
         private PieChart<PieChartData>? pieChart;
         private readonly PieChartOptions pieChartOptions = new()
@@ -40,6 +42,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateRecentlyUsedOperators));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateRecentlyUsedOperators()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display Recently used operators for account {Account.Name}.");
+            }
+
+            await HandleRedraw();
+        }
+
         async Task HandleRedraw()
         {
             pieChart?.Clear();
@@ -60,20 +85,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 
-                try 
-                { 
-                    displayGraph = await _valorantGraphService.GetRecentlyUsedOperatorsPieChartAsync(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display Recently used operators for account {Account.Name}.");
-                }
-
-                await HandleRedraw();
+                await UpdateRecentlyUsedOperators();
             }
         }
 

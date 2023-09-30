@@ -11,18 +11,16 @@ namespace AccountManager.Blazor.Components.Modals
     public partial class TwoFactorAuthModal
     {
         [Parameter, EditorRequired]
-        public TwoFactorAuthenticationUserRequest Request { get; set; } = new();
+        public TwoFactorAuthenticationUserRequest Request { get; set; } = new() { Callback = delegate { }, Code = "" };
 
         public void Submit()
         {
-            Request?.Callback(Request.Code);
+            Request.Callback(Request.Code);
         }
 
         public void Close()
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Request.Callback("");
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace AccountManager.Core.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class SingleAccountPageAttribute : Attribute
     {
         public readonly string Title;

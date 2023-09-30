@@ -12,19 +12,18 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
     public partial class SteamFrontPage
     {
         private string selectedSteamGame = "none";
-        private Account _account = new();
+        private Account? _account = null;
         private bool steamInstallNotFound = false;
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
         List<SteamGameManifest> Games { get; set; } = new();
-
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
-
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         protected override async Task OnParametersSetAsync()
         {
+            if (Account is null || Account != _account)
+                return;
+
             _account = Account;
 
             await base.OnParametersSetAsync();
@@ -32,6 +31,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         public void SetGame(string appId)
         {
+            if (Account is null)
+                return;
+
             _persistantCache.SetString($"{Account.Id}.SelectedSteamGame", appId);
         }
 
@@ -42,6 +44,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         }
         public async Task RefreshGamesAsync()
         {
+            if (Account is null)
+                return;
+
             Games.Clear();
 
             selectedSteamGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
@@ -60,6 +65,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
+            if (Account is null)
+                return;
+
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedSteamGame") ?? "none";
             if (cachedSelectedGame != selectedSteamGame)
             {
@@ -73,6 +81,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
         {
             await RefreshGamesAsync();
             await base.OnInitializedAsync();
+            RegisterTileDataRefresh(() => Task.Run(RefreshGamesAsync));
         }
     }
 }

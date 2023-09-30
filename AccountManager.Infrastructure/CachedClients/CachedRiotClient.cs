@@ -36,13 +36,13 @@ namespace AccountManager.Infrastructure.CachedClients
                 });
         }
 
-        public async Task<RegionInfo> GetRegionInfo(Account account)
+        public async Task<RegionInfo> GetValorantRegionInfo(Account account)
         {
-            var cacheKey = $"{account.Username}.{nameof(GetRegionInfo)}";
+            var cacheKey = $"{account.Username}.{nameof(GetValorantRegionInfo)}";
             return await _memoryCache.GetOrAddAsync(cacheKey,
                 (entry) =>
                 {
-                    return _riotClient.GetRegionInfo(account);
+                    return _riotClient.GetValorantRegionInfo(account);
                 }) ?? new();
         }
     }

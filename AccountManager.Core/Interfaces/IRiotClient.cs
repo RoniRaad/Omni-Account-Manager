@@ -7,6 +7,6 @@ namespace AccountManager.Core.Interfaces
     {
         Task<string?> GetPuuId(Account account);
         Task<string?> GetExpectedClientVersion();
-        Task<RegionInfo> GetRegionInfo(Account account);
+        Task<RegionInfo> GetValorantRegionInfo(Account account);
     }
 }

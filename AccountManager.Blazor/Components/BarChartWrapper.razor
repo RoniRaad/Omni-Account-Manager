@@ -20,7 +20,7 @@ else{
 
 @code {
     [Parameter, EditorRequired]
-    public BarChart BarChart { get; set; }
+    public BarChart? BarChart { get; set; }
 
     BarChart<double?>? barChart;
     BarChartOptions barChartOptions = new()
@@ -74,7 +74,7 @@ else{
     {
         barChart?.Clear();
 
-        if (barChart is null)
+        if (barChart is null || BarChart is null)
             return;
 
         var datasets = BarChart;
@@ -83,15 +83,15 @@ else{
 
         var chartDatasets = new BarChartDataset<double?>
         {
-            Data = datasets.Data.Select((data) => data.Value).ToList(),
+            Data = datasets?.Data?.Select((data) => data.Value).ToList(),
             BackgroundColor = backgroundColors,
             BorderColor = borderColors,
             BorderWidth = 1,
-            Label = datasets.Title,
+            Label = datasets?.Title,
             SkipNull = false
         };
 
-        await barChart.AddLabelsDatasetsAndUpdate(datasets.Labels, chartDatasets);
+        await barChart.AddLabelsDatasetsAndUpdate(datasets?.Labels, chartDatasets);
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)

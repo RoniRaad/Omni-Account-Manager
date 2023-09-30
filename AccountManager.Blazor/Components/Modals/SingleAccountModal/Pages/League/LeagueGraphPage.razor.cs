@@ -4,10 +4,11 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.League
 {
+    [SingleAccountPage("League Data", Core.Enums.AccountType.Riot, 2)]
     [SingleAccountPage("Data", Core.Enums.AccountType.League)]
     public partial class LeagueGraphPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]
