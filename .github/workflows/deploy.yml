@@ -58,7 +58,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path Deployment/Releases/
       
       - name: NuGet
-        run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.2.1\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
+        run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.7.0\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
  
       - name: Squirrelify
         run: Start-Process "$env:USERPROFILE\.nuget\packages\squirrel.windows\1.9.0\tools\Squirrel.exe" -ArgumentList "--releasify Deployment/GeneratedNugets/OmniAccountManager.${{ steps.get-project-version.outputs.versionNum }}.nupkg --releaseDir=Deployment/Releases" -NoNewWindow -Wait
