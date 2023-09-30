@@ -33,13 +33,12 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             {
                 return AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(AccountTilePageAttribute), true)))
-                    .ToDictionary((element) =>
-                    {
-                        return Attribute.GetCustomAttribute(element, typeof(AccountTilePageAttribute)) as AccountTilePageAttribute ?? new AccountTilePageAttribute(0, 0);
-                    })
-                    .Where((kvp) => kvp.Key?.AccountType == Account.AccountType)
-                    .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
-                    .Select((kvp) => kvp.Value)
+                    .SelectMany(type => Attribute.GetCustomAttributes(type, typeof(AccountTilePageAttribute))
+                    .Cast<AccountTilePageAttribute>()
+                    .Select(attr => new { Attribute = attr, Type = type }))
+                    .Where(entry => entry.Attribute.AccountType == Account.AccountType)
+                    .OrderBy(entry => entry.Attribute.OrderNumber)
+                    .Select(entry => entry.Type)
                     .ToList();
 
             }) ?? new();

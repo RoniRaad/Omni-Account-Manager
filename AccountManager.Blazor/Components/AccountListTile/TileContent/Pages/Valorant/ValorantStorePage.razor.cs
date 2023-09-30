@@ -5,6 +5,7 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Riot, 0)]
     [AccountTilePage(Core.Enums.AccountType.Valorant, 0)]
     public partial class ValorantStorePage
     {

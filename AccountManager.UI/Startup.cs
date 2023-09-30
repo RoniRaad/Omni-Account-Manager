@@ -122,6 +122,7 @@ namespace AccountManager.UI
                     .AddImplementation<TeamFightTacticsPlatformService>(AccountType.TeamFightTactics)
                     .AddImplementation<ValorantPlatformService>(AccountType.Valorant)
                     .AddImplementation<EpicGamesPlatformService>(AccountType.EpicGames)
+                    .AddImplementation<RiotPlatformService>(AccountType.Riot)
                     .Build();
             services.AddFactory<AccountType, ITokenService>()
                     .AddImplementation<LeagueTokenService>(AccountType.League)
