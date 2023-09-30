@@ -46,6 +46,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
         }
         public async Task RefreshGamesAsync()
         {
+            if (Account is null)
+                return;
+
             Games.Clear();
 
             selectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
@@ -58,6 +61,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
+            if (Account is null)
+                return;
+
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
             if (cachedSelectedGame != selectedEpicGame)
             {

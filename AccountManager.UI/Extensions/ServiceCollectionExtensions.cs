@@ -196,8 +196,12 @@ namespace AccountManager.UI.Extensions
         {
             var riotApiUri = configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
             var epicGamesApiUri = configuration.GetSection("EpicGamesApiUri").Get<EpicGamesApiUri>();
-            AddRiotNamedClients(services, riotApiUri);
-            AddEpicGamesNamedClients(services, epicGamesApiUri);
+
+            if (riotApiUri is not null)
+                AddRiotNamedClients(services, riotApiUri);
+
+			if (epicGamesApiUri is not null)
+				AddEpicGamesNamedClients(services, epicGamesApiUri);
 
             services.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
             {

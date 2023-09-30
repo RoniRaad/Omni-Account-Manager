@@ -45,10 +45,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             }) ?? new();
 
             if (currentPages != pages)
-                activePage = await _persistantCache.GetOrCreateAsync($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", async () =>
-                {
-                    return 0;
-                });
+                activePage = await _persistantCache.GetOrCreateAsync($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", () => Task.FromResult(0));
         }
 
 
@@ -61,6 +58,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         private async Task IncrementPage()
         {
+            if (Account is null)
+                return;
+
             activePage++;
             if (activePage >= pages?.Count)
                 activePage = 0;
@@ -70,6 +70,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         private async Task DecrementPage()
         {
+            if (Account is null)
+                return;
+
             activePage--;
             if (activePage < 0)
                 activePage = pages.Count - 1;

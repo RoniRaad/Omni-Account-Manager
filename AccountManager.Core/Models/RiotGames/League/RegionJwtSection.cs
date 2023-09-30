@@ -10,13 +10,13 @@ namespace AccountManager.Core.Models.RiotGames.League
     public class RegionJwtSection
     {
         [JsonPropertyName("locales")]
-        public List<string> Locales { get; set; }
+        public List<string>? Locales { get; set; }
 
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("tag")]
-        public string Tag { get; set; }
+        public string? Tag { get; set; }
     }
 
 

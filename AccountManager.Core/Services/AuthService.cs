@@ -36,7 +36,7 @@ namespace AccountManager.Core.Services
             return LoggedIn;
         }
 
-        public async Task<bool> RegisterAsync(string password)
+        public bool Register(string password)
         {
             PasswordHash = StringEncryption.Hash(password);
             LoggedIn = true;
@@ -44,7 +44,7 @@ namespace AccountManager.Core.Services
 			return LoggedIn;
 		}
 
-		public async Task ChangePasswordAsync(string oldPassword, string newPassword)
+		public void ChangePassword(string oldPassword, string newPassword)
         {
             oldPassword = StringEncryption.Hash(oldPassword);
             newPassword = StringEncryption.Hash(newPassword);

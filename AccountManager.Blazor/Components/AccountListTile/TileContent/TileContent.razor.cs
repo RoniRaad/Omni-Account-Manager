@@ -24,7 +24,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         protected override void OnParametersSet()
         {
-            if (_account == Account || _platformServiceFactory is null)
+            if (_account == Account || _platformServiceFactory is null || Account is null)
                 return;
 
             _account = Account;

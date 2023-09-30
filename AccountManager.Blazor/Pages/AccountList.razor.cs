@@ -14,10 +14,9 @@ namespace AccountManager.Blazor.Pages
             await _appState.UpdateAccounts();
             _accountFilterService.OnFilterChanged += () => LoadList();
             amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
-			await _jsRuntime.InvokeVoidAsync("startObserver");
         }
 
-        protected async override Task OnAfterRenderAsync(bool firstRender)
+        protected override void OnAfterRender(bool firstRender)
         {
             if (firstRender)
             {
@@ -25,20 +24,11 @@ namespace AccountManager.Blazor.Pages
 			}
 		}
 
-        public async Task LoadList()
+        public void LoadList()
         {
             amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
-            try
-            {
-                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "filter-indicator");
-                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
-                await _jsRuntime.InvokeVoidAsync("showElement", "new-account-placeholder");
-            }
-            catch
-            {
 
-            }
-            await InvokeAsync(StateHasChanged);
+            InvokeAsync(StateHasChanged);
         }
 
         public void StartAddAccount()

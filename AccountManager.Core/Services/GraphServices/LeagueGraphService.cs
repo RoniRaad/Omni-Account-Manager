@@ -37,8 +37,8 @@ namespace AccountManager.Core.Services.GraphServices
 
                 for (int i = matchHistoryResponse?.Games?.Count - 1 ?? 0; i >= 0; i--)
                 {
-                    var game = matchHistoryResponse?.Games?.ElementAt(i) ?? new();
-                    var queueName = queueMapping?.FirstOrDefault(queue => queue.QueueId == game?.Json?.QueueId);
+                    var game = matchHistoryResponse?.Games?[i] ?? new();
+                    var queueName = queueMapping?.Find(queue => queue.QueueId == game?.Json?.QueueId);
 
                     if (game is not null && 
                         game?.Json?.GameCreation is not null && 

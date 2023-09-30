@@ -45,7 +45,7 @@
 
     async Task Login()
     {
-        if (loginDisabled)
+        if (loginDisabled || Account is null)
             return;
 
         loginDisabled = true;
@@ -55,6 +55,9 @@
 
     public Type? GetInfoPanel(AccountType accountType)
     {
+        if (Account is null)
+            return null;
+
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.Pages", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
@@ -71,7 +74,7 @@
 
     public IEnumerable<Type> GetPages(AccountType accountType)
     {
-        return _memoryCache.GetOrCreate($"{nameof(SingleAccountPageAttribute)}.{Account.AccountType}.Pages", (entry) =>
+        return _memoryCache.GetOrCreate($"{nameof(SingleAccountPageAttribute)}.{Account?.AccountType}.Pages", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
                         .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountPageAttribute), true)))
@@ -79,7 +82,7 @@
                         {
                             return Attribute.GetCustomAttribute(element, typeof(SingleAccountPageAttribute)) as SingleAccountPageAttribute ?? new SingleAccountPageAttribute("Data", 0);
                         })
-                        .Where((kvp) => kvp.Key?.AccountType == Account.AccountType)
+                        .Where((kvp) => kvp.Key?.AccountType == Account?.AccountType)
                         .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
                         .Select((kvp) => kvp.Value)
                         .ToList();
@@ -88,6 +91,9 @@
 
     public Type? GetAccountDetailsPanel(AccountType accountType)
     {
+        if (Account is null)
+            return null;
+
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.AccountDetailsPanel", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()

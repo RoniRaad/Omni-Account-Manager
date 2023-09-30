@@ -12,31 +12,34 @@
                 <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@Account">
-                    <div class="form-group">
-                        <label for="inputName">Name</label>
-                        <InputText class="form-control text-input" style="margin-bottom:12px" id="inputName" aria-describedby="emailHelp" @bind-Value="Account.Name" placeholder="Name"></InputText>
-   
-                        <label for="inputUsername">Username</label>
-                        <InputText readonly class="form-control text-input" style="margin-bottom:12px" id="inputUsername" aria-describedby="emailHelp" @bind-Value="Account.Username" placeholder="Username"></InputText>
+                @if (Account is not null)
+                {
+                    <EditForm Model="@Account">
+                        <div class="form-group">
+                            <label for="inputName">Name</label>
+                            <InputText class="form-control text-input" style="margin-bottom:12px" id="inputName" aria-describedby="emailHelp" @bind-Value="Account.Name" placeholder="Name"></InputText>
+
+                            <label for="inputUsername">Username</label>
+                            <InputText readonly class="form-control text-input" style="margin-bottom:12px" id="inputUsername" aria-describedby="emailHelp" @bind-Value="Account.Username" placeholder="Username"></InputText>
                             <label for="inputPassword">Password</label>
-                        <div class="input-group">
-                            <InputText type="@PasswordType" style="margin-bottom:12px" class="text-input form-control" id="inputPassword" aria-describedby="emailHelp" @bind-Value="Account.Password" placeholder="Password"></InputText>
-                            <div class="input-group-append">
-                                <span @onclick="()=> passwordVisible = !passwordVisible" class="btn btn-outline-secondary oi-eye btn-password-show" style="color: @PasswordToggleButtonColor;" type="button"></span>
+                            <div class="input-group">
+                                <InputText type="@PasswordType" style="margin-bottom:12px" class="text-input form-control" id="inputPassword" aria-describedby="emailHelp" @bind-Value="Account.Password" placeholder="Password"></InputText>
+                                <div class="input-group-append">
+                                    <span @onclick="()=> passwordVisible = !passwordVisible" class="btn btn-outline-secondary oi-eye btn-password-show" style="color: @PasswordToggleButtonColor;" type="button"></span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="accountTypeSelect">Account Type</label>
-                        <InputSelect disabled id="accountTypeSelect" style="margin-bottom:12px" class="form-select text-input" @bind-Value="Account.AccountType">
-                            @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
-                            {
-                                <option value="@accountType">@Regex.Replace(accountType?.ToString() ?? "", "(\\B[A-Z])", " $1")</option>
-                            }
-                        </InputSelect>
-                    </div>
-                </EditForm>
+                        <div class="form-group">
+                            <label for="accountTypeSelect">Account Type</label>
+                            <InputSelect disabled id="accountTypeSelect" style="margin-bottom:12px" class="form-select text-input" @bind-Value="Account.AccountType">
+                                @foreach (var accountType in Enum.GetValues(typeof(AccountType)))
+                                {
+                                    <option value="@accountType">@Regex.Replace(accountType?.ToString() ?? "", "(\\B[A-Z])", " $1")</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </EditForm>
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-dark" @onclick="Submit">Save</button>

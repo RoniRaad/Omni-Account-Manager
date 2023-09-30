@@ -60,7 +60,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.WriteData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword)))).Verifiable();
 
             // Act
-            _sut.RegisterAsync(testPassword);
+            _sut.Register(testPassword);
 
             // Assert
             Mock.Verify(_iOService);
@@ -74,7 +74,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.WriteData(It.IsAny<List<object>>(), It.Is<string>((val) => val == StringEncryption.Hash(testPassword))));
 
             // Act
-            _sut.RegisterAsync(testPassword);
+            _sut.Register(testPassword);
 
             // Assert
             Assert.True(_sut.LoggedIn);
@@ -91,7 +91,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Mock.Verify(_iOService);
@@ -108,7 +108,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Assert.Equal(StringEncryption.Hash(testUpdatedPassword), _sut.PasswordHash);
@@ -125,7 +125,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Mock.Verify(_iOService);
@@ -142,7 +142,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Mock.Verify(_iOService);
@@ -159,7 +159,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Mock.Verify(_iOService);
@@ -176,7 +176,7 @@ namespace AccountManager.Tests.Core.Services
             _iOService.Setup((x) => x.TryReadEncryptedData(It.Is<string>((val) => val == testInitialPassword))).Returns(true);
 
             // Act
-            _sut.ChangePasswordAsync(testInitialPassword, testUpdatedPassword);
+            _sut.ChangePassword(testInitialPassword, testUpdatedPassword);
 
             // Assert
             Mock.Verify(_iOService);

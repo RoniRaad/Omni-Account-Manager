@@ -44,14 +44,13 @@
 
     public Rank? Rank { get; set; }
 
-    private IPlatformService _platformService;
+    private IPlatformService? _platformService;
     private bool passwordVisible = false;
     private Account _account = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-
-        if (Account is null)
+        if (Account is null || _platformService is null)
             return;
 
         _platformService = _platformServiceFactory.CreateImplementation(Account.AccountType);
@@ -59,13 +58,13 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_account != Account)
-        {
-            _account = Account;
-            var rankResponse = await _platformService.TryFetchRank(Account);
-            Rank = rankResponse.Item2;
-            await InvokeAsync(() => StateHasChanged());
-        }
+        if (_account == Account || Account is null || _platformService is null)
+            return;
+
+        _account = Account;
+        var rankResponse = await _platformService.TryFetchRank(Account);
+        Rank = rankResponse.Item2;
+        await InvokeAsync(() => StateHasChanged());
     }
 
     public string PasswordType

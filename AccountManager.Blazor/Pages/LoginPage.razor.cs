@@ -24,9 +24,9 @@ namespace AccountManager.Blazor.Pages
 				_navManager.NavigateTo("/accountlist", true);
 		}
 
-		public async Task RegisterAsync()
+		public void Register()
 		{
-			if (await _authService.RegisterAsync(Password))
+			if (_authService.Register(Password))
 				_navManager.NavigateTo("/accountlist", true);
 		}
 

@@ -129,7 +129,7 @@ namespace AccountManager.Infrastructure.Clients
             if (account is null)
                 return string.Empty;
 
-            var puuId = account?.PlatformId ?? await _riotClient.GetPuuId(account);
+            var puuId = account.PlatformId ?? await _riotClient.GetPuuId(account);
 
             if (puuId is null)
                 return string.Empty;

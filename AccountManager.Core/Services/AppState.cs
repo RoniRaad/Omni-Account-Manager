@@ -11,7 +11,7 @@ namespace AccountManager.Core.Services
     {
         private readonly IAccountService _accountService;
         private readonly IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings;
-        public List<Account>? Accounts { get; set; }
+        public List<Account> Accounts { get; set; } = new();
         public bool IsInitialized { get; set; } = false;
         public AppState(IAccountService accountService, IIpcService ipcService, IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> accountItemSettings)
         {
@@ -22,7 +22,7 @@ namespace AccountManager.Core.Services
 
             ipcService.IpcReceived += (sender, args) =>
             {
-                if (args.MethodName == nameof(IpcLogin) && args?.Json is not null)
+                if (args.MethodName == nameof(IpcLogin) && args.Json is not null)
                 {
                     try
                     {
@@ -42,7 +42,10 @@ namespace AccountManager.Core.Services
 
         public async Task IpcLogin(IpcLoginParameter loginParam)
         {
-            var relevantAccount = Accounts.FirstOrDefault((account) => account.Id == loginParam.Guid);
+            if (Accounts is null)
+                return;
+
+            var relevantAccount = Accounts.Find((account) => account.Id == loginParam.Guid);
 
             if (relevantAccount is not null)
                 await _accountService.LoginAsync(relevantAccount);

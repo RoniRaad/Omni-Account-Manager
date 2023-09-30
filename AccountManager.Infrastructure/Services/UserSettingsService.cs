@@ -24,7 +24,7 @@ namespace AccountManager.Infrastructure.Services
             OnSettingsSaved.Invoke();
         }
 
-        public async Task<bool> ChangePasswordAsync(PasswordChangeRequest changeRequest)
+        public bool ChangePassword(PasswordChangeRequest changeRequest)
         {
             if (changeRequest.NewPassword != changeRequest.NewPasswordConfirm)
             {
@@ -37,7 +37,7 @@ namespace AccountManager.Infrastructure.Services
                 return false;
             }
 
-            await _authService.ChangePasswordAsync(changeRequest.OldPassword, changeRequest.NewPassword);
+            _authService.ChangePassword(changeRequest.OldPassword, changeRequest.NewPassword);
             _alertService.AddInfoAlert("Password changed successfully!");
             return true;
         }
