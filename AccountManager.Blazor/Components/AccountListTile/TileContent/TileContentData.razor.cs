@@ -79,9 +79,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
 
-        private void SetPage(int pageNum)
+        private async Task SetPage(int pageNum)
         {
             activePage = pageNum;
+            await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
     }
 }
