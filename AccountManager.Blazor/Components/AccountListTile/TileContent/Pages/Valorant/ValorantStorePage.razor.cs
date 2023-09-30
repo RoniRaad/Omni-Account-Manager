@@ -10,7 +10,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
     {
         [CascadingParameter]
         public Account? Account { get; set; }
-        private Account _account = new();
+        private Account? _account = null;
         List<ValorantSkinLevelResponse>? storeFrontSkins;
         [CascadingParameter(Name = "RegisterTileDataRefresh")]
         Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };

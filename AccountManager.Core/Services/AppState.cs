@@ -11,7 +11,7 @@ namespace AccountManager.Core.Services
     {
         private readonly IAccountService _accountService;
         private readonly IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> _accountItemSettings;
-        public List<Account> Accounts { get; set; } = new();
+        public List<Account>? Accounts { get; set; }
         public bool IsInitialized { get; set; } = false;
         public AppState(IAccountService accountService, IIpcService ipcService, IUserSettingsService<Dictionary<Guid, AccountListItemSettings>> accountItemSettings)
         {

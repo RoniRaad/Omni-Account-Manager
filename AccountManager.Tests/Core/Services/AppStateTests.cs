@@ -50,22 +50,21 @@ namespace AccountManager.Tests.Core.Services
         {
             // Arrange
             var updatedPlatformId = "UpdatedPlatformId";
-            var updatedRanking = "UpdatedRanking";
             var firstAccountGuid = Guid.NewGuid();
             var secondAccountGuid = Guid.NewGuid();
             var thirdAccountGuid = Guid.NewGuid();
 
             var minAccounts = new List<Account>()
             {
-                new Account() { Id = firstAccountGuid, Name = "TestId1"},
-                new Account() { Id = secondAccountGuid, Name = "TestId2"},
-                new Account() { Id = thirdAccountGuid, Name = "TestId3"}
+                new Account() { Id = firstAccountGuid, Name = "TestId1", Password = "", Username = ""},
+                new Account() { Id = secondAccountGuid, Name = "TestId2", Password = "", Username = ""},
+                new Account() {Id = thirdAccountGuid, Name = "TestId3", Password = "", Username = ""}
             };
             var fullAccounts = new List<Account>()
             {
-                new Account() { Id = firstAccountGuid, Name = "TestId1", PlatformId = updatedPlatformId },
-                new Account() { Id = secondAccountGuid, Name = "TestId2", PlatformId = updatedPlatformId },
-                new Account() { Id = thirdAccountGuid, Name = "TestId3", PlatformId = updatedPlatformId }
+                new Account() { Id = firstAccountGuid, Name = "TestId1", PlatformId = updatedPlatformId, Password = "", Username = "" },
+                new Account() { Id = secondAccountGuid, Name = "TestId2", PlatformId = updatedPlatformId, Password = "", Username = "" },
+                new Account() { Id = thirdAccountGuid, Name = "TestId3", PlatformId = updatedPlatformId, Password = "", Username = "" }
             };
 
             _sut.Accounts = minAccounts;
@@ -86,16 +85,16 @@ namespace AccountManager.Tests.Core.Services
             // Arrange
             var minAccounts = new List<Account>()
             {
-                new Account() {Name = "TestId1"},
-                new Account() {Name = "TestId2"},
-                new Account() {Name = "TestId3"}
+                new Account() {Name = "TestId1", Username = "", Password = ""},
+                new Account() {Name = "TestId2", Username = "", Password = ""},
+                new Account() {Name = "TestId3", Username = "", Password = ""}
             };
 
             var fullAccounts = new List<Account>()
             {
-                new Account() {Name = "TestId1", PlatformId = "UpdatedPlatformId"},
-                new Account() {Name = "TestId2", PlatformId = "UpdatedPlatformId"},
-                new Account() {Name = "TestId3", PlatformId = "UpdatedPlatformId"}
+                new Account() {Name = "TestId1", PlatformId = "UpdatedPlatformId", Username = "", Password = ""},
+                new Account() {Name = "TestId2", PlatformId = "UpdatedPlatformId", Username = "", Password = ""},
+                new Account() {Name = "TestId3", PlatformId = "UpdatedPlatformId", Username = "", Password = ""}
             };
 
             _sut.Accounts = minAccounts;

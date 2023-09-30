@@ -8,7 +8,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Tea
     [AccountTilePage(Core.Enums.AccountType.TeamFightTactics, 0)]
     public partial class TeamFightTacticsWinsPage
     {
-        private Account _account = new();
+        private Account? _account = null;
 		[CascadingParameter]
 		public Account? Account { get; set; }
         [CascadingParameter(Name = "RegisterTileDataRefresh")]

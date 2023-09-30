@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
     [AccountTilePage(Core.Enums.AccountType.League, 0)]
     public partial class LeagueWinsPage
     {
-        private Account _account = new();
+        private Account? _account = null;
         [CascadingParameter(Name = "RegisterTileDataRefresh")]
         Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         [CascadingParameter]

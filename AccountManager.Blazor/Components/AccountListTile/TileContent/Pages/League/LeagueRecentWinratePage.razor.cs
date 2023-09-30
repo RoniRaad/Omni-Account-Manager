@@ -27,7 +27,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
             ChartColor.FromRgba(153, 102, 255, 1f),
             ChartColor.FromRgba(255, 159, 64, 1f)
         };
-        private Account _account = new();
+        private Account? _account = null;
         private BarChart<double?>? barChart;
         private readonly BarChartOptions barChartOptions = new()
         {

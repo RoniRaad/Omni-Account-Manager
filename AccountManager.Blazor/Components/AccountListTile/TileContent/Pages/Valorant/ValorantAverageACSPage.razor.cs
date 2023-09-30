@@ -12,7 +12,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
         public Account? Account { get; set; }
         [CascadingParameter(Name = "RegisterTileDataRefresh")]
         Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
-        private Account _account = new();
+        private Account? _account = null;
         BarChart<double?>? barChart;
         private readonly BarChartOptions barChartOptions = new()
         {

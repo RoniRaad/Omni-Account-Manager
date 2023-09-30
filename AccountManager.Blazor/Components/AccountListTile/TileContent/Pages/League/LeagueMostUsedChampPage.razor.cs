@@ -13,7 +13,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
         [CascadingParameter(Name = "RegisterTileDataRefresh")]
         Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         PieChart? displayGraph;
-        private Account _account = new();
+        private Account? _account = null;
         private PieChart<PieChartData>? pieChart;
         private readonly PieChartOptions PieChartOptions = new()
         {

@@ -20,7 +20,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
         public Rank? Rank { get; set; }
 
         private IPlatformService? _platformService;
-        private Account _account = new();
+        private Account? _account = null;
 
         protected override void OnParametersSet()
         {

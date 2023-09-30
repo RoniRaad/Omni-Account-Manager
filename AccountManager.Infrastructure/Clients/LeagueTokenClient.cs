@@ -117,6 +117,12 @@ namespace AccountManager.Infrastructure.Clients
         {
             string sessionToken;
             Account? account;
+            if (_state.Accounts is null)
+            {
+                _logger.LogError("Unable to create league session token, AppState is null");
+                return "";
+            }
+
             if (_leagueSettings?.Settings?.AccountToUseCredentials is null)
             {
                 account = _state.Accounts.FirstOrDefault((acc) => acc.AccountType == AccountType.League);

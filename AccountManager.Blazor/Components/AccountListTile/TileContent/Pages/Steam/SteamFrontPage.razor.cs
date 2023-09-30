@@ -12,7 +12,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Ste
     public partial class SteamFrontPage
     {
         private string selectedSteamGame = "none";
-        private Account _account = new();
+        private Account? _account = null;
         private bool steamInstallNotFound = false;
         [CascadingParameter]
         public Account? Account { get; set; }

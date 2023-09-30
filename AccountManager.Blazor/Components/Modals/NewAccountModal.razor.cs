@@ -6,13 +6,16 @@ namespace AccountManager.Blazor.Components.Modals
 {
     public partial class NewAccountModal
     {
-        public Account NewAccount { get; set; } = new();
+        public Account NewAccount { get; set; } = new() { Name = "", Id = Guid.NewGuid(),  Username = "", Password = ""};
         [Parameter, EditorRequired]
         public Action Close { get; set; } = delegate { };
     
         public void AddAccount()
         {
-            if (string.IsNullOrEmpty(NewAccount.Name) || string.IsNullOrEmpty(NewAccount.Username) || string.IsNullOrEmpty(NewAccount.Password))
+            if (string.IsNullOrEmpty(NewAccount.Name) || 
+                string.IsNullOrEmpty(NewAccount.Username) || 
+                string.IsNullOrEmpty(NewAccount.Password) || 
+                _appState.Accounts is null)
                 return;
 
             _appState.Accounts.Add(NewAccount);

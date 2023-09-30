@@ -23,7 +23,7 @@ namespace AccountManager.Blazor.Components
         }
         public async Task Submit()
         {
-            if (Account is null)
+            if (Account is null || _appState.Accounts is null)
                 return;
 
             var account = _appState.Accounts.FirstOrDefault((acc) => acc.Id == Account.Id);
