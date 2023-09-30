@@ -15,6 +15,6 @@
     <tags></tags>
   </metadata>
   <files>
-	<file src="bin\Release\net6.0-windows\publish\**" target="lib\net45"/>
+	<file src="bin\Release\net7.0-windows\publish\**" target="lib\net45"/>
   </files>
 </package>
