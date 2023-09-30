@@ -16,21 +16,19 @@ namespace AccountManager.Blazor.Pages
             amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
         }
 
-        protected async override Task OnAfterRenderAsync(bool firstRender)
+        protected override void OnAfterRender(bool firstRender)
         {
             if (firstRender)
             {
-                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "filter-indicator");
-                await _jsRuntime.InvokeVoidAsync("appendElement", "accounts-grid", "new-account-placeholder");
-                await _jsRuntime.InvokeVoidAsync("showElement", "new-account-placeholder");
-            }
-            amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
-        }
+				amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
+			}
+		}
 
         public void LoadList()
         {
             amountOfAccountsFilered = _appState?.Accounts?.Count(acc => !_accountFilterService.AccountTypeFilter.Contains(acc.AccountType) || acc?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is false) ?? 0;
-            InvokeAsync(() => StateHasChanged());
+
+            InvokeAsync(StateHasChanged);
         }
 
         public void StartAddAccount()
@@ -46,6 +44,19 @@ namespace AccountManager.Blazor.Pages
         public void FinishAddAccount()
         {
             addAccountPrompt = false;
+        }
+
+        public void OnDrop() => _appState.SaveAccountOrder();
+
+        public string AccountListItemClass(Account account)
+        {
+            return _accountFilterService.AccountTypeFilter.Contains(account.AccountType) && account?.Name?.ToLower()?.Contains(_accountFilterService.AccountNameFilter.ToLower()) is true ? "col-md-4 col-sm-6 col-xxl-2 col-xxxl-2" : "d-none";
+        }
+
+        public void OpenEditModal(Account account)
+        {
+            editAccountTarget = account;
+            InvokeAsync(() => StateHasChanged());
         }
     }
 }

@@ -27,29 +27,11 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             [JsonPropertyName("pickTurn")]
             public int PickTurn { get; set; }
         }
-
-        public sealed class CreepsPerMinDeltas
-        {
-        }
-
         public sealed class GameWrapper
         {
             [JsonPropertyName("games")]
             public List<Game>? Games { get; set; }
         }
-
-        public sealed class CsDiffPerMinDeltas
-        {
-        }
-
-        public sealed class DamageTakenDiffPerMinDeltas
-        {
-        }
-
-        public sealed class DamageTakenPerMinDeltas
-        {
-        }
-
         public sealed class Game
         {
             [JsonPropertyName("gameCreation")]
@@ -109,11 +91,6 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             [JsonPropertyName("gameIndexEnd")]
             public int GameIndexEnd { get; set; }
         }
-
-        public sealed class GoldPerMinDeltas
-        {
-        }
-
         public sealed class Participant
         {
             [JsonPropertyName("championId")]
@@ -548,21 +525,6 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
 
         public sealed class Timeline
         {
-            [JsonPropertyName("creepsPerMinDeltas")]
-            public CreepsPerMinDeltas? CreepsPerMinDeltas { get; set; }
-
-            [JsonPropertyName("csDiffPerMinDeltas")]
-            public CsDiffPerMinDeltas? CsDiffPerMinDeltas { get; set; }
-
-            [JsonPropertyName("damageTakenDiffPerMinDeltas")]
-            public DamageTakenDiffPerMinDeltas? DamageTakenDiffPerMinDeltas { get; set; }
-
-            [JsonPropertyName("damageTakenPerMinDeltas")]
-            public DamageTakenPerMinDeltas? DamageTakenPerMinDeltas { get; set; }
-
-            [JsonPropertyName("goldPerMinDeltas")]
-            public GoldPerMinDeltas? GoldPerMinDeltas { get; set; }
-
             [JsonPropertyName("lane")]
             public string? Lane { get; set; }
 
@@ -572,19 +534,6 @@ namespace AccountManager.Core.Models.RiotGames.League.Requests
             [JsonPropertyName("role")]
             public string? Role { get; set; }
 
-            [JsonPropertyName("xpDiffPerMinDeltas")]
-            public XpDiffPerMinDeltas? XpDiffPerMinDeltas { get; set; }
-
-            [JsonPropertyName("xpPerMinDeltas")]
-            public XpPerMinDeltas? XpPerMinDeltas { get; set; }
-        }
-
-        public sealed class XpDiffPerMinDeltas
-        {
-        }
-
-        public sealed class XpPerMinDeltas
-        {
         }
     }
 

@@ -48,7 +48,7 @@ namespace AccountManager.Infrastructure.CachedClients
                 async (entry) =>
                 {
                     var riotTokens = await _riotTokenClient.GetRiotTokens(request, account);
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(riotTokens.ExpiresIn == 0 ? .1 : riotTokens.ExpiresIn - 5);
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(riotTokens.ExpiresIn == 0 ? .1 : riotTokens.ExpiresIn - 5);
                     return riotTokens;
                 }) ?? new();
         }

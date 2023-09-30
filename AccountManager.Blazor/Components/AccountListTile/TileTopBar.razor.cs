@@ -3,16 +3,14 @@ using AccountManager.Core.Enums;
 using System.Reflection;
 using AccountManager.Core.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using AccountManager.Core.Models;
 
 namespace AccountManager.Blazor.Components.AccountListTile
 {
     public partial class TileTopBar
     {
-        [Parameter]
-        public string Title { get; set; } = "";
-
-        [Parameter]
-        public AccountType AccountType { get; set; }
+        [CascadingParameter]
+        public Account? Account { get; set; }
 
         [Parameter]
         public EventCallback MouseEnterDragLogo { get; set; }
@@ -35,9 +33,12 @@ namespace AccountManager.Blazor.Components.AccountListTile
 
         public string GetLogoUrl()
         {
-            return _memoryCache?.GetOrCreate($"{nameof(GetLogoUrl)}.{AccountType}", (entry) =>
+            if (Account is null)
+                return "";
+
+            return _memoryCache?.GetOrCreate($"{nameof(GetLogoUrl)}.{Account.AccountType}", (entry) =>
             {
-                var platformService = _platformServiceFactory?.CreateImplementation(AccountType);
+                var platformService = _platformServiceFactory?.CreateImplementation(Account.AccountType);
 
                 if (platformService is null)
                 {

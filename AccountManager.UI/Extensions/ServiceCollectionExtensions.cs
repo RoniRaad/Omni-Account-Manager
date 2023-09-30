@@ -22,6 +22,7 @@ using System.Linq;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.UserSettings;
+using System.Reflection;
 
 namespace AccountManager.UI.Extensions
 {
@@ -56,7 +57,10 @@ namespace AccountManager.UI.Extensions
                                 await authService.LoginAsync(password);
                                 var accountService = services.GetRequiredService<IAccountService>();
                                 var accounts = await accountService.GetAllAccountsAsync();
-                                await accountService.LoginAsync(accounts.FirstOrDefault((acc) => acc?.Id.ToString() == parsedArgs["login"]) ?? new());
+                                var account = accounts.Find((acc) => acc?.Id.ToString() == parsedArgs["login"]);
+                                if (account is not null)
+                                    await accountService.LoginAsync(account);
+
                                 Environment.Exit(0);
                             }
                         }
@@ -195,8 +199,12 @@ namespace AccountManager.UI.Extensions
         {
             var riotApiUri = configuration.GetSection("RiotApiUri").Get<RiotApiUri>();
             var epicGamesApiUri = configuration.GetSection("EpicGamesApiUri").Get<EpicGamesApiUri>();
-            AddRiotNamedClients(services, riotApiUri);
-            AddEpicGamesNamedClients(services, epicGamesApiUri);
+
+            if (riotApiUri is not null)
+                AddRiotNamedClients(services, riotApiUri);
+
+			if (epicGamesApiUri is not null)
+				AddEpicGamesNamedClients(services, epicGamesApiUri);
 
             services.AddHttpClient("SSLBypass").ConfigureHttpMessageHandlerBuilder(x =>
             {
@@ -238,14 +246,10 @@ namespace AccountManager.UI.Extensions
             services.AddRiotClient("ValorantAP", new Uri(apiUri?.ValorantAP ?? ""));
             services.AddRiotClient("ValorantEU", new Uri(apiUri?.ValorantEU ?? ""));
             services.AddRiotClient("RiotEntitlement", new Uri(apiUri?.Entitlement ?? ""));
-            services.AddRiotClient("LeagueNA", new Uri(apiUri?.LeagueNA ?? ""));
-            services.AddRiotClient("LeagueAP", new Uri(apiUri?.LeagueAP ?? ""));
-            services.AddRiotClient("LeagueEU", new Uri(apiUri?.LeagueEU ?? ""));
-            services.AddRiotClient("LeagueKR", new Uri(apiUri?.LeagueKR ?? ""));
-            services.AddRiotClient("LeagueBR", new Uri(apiUri?.LeagueBR ?? ""));
-            services.AddRiotClient("LeagueSessionUSW", new Uri(apiUri?.LeagueSessionUSW ?? ""));
-            services.AddRiotClient("LeagueSessionEUC", new Uri(apiUri?.LeagueSessionEUC ?? ""));
-            services.AddRiotClient("LeagueSessionAPSE", new Uri(apiUri?.LeagueSessionAPSE ?? ""));
+
+            if (apiUri?.League is not null)
+                AddLeagueClients(services, apiUri.League);
+
             services.AddRiotClient("RiotCDN", new Uri(apiUri?.RiotCDN ?? ""));
         }
 
@@ -281,6 +285,28 @@ namespace AccountManager.UI.Extensions
             }
 
             return parsedArgs;
+        }
+
+        public static void AddLeagueClients(IServiceCollection services, object instance)
+        {
+            if (services == null) throw new ArgumentNullException(nameof(services));
+            if (instance == null) throw new ArgumentNullException(nameof(instance));
+
+            Type instanceType = instance.GetType();
+
+            PropertyInfo[] properties = instanceType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var property in properties)
+            {
+                if (property.CanRead)
+                {
+                    string propertyName = property.Name;
+                    string? propertyValue = property.GetValue(instance) as string;
+
+                    if (propertyValue is not null)
+                        services.AddRiotClient(propertyName, new Uri(propertyValue));
+                }
+            }
         }
     }
 }

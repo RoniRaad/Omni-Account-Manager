@@ -19,33 +19,33 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <button type="button" class="btn-close btn-close-white" @onclick="Close" aria-label="Close"></button>
-            <div class="info-panel-container">
-                <InfoPanel Account="Account" Pages="GetPages(Account.AccountType).ToList()"></InfoPanel>
-            </div>
-            <div class="account-details-panel">
-                <DynamicComponent Type="GetAccountDetailsPanel(Account.AccountType)" Parameters="@(new Dictionary<string, object>(){ {"Account", Account} })"></DynamicComponent>
-            </div>
+            @if (Account is not null){
+                <CascadingValue Value="Account">
+                    <div class="info-panel-container">
+                        <InfoPanel Pages="GetPages(Account.AccountType).ToList()"></InfoPanel>
+                    </div>
+                    <div class="account-details-panel">
+                            <DynamicComponent Type="GetAccountDetailsPanel(Account.AccountType)"></DynamicComponent>
+                    </div>
+                </CascadingValue>
+            }
 	    </div>
 	</div>
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    public Account Account { get; set; }
-    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    [CascadingParameter, EditorRequired]
+    public Account? Account { get; set; }
 
     [Parameter, EditorRequired]
-    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public EventCallback Close { get; set; }
-    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     bool loginDisabled = false;
     string loginBtnStyle => loginDisabled ? "color:darkgrey; pointer-events: none;" : "";
 
     async Task Login()
     {
-        if (loginDisabled)
+        if (loginDisabled || Account is null)
             return;
 
         loginDisabled = true;
@@ -55,6 +55,9 @@
 
     public Type? GetInfoPanel(AccountType accountType)
     {
+        if (Account is null)
+            return null;
+
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.Pages", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
@@ -71,28 +74,32 @@
 
     public IEnumerable<Type> GetPages(AccountType accountType)
     {
-        return _memoryCache.GetOrCreate($"{nameof(SingleAccountPageAttribute)}.{Account.AccountType}.Pages", (entry) =>
+        return _memoryCache.GetOrCreate($"{nameof(SingleAccountPageAttribute)}.{Account?.AccountType}.Pages", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountPageAttribute), true)))
-                        .ToDictionary((element) =>
-                        {
-                            return Attribute.GetCustomAttribute(element, typeof(SingleAccountPageAttribute)) as SingleAccountPageAttribute ?? new SingleAccountPageAttribute("Data", 0);
-                        })
-                        .Where((kvp) => kvp.Key?.AccountType == Account.AccountType)
-                        .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
-                        .Select((kvp) => kvp.Value)
-                        .ToList();
+            .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountPageAttribute), true)))
+            .SelectMany(type => Attribute.GetCustomAttributes(type, typeof(SingleAccountPageAttribute))
+            .Cast<SingleAccountPageAttribute>()
+            .Select(attr => new { Attribute = attr, Type = type }))
+            .Where(entry => entry.Attribute.AccountType == Account?.AccountType)
+            .OrderBy(entry => entry.Attribute.OrderNumber)
+            .Select(entry => entry.Type)
+            .ToList();
         }) ?? new();
     }
 
     public Type? GetAccountDetailsPanel(AccountType accountType)
     {
+        if (Account is null)
+            return null;
+
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.AccountDetailsPanel", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountInfoPanelAttribute), true)))
-                        .FirstOrDefault((type) => (Attribute.GetCustomAttribute(type, typeof(SingleAccountInfoPanelAttribute)) as SingleAccountInfoPanelAttribute)?.AccountType == Account.AccountType);
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(type => type.GetCustomAttributes(typeof(SingleAccountInfoPanelAttribute), true)
+                .OfType<SingleAccountInfoPanelAttribute>()
+                .Any(attr => attr.AccountType == Account.AccountType));
         }) ?? null;
     }
 }

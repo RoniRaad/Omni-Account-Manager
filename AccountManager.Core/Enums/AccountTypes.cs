@@ -12,7 +12,7 @@ namespace AccountManager.Core.Enums
         Steam,
         TeamFightTactics,
         Valorant,
-        EpicGames
+        EpicGames,
+        Riot
     }
-    
 }

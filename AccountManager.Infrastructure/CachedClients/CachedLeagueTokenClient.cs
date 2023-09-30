@@ -58,5 +58,19 @@ namespace AccountManager.Infrastructure.CachedClients
         {
             return await _tokenClient.TestLeagueToken(token);
         }
+
+        public async Task<string> GetUserInfo(Account account)
+        {
+            var cacheKey = $"{nameof(GetUserInfo)}.{account.Id}";
+            if (_memoryCache.TryGetValue(cacheKey, out string? userInfo))
+                return userInfo ?? "";
+
+                userInfo = await _tokenClient.GetUserInfo(account);
+
+                if (!string.IsNullOrEmpty(userInfo))
+                    _memoryCache.Add(cacheKey, userInfo);
+
+                return userInfo;
+        }
     }
 }

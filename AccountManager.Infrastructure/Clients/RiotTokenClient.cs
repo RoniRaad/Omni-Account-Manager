@@ -244,6 +244,7 @@ namespace AccountManager.Infrastructure.Clients
             }
 
             var locationUri = new Uri(location ?? "");
+            if (string.IsNullOrEmpty(locationUri.Fragment)) return null;
             var fragment = locationUri.Fragment[1..];
             var parsedFragment = HttpUtility.ParseQueryString(fragment);
 

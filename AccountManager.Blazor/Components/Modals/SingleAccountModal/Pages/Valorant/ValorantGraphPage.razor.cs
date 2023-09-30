@@ -4,10 +4,11 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 {
+    [SingleAccountPage("Valorant Data", Core.Enums.AccountType.Riot, 1)]
     [SingleAccountPage("Data", Core.Enums.AccountType.Valorant, 1)]
-    public partial class ValorantGraphPage
+	public partial class ValorantGraphPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]

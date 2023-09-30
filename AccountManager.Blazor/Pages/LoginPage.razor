@@ -1,0 +1,50 @@
+﻿@page "/"
+@using System.Diagnostics
+@using AccountManager.Blazor.Components
+@using AccountManager.Core.Interfaces
+@using AccountManager.Core.Models.AppSettings
+@using AccountManager.Core.Services
+@using Microsoft.Extensions.Caching.Distributed;
+@using Microsoft.Extensions.Options
+@inject IAuthService _authService;
+@inject IAlertService _alertService;
+@inject IDistributedCache _persistantCache
+@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navManager
+@inject IAuthService _authService;
+
+@if (_authService.AuthInitialized)
+{
+	<form class="login-form">
+		<div>
+			<span class="oi oi-lock-locked"></span>
+			<h3>Enter Passcode</h3>
+			<div class="form-group">
+				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
+			</div>
+
+			<div class="checkbox-container">
+				<input @onchange="RememberMeChanged" style="margin-top:0px;" class="form-check-input" type="checkbox" id="rememberPasswordCheckbox" checked="@(RememberMe)">
+				<label class="form-check-label" for="rememberPasswordCheckbox">
+					Remember Password
+				</label>
+			</div>
+
+			<button type="submit" class="btn btn-dark" @onclick=LoginAsync>
+				Login
+			</button>
+		</div>
+	</form>
+}
+else {
+	<form class="login-form">
+		<div>
+			<span class="oi oi-lock-unlocked"></span>
+			<h3>Create Passcode</h3>
+			<div class="form-group">
+				<input type="password" class="form-control" id="password" @bind-value=Password placeholder="Password">
+			</div>
+			<button type="submit" class="btn btn-dark" @onclick=Register>Register</button>
+		</div>
+	</form>
+}

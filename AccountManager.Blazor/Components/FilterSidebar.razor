@@ -6,7 +6,7 @@
 <div class="filter-sidebar" style="@Style">
 	<div class="filter-section">
 		<label>Filter by name</label>
-		<input value="@_accountFilterService.AccountNameFilter" @oninput="(ChangeEventArgs e) => { _accountFilterService.AccountNameFilter = e?.Value?.ToString() ?? string.Empty; _accountFilterService.Save(); }" type="text" class="input-text" >
+		<input value="@_accountFilterService.AccountNameFilter" @oninput="OnFilterInputChange" type="text" class="input-text">
 	</div>
 
 	<hr/>

@@ -40,7 +40,7 @@ namespace AccountManager.Core.Services.GraphServices
                 throw;
             }
 
-            if (matchHistory?.Any() is not true)
+            if (!matchHistory.Any())
                 return new LineGraph();
 
             matchHistory = matchHistory.OrderBy(match => match.MatchInfo.GameStartMillis);
@@ -71,7 +71,7 @@ namespace AccountManager.Core.Services.GraphServices
                 var rank = _mapper.Map<ValorantRank>(currentTier);
                 graph.Label = $"{rank.Tier} {rank.Ranking}";
                 graph.ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[currentTier / 3].ToLower()];
-                graph?.Data?.Add(new CoordinatePair() { X = currentMatch.MatchInfo.GameStartMillis, Y = rankedOffsets[currentTier] });
+                graph.Data?.Add(new CoordinatePair() { X = currentMatch.MatchInfo.GameStartMillis, Y = rankedOffsets[currentTier] });
                 previousTier = currentTier;
             }
 
@@ -83,7 +83,7 @@ namespace AccountManager.Core.Services.GraphServices
                 Title = "Ranked Wins"
             };
 
-            return lineGraph ?? new();
+            return lineGraph;
         }
 
         public async Task<BarChart> GetRankedACS(Account account)
@@ -100,7 +100,7 @@ namespace AccountManager.Core.Services.GraphServices
                 throw;
             }
 
-            if (matchHistory?.Any() is not true)
+            if (!matchHistory.Any())
                 return new BarChart();
 
             var operators = await _valorantClient.GetValorantOperators();
@@ -120,19 +120,19 @@ namespace AccountManager.Core.Services.GraphServices
                         if (accountInMatch is null)
                             return 0;
 
-                        return (accountInMatch?.Stats?.Score / accountInMatch?.Stats?.RoundsPlayed) ?? 0;
+                        return (accountInMatch.Stats?.Score / accountInMatch.Stats?.RoundsPlayed) ?? 0;
                     })
                 };
             }).ToList();
 
             var barChart = new BarChart
             {
-                Labels = groupedMatches?.Select(group => group?.Key?.DisplayName ?? "UNKNOWN CHARACTER")?.ToList() ?? new(),
+                Labels = groupedMatches.Select(group => group?.Key?.DisplayName ?? "UNKNOWN CHARACTER").ToList(),
                 Data = barChartData,
                 Title = "Average ACS"
             };
 
-            return barChart ?? new();
+            return barChart;
         }
 
         public async Task<PieChart> GetRecentlyUsedOperatorsPieChartAsync(Account account)
@@ -151,7 +151,7 @@ namespace AccountManager.Core.Services.GraphServices
                 throw;
             }
 
-            if (matchHistory?.Any() is not true)
+            if (!matchHistory.Any())
                 return new PieChart();
 
             var operators = await _valorantClient.GetValorantOperators();
@@ -173,7 +173,7 @@ namespace AccountManager.Core.Services.GraphServices
             pieChart.Data = dataList;
             pieChart.Title = "Recently Used Agents";
 
-            return pieChart ?? new();
+            return pieChart;
         }
 
         public async Task<LineGraph> GetRankedRRChangeLineGraph(Account account)
@@ -211,7 +211,7 @@ namespace AccountManager.Core.Services.GraphServices
                     }).ToList(),
                     Tags = new(),
                     Label = $"{rank.Tier} {rank.Ranking} RR",
-                    Hidden = match.Key != matchHistory.Matches.First().TierAfterUpdate,
+                    Hidden = match.Key != matchHistory.Matches[0].TierAfterUpdate,
                     ColorHex = ValorantRank.RankedColorMap[ValorantRank.RankMap[match.Key / 3].ToLower()]
                 };
             }).OrderBy((graph) => graph.Hidden).ToList();
@@ -222,7 +222,7 @@ namespace AccountManager.Core.Services.GraphServices
                 Title = "RR Change"
             };
 
-            return lineGraph ?? new();
+            return lineGraph;
         }
     }
 }

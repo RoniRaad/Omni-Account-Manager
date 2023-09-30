@@ -6,13 +6,15 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(AccountType.Riot, 3)]
     [AccountTilePage(AccountType.Valorant, 3)]
     public partial class ValorantRankedWinsPage
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
-
-        private Account _account = new();
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
+        private Account? _account = null;
         LineChart<CoordinatePair>? lineChart;
         LineChartOptions lineChartOptions = new()
         {
@@ -72,6 +74,29 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
                 }
             }
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateValorantWins));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateValorantWins()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display ranked win graph account {Account.Name}.");
+            }
+
+            await HandleRedraw();
+        }
+
         async Task HandleRedraw()
         {
             lineChart?.Clear();
@@ -105,20 +130,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Val
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 
-                try 
-                { 
-                    displayGraph = await _valorantGraphService.GetRankedWinsLineGraph(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display ranked win graph account {Account.Name}.");
-                }
-
-                await HandleRedraw();
+                await UpdateValorantWins();
             }
         }
 

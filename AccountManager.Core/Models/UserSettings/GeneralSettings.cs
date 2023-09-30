@@ -12,11 +12,11 @@
             if (riotDrive is not null)
                 RiotInstallDirectory = Path.Combine(riotDrive.ToString(), "Riot Games");
 
-            if (potentialSteamDrives?.Count() > 0)
+            if (potentialSteamDrives.Any())
                 SteamInstallDirectory = Path.Combine(potentialSteamDrives.First().ToString(),
                     "Program Files (x86)", "Steam");
 
-            if (potentialEpicGamesDrives?.Count() > 0)
+            if (potentialEpicGamesDrives.Any())
                 EpicGamesInstallDirectory = Path.Combine(potentialEpicGamesDrives.First().ToString(),
                     "Program Files (x86)", "Epic Games");
         }

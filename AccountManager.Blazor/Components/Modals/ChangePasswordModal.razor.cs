@@ -24,7 +24,7 @@ namespace AccountManager.Blazor.Components.Modals
 
         public void Submit()
         {
-            SettingsService.ChangePasswordAsync(PasswordChangeRequest);
+            SettingsService.ChangePassword(PasswordChangeRequest);
             Close();
         }
     }

@@ -45,7 +45,7 @@ namespace AccountManager.Infrastructure.Clients
                 {"na", "usw" },
                 {"latam", "usw" },
                 {"br", "usw" },
-                {"eu", "euc" },
+                {"euw", "euc" },
                 {"ap", "apse" },
                 {"kr", "apse" }
             }).ToImmutableDictionary();
@@ -83,7 +83,7 @@ namespace AccountManager.Infrastructure.Clients
             return puuid?.ToString() ?? "";
         }
       
-        public async Task<RegionInfo> GetRegionInfo(Account account)
+        public async Task<RegionInfo> GetValorantRegionInfo(Account account)
         {
             var riotTokens = await _riotTokenClient.GetRiotTokens(GetAuthRequest(account), account);
             var client = _httpClientFactory.CreateClient();
@@ -114,5 +114,7 @@ namespace AccountManager.Infrastructure.Clients
             else
                 return valorantRequest;
         }
+
+
     }
 }

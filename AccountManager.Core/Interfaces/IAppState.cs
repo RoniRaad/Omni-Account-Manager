@@ -5,7 +5,7 @@ namespace AccountManager.Core.Interfaces
 {
     public interface IAppState
     {
-        List<Account> Accounts { get; set; }
+        List<Account>? Accounts { get; set; }
         bool IsInitialized { get; set; }
 
         Task IpcLogin(AppState.IpcLoginParameter loginParam);

@@ -9,7 +9,7 @@ namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.EpicG
     [SingleAccountPage("Game Select", Core.Enums.AccountType.EpicGames, 0)]
     public partial class EpicGamesGameSelectPage
     {
-        [Parameter, EditorRequired]
+        [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }
 
         [Parameter, EditorRequired]

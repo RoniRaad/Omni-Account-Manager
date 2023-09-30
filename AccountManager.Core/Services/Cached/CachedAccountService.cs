@@ -50,7 +50,7 @@ namespace AccountManager.Core.Services.Cached
             return await _memoryCache.GetOrAddAsync($"{nameof(AccountService)}.{id}", async (entry) =>
             {
                 return await _accountService.GetAccountAsync(id);
-            }) ?? new();
+            });
         }
 
         public async Task SaveAccountAsync(Account account)

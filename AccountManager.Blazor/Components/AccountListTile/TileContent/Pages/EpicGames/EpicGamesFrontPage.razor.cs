@@ -11,27 +11,31 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
     [AccountTilePage(Core.Enums.AccountType.EpicGames, 0)]
     public partial class EpicGamesFrontPage
     {
-        private Account _account = new();
         private bool epicInstallNotFound = false;
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         List<EpicGamesInstalledGame> Games { get; set; } = new();
-
-        protected override void OnInitialized()
-        {
-            _account = Account;
-        }
+        private string selectedEpicGame = "none";
 
         protected override async Task OnParametersSetAsync()
         {
-             _account = Account;
-
             await base.OnParametersSetAsync();
         }
-        private string selectedEpicGame = "none";
+        private async Task UpdateGames()
+        {
+            if (Account is null)
+                return;
+
+            await RefreshGamesAsync();
+        }
 
         public void SetGame(string appId)
         {
+            if (Account is null)
+                return;
+
             _persistantCache.SetString($"{Account.Id}.SelectedEpicGame", appId);
         }
 
@@ -42,6 +46,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
         }
         public async Task RefreshGamesAsync()
         {
+            if (Account is null)
+                return;
+
             Games.Clear();
 
             selectedEpicGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
@@ -54,6 +61,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected async override Task OnAfterRenderAsync(bool firstRender)
         {
+            if (Account is null)
+                return;
+
             var cachedSelectedGame = await _persistantCache.GetStringAsync($"{Account.Id}.SelectedEpicGame") ?? "none";
             if (cachedSelectedGame != selectedEpicGame)
             {
@@ -65,6 +75,7 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Epi
 
         protected async override Task OnInitializedAsync()
         {
+            RegisterTileDataRefresh(() => Task.Run(UpdateGames));
             await RefreshGamesAsync();
             await base.OnInitializedAsync();
         }

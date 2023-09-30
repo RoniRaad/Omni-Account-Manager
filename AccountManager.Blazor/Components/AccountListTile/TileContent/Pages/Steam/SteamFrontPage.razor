@@ -16,7 +16,7 @@
 @if (steamInstallNotFound){
     <h5 class="no-data-label">Steam install not found</h5>
 }
-else if (Games.Count == 0)
+else if (Games.Count == 0 || Account is null)
 {
     <h5 class="no-data-label">No data available</h5>
 }

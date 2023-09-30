@@ -153,7 +153,7 @@ namespace AccountManager.Infrastructure.Services.Platform
 
                 try
                 {
-                    regionInfo = await _riotClient.GetRegionInfo(account);
+                    regionInfo = await _riotClient.GetValorantRegionInfo(account);
                 }
                 catch
                 {

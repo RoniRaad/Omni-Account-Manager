@@ -4,21 +4,19 @@ using Microsoft.Extensions.Caching.Memory;
 using AccountManager.Core.Models.UserSettings;
 using AccountManager.Core.Attributes;
 using AccountManager.Core.Static;
-using System.Security.Principal;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 {
     public partial class TileContentData
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
+        [CascadingParameter]
+        public Account? Account { get; set; }
         [CascadingParameter, EditorRequired]
         public AccountListItemSettings Settings { get; set; } = new();
 
         private List<Type> pages = new();
         private readonly Dictionary<string, object> pageParams = new();
         private int activePage = 0;
-        private Account? _account;
 
         protected override void OnInitialized()
         {
@@ -27,32 +25,26 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         protected override async Task OnInitializedAsync()
         {
-            if (_account != Account)
+            if (Account is null)
+                return;
+
+            var currentPages = pages;
+            pages = _cache?.GetOrCreate($"{nameof(TileContentData)}.{Account.AccountType}.Pages", cacheEntry =>
             {
-                _account = Account;
-                pageParams["Account"] = Account;
-                var currentPages = pages;
-                pages = _cache?.GetOrCreate($"{nameof(TileContentData)}.{Account.AccountType}.Pages", cacheEntry =>
-                {
-                    return AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(AccountTilePageAttribute), true)))
-                        .ToDictionary((element) =>
-                        {
-                            return Attribute.GetCustomAttribute(element, typeof(AccountTilePageAttribute)) as AccountTilePageAttribute ?? new AccountTilePageAttribute(0, 0);
-                        })
-                        .Where((kvp) => kvp.Key?.AccountType == Account.AccountType)
-                        .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
-                        .Select((kvp) => kvp.Value)
-                        .ToList();
+                return AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(AccountTilePageAttribute), true)))
+                    .SelectMany(type => Attribute.GetCustomAttributes(type, typeof(AccountTilePageAttribute))
+                    .Cast<AccountTilePageAttribute>()
+                    .Select(attr => new { Attribute = attr, Type = type }))
+                    .Where(entry => entry.Attribute.AccountType == Account.AccountType)
+                    .OrderBy(entry => entry.Attribute.OrderNumber)
+                    .Select(entry => entry.Type)
+                    .ToList();
 
-                }) ?? new();
+            }) ?? new();
 
-                if (currentPages != pages)
-                    activePage = await _persistantCache.GetOrCreateAsync($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", async () =>
-                    {
-                        return 0;
-                    });
-            }
+            if (currentPages != pages)
+                activePage = await _persistantCache.GetOrCreateAsync($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", () => Task.FromResult(0));
         }
 
 
@@ -65,6 +57,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         private async Task IncrementPage()
         {
+            if (Account is null)
+                return;
+
             activePage++;
             if (activePage >= pages?.Count)
                 activePage = 0;
@@ -74,6 +69,9 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
 
         private async Task DecrementPage()
         {
+            if (Account is null)
+                return;
+
             activePage--;
             if (activePage < 0)
                 activePage = pages.Count - 1;
@@ -81,9 +79,10 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent
             await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
 
-        private void SetPage(int pageNum)
+        private async Task SetPage(int pageNum)
         {
             activePage = pageNum;
+            await _persistantCache.SetAsync<int>($"{nameof(TileContentData)}.{Account.AccountType}.{Account.Id}.CurrentPage", activePage);
         }
     }
 }

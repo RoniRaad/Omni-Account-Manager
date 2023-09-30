@@ -19,14 +19,6 @@
             </tr>
             <tr>
                 <th scope="row">
-                    <p>Clear local cache</p>
-                </th>
-                <td>
-                    <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear</button>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
                     <p>Riot games install location</p>
                 </th>
                 <td>
@@ -73,6 +65,14 @@
                 </th>
                 <td>
                     <button class="btn btn-dark" @onclick="() => { ShowExportAccountsModal = true; InvokeAsync(() => StateHasChanged()); }">Export Accounts</button>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <p>Clear local cache</p>
+                </th>
+                <td>
+                    <button class="btn btn-dark" @onclick=_settings.ClearCookies>Clear And Restart</button>
                 </td>
             </tr>
             <tr>

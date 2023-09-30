@@ -5,13 +5,16 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.Riot, 7)]
     [AccountTilePage(Core.Enums.AccountType.League, 2)]
     public partial class LeagueCSPerMinutePage
     {
-        [Parameter]
-        public Account Account { get; set; } = new();
+		[CascadingParameter]
+		public Account? Account { get; set; }
+        [CascadingParameter(Name = "RegisterTileDataRefresh")]
+        Action<Action> RegisterTileDataRefresh { get; set; } = delegate { };
         BarChart? displayGraph;
-        private Account _account = new();
+        private Account? _account = null;
         BarChart<double?>? barChart;
         private readonly BarChartOptions barChartOptions = new()
         {
@@ -49,6 +52,28 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
                 }
             },
         };
+        protected override async Task OnInitializedAsync()
+        {
+            RegisterTileDataRefresh(() => Task.Run(UpdateCSPerMinute));
+            await base.OnInitializedAsync();
+        }
+
+        private async Task UpdateCSPerMinute()
+        {
+            if (Account is null)
+                return;
+
+            try
+            {
+                displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
+            }
+            catch
+            {
+                _alertService.AddErrorAlert($"Unable to display league champ cs rate for account {Account.Name}");
+            }
+            await HandleRedraw();
+            await InvokeAsync(() => StateHasChanged());
+        }
 
         async Task HandleRedraw()
         {
@@ -70,20 +95,11 @@ namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Lea
 
         protected override async Task OnParametersSetAsync()
         {
-            if (_account != Account)
+            if (_account != Account && Account is not null)
             {
                 _account = Account;
 
-                try
-                {
-                    displayGraph = await _leagueGraphService.GetRankedCsRateByChampBarChartAsync(Account);
-                }
-                catch
-                {
-                    _alertService.AddErrorAlert($"Unable to display league champ cs rate for account {Account.Name}");
-                }
-                await HandleRedraw();
-                await InvokeAsync(() => StateHasChanged());
+                await UpdateCSPerMinute();
             }
         }
 
