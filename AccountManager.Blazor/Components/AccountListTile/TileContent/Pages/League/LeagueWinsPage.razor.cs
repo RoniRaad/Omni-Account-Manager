@@ -6,7 +6,7 @@ using AccountManager.Core.Static;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
-    [AccountTilePage(Core.Enums.AccountType.Riot, 1)]
+    [AccountTilePage(Core.Enums.AccountType.Riot, 5)]
     [AccountTilePage(Core.Enums.AccountType.League, 0)]
     public partial class LeagueWinsPage
     {

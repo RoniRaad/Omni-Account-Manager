@@ -2,15 +2,12 @@
 using AccountManager.Core.Exceptions;
 using AccountManager.Core.Interfaces;
 using AccountManager.Core.Models;
-using AccountManager.Core.Models.EpicGames;
 using AccountManager.Core.Models.RiotGames;
 using AccountManager.Core.Models.RiotGames.Requests;
 using AccountManager.Core.Models.UserSettings;
-using AccountManager.Core.Static;
 using AccountManager.Infrastructure.Clients;
 using AccountManager.Infrastructure.Services.FileSystem;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
@@ -27,16 +24,15 @@ namespace AccountManager.Infrastructure.Services.Platform
         private readonly IRiotFileSystemService _riotFileSystemService;
         private readonly IAlertService _alertService;
         private readonly ILogger<RiotPlatformService> _logger;
-        private readonly IDistributedCache _persistantCache;
         private readonly HttpClient _httpClient;
         private readonly IRiotTokenClient _riotTokenClient;
         private readonly IUserSettingsService<GeneralSettings> _settingsService;
-        public static readonly string WebIconFilePath = Path.Combine("logos", "valorant-logo.svg");
+        public static readonly string WebIconFilePath = Path.Combine("logos", "riot-logo.svg");
         public static readonly string IcoFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
-            ?? ".", "ShortcutIcons", "valorant-logo.ico");
+            ?? ".", "ShortcutIcons", "riot-logo.ico");
         public RiotPlatformService(IRiotClient riotClient, IGenericFactory<AccountType, ITokenService> tokenServiceFactory,
             IHttpClientFactory httpClientFactory, IRiotFileSystemService riotLockFileService, IAlertService alertService,
-            IDistributedCache persistantCache, IUserSettingsService<GeneralSettings> settingsService, 
+            IUserSettingsService<GeneralSettings> settingsService, 
             IRiotTokenClient riotTokenClient, ILogger<RiotPlatformService> logger)
         {
             _riotClient = riotClient;
@@ -44,7 +40,6 @@ namespace AccountManager.Infrastructure.Services.Platform
             _httpClient = httpClientFactory.CreateClient("SSLBypass");
             _riotFileSystemService = riotLockFileService;
             _alertService = alertService;
-            _persistantCache = persistantCache;
             _settingsService = settingsService;
             _riotTokenClient = riotTokenClient;
             _logger = logger;
@@ -61,12 +56,12 @@ namespace AccountManager.Infrastructure.Services.Platform
             _logger.LogError("Riot login failed via api and rcu!");
         }
 
-        public async Task<(bool, Rank)> TryFetchRank(Account account)
-        {
-            return new(true, new Rank() { Tier="N/A"});
-        }
+		public Task<(bool, Rank)> TryFetchRank(Account account)
+		{
+			return Task.FromResult<(bool, Rank)>(new(true, new Rank()));
+		}
 
-        public async Task<(bool, string)> TryFetchId(Account account)
+		public async Task<(bool, string)> TryFetchId(Account account)
         {
             try
             {

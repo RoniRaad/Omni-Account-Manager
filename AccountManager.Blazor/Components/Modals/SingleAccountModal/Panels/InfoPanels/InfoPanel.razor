@@ -35,7 +35,9 @@
 
     private string GetTitleFromType(Type type)
     {
-        SingleAccountPageAttribute? attribute = (SingleAccountPageAttribute?)Attribute.GetCustomAttribute(type, typeof(SingleAccountPageAttribute));
+        SingleAccountPageAttribute? attribute = type.GetCustomAttributes(typeof(SingleAccountPageAttribute), true)
+                                            .OfType<SingleAccountPageAttribute>()
+                                            .FirstOrDefault(x => x.AccountType == Account?.AccountType);
         if (attribute is not null)
             return attribute.Title;
 

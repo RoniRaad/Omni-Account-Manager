@@ -6,6 +6,7 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(AccountType.Riot, 3)]
     [AccountTilePage(AccountType.Valorant, 3)]
     public partial class ValorantRankedWinsPage
     {

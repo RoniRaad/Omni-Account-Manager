@@ -5,8 +5,9 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.Modals.SingleAccountModal.Pages.Valorant
 {
+    [SingleAccountPage("Store Front", Core.Enums.AccountType.Riot, 0)]
     [SingleAccountPage("Store Front", Core.Enums.AccountType.Valorant, 0)]
-    public partial class ValorantStorePage
+	public partial class ValorantStorePage
     {
         [CascadingParameter, EditorRequired]
         public Account? Account { get; set; }

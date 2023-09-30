@@ -77,15 +77,14 @@
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountPageAttribute)}.{Account?.AccountType}.Pages", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountPageAttribute), true)))
-                        .ToDictionary((element) =>
-                        {
-                            return Attribute.GetCustomAttribute(element, typeof(SingleAccountPageAttribute)) as SingleAccountPageAttribute ?? new SingleAccountPageAttribute("Data", 0);
-                        })
-                        .Where((kvp) => kvp.Key?.AccountType == Account?.AccountType)
-                        .OrderBy((kvp) => kvp.Key?.OrderNumber ?? 0)
-                        .Select((kvp) => kvp.Value)
-                        .ToList();
+            .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountPageAttribute), true)))
+            .SelectMany(type => Attribute.GetCustomAttributes(type, typeof(SingleAccountPageAttribute))
+            .Cast<SingleAccountPageAttribute>()
+            .Select(attr => new { Attribute = attr, Type = type }))
+            .Where(entry => entry.Attribute.AccountType == Account?.AccountType)
+            .OrderBy(entry => entry.Attribute.OrderNumber)
+            .Select(entry => entry.Type)
+            .ToList();
         }) ?? new();
     }
 
@@ -97,8 +96,10 @@
         return _memoryCache.GetOrCreate($"{nameof(SingleAccountInfoPanelAttribute)}.{Account.AccountType}.AccountDetailsPanel", (entry) =>
         {
             return AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => a.GetTypes().Where(t => t.IsDefined(typeof(SingleAccountInfoPanelAttribute), true)))
-                        .FirstOrDefault((type) => (Attribute.GetCustomAttribute(type, typeof(SingleAccountInfoPanelAttribute)) as SingleAccountInfoPanelAttribute)?.AccountType == Account.AccountType);
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(type => type.GetCustomAttributes(typeof(SingleAccountInfoPanelAttribute), true)
+                .OfType<SingleAccountInfoPanelAttribute>()
+                .Any(attr => attr.AccountType == Account.AccountType));
         }) ?? null;
     }
 }

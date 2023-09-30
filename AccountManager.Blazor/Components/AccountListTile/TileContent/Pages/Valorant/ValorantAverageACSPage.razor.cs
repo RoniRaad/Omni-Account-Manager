@@ -5,6 +5,7 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.Valorant
 {
+    [AccountTilePage(Core.Enums.AccountType.Riot, 2)]
     [AccountTilePage(Core.Enums.AccountType.Valorant, 2)]
     public partial class ValorantAverageACSPage
     {

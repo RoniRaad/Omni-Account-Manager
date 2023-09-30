@@ -5,6 +5,7 @@ using AccountManager.Core.Attributes;
 
 namespace AccountManager.Blazor.Components.AccountListTile.TileContent.Pages.League
 {
+    [AccountTilePage(Core.Enums.AccountType.Riot, 6)]
     [AccountTilePage(Core.Enums.AccountType.League, 1)]
     public partial class LeagueRecentWinratePage
     {
