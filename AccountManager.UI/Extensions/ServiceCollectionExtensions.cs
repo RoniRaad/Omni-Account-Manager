@@ -186,8 +186,7 @@ namespace AccountManager.UI.Extensions
                 cfg.CreateMap<MatchHistory.Tower, MatchHistoryResponse.Tower>()
                 .ReverseMap();
                 cfg.CreateMap<string, RegionInfo>()
-                    .ForMember(d => d.RegionId, opt => opt.MapFrom((src) => src))
-                    .ForMember(d => d.CountryId, opt => opt.MapFrom((src) => RiotClient.RiotAuthRegionMapping[src]));
+                    .ForMember(d => d.RegionId, opt => opt.MapFrom((src) => src));
 
                 cfg.AllowNullDestinationValues = true;
             });
