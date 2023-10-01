@@ -46,6 +46,7 @@ namespace AccountManager.Infrastructure.Clients
                 {"latam", "usw" },
                 {"br", "usw" },
                 {"euw", "euc" },
+                {"eu", "euc" },
                 {"ap", "apse" },
                 {"kr", "apse" }
             }).ToImmutableDictionary();
