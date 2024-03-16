@@ -10,11 +10,15 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+          isMajorPatch:
+            description: 'If the update is a major patch.'
+            required: true
+            default: false
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    if: github.event.pull_request.merged == true
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -62,9 +66,75 @@ jobs:
           New-Item -ItemType Directory -Force -Path Deployment/Releases/
       
       - name: NuGet
-        needs: get-project-version
         run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.7.0\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
  
+      - name: Squirrelify
+        run: Start-Process "$env:USERPROFILE\.nuget\packages\squirrel.windows\1.9.0\tools\Squirrel.exe" -ArgumentList "--releasify Deployment/GeneratedNugets/OmniAccountManager.${{ steps.get-project-version.outputs.versionNum }}.nupkg --releaseDir=Deployment/Releases" -NoNewWindow -Wait
+      
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          automatic_release_tag: v${{ steps.get-project-version.outputs.versionNum }}
+          title: Release v${{ steps.get-project-version.outputs.versionNum }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: Deployment/Releases/*
+            
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Published last commit and deployed release.
+          branch: master
+  deploy-manually:
+  
+    if: github.event_name == 'workflow_dispatch'
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+  
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with: 
+          dotnet-version: 7.0.x
+          
+      - name: Install dotnet version tool
+        run: dotnet tool install -g dotnet-version-cli
+        
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Bump version number minor
+        if: ${{ github.event.inputs.isMajorPatch }}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+      
+      - name: Bump version number patch
+        if: ${{ !github.event.inputs.isMajorPatch }}
+        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch
+      
+      - name: Get version number
+        run: |
+          $version = dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
+          echo "versionNum=$version" >> $GITHUB_OUTPUT
+          echo "$version"
+        id: get-project-version
+        shell: pwsh
+        
+      - name: Publish solution
+        run: dotnet publish -c Release
+      
+      - name: Remove Deployment Directory
+        run: Remove-Item -Force Deployment\Releases\* -ErrorAction Ignore
+      
+      - name: Ensure directories exist
+        run: |
+          New-Item -ItemType Directory -Force -Path Deployment/GeneratedNugets/
+          New-Item -ItemType Directory -Force -Path Deployment/Releases/
+      
+      - name: NuGet
+        run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.7.0\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
+  
       - name: Squirrelify
         run: Start-Process "$env:USERPROFILE\.nuget\packages\squirrel.windows\1.9.0\tools\Squirrel.exe" -ArgumentList "--releasify Deployment/GeneratedNugets/OmniAccountManager.${{ steps.get-project-version.outputs.versionNum }}.nupkg --releaseDir=Deployment/Releases" -NoNewWindow -Wait
       
