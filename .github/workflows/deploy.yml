@@ -44,7 +44,7 @@ jobs:
       
       - name: Get version number
         run: |
-          $version = dotnet msbuild ./AccountManager.UI/AccountManager.UI.csproj -getProperty:Version }
+          $version = dotnet msbuild ./AccountManager.UI/AccountManager.UI.csproj -getProperty:Version
           echo "version=$version" >> $GITHUB_ENV
           echo "versionNum=$version" >> $GITHUB_OUTPUT
         id: get-project-version
