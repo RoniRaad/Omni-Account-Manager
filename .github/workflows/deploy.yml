@@ -43,9 +43,13 @@ jobs:
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch
       
       - name: Get version number
-        run: dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() } | foreach-object { Write-Output "::set-output name=versionNum::$_" }
+        run: |
+          $version = dotnet msbuild ./AccountManager.UI/AccountManager.UI.csproj -getProperty:Version }
+          echo "version=$version" >> $GITHUB_ENV
+          echo "versionNum=$version" >> $GITHUB_OUTPUT
         id: get-project-version
-
+        shell: pwsh
+        
       - name: Publish solution
         run: dotnet publish -c Release
       
