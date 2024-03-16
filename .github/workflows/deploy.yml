@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
     inputs:
           isMajorPatch:
+            type: boolean
             description: 'If the update is a major patch.'
             required: true
             default: false
