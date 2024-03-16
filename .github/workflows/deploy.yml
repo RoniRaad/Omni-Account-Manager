@@ -45,8 +45,8 @@ jobs:
       - name: Get version number
         run: |
           $version = dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
-          echo "version=$version" >> $GITHUB_ENV
           echo "versionNum=$version" >> $GITHUB_OUTPUT
+          echo "$version"
         id: get-project-version
         shell: pwsh
         
@@ -62,6 +62,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path Deployment/Releases/
       
       - name: NuGet
+        needs: get-project-version
         run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.7.0\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
  
       - name: Squirrelify
