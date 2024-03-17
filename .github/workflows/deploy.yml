@@ -125,6 +125,7 @@ jobs:
           $version = dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
           echo "versionNum=$version" >> $GITHUB_OUTPUT
           echo "version = $version"
+          dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
           ls
         id: get-project-version
         shell: pwsh
