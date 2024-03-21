@@ -73,8 +73,10 @@ jobs:
         shell: pwsh
 
       - name: Debug version number
+        env: 
+          VERSION: steps.get-project-version.outputs.versionNum
         run: |
-          echo "Extracted version number is ${{ steps.get-project-version.outputs.versionNum }}"
+          echo "Extracted version number is $VERSION"
         shell: pwsh
 
       - name: Publish solution
