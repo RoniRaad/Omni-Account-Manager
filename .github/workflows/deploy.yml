@@ -26,7 +26,8 @@ jobs:
     outputs:
       isMajorPatch: ${{ (github.event.pull_request.merged == true && github.event.inputs.isMajorPatch) || (github.event.pull_request.merged == false && startsWith( github.head_ref, 'feature' )) }}
     runs-on: windows-latest
-      
+    steps:
+      - name: Do nothing
   deploy:
     needs: setup-variables
     # The type of runner that the job will run on
