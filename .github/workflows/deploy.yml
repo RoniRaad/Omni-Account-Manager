@@ -24,15 +24,8 @@ on:
 jobs:
   setup-variables:
     outputs:
-      isMajorPatch: fromJSON(steps.set-variables.outputs.isMajorPatch)
+      isMajorPatch: ${{ (github.event.pull_request.merged == true && github.event.inputs.isMajorPatch) || (github.event.pull_request.merged == false && startsWith( github.head_ref, 'feature' )) }}
     runs-on: windows-latest
-    steps:
-      - name: Set manual run variables
-        shell: pwsh
-        id: set-variables
-        run: |
-          if ($${{ github.event.pull_request.merged == true }}) { echo "isMajorPatch=${{ toJSON(github.event.inputs.isMajorPatch) }}" >> $env:GITHUB_OUTPUT }
-          else { echo "isMajorPatch=${{ toJSON(startsWith( github.head_ref, 'feature' )) }}" >> $env:GITHUB_OUTPUT }
       
   deploy:
     needs: setup-variables
