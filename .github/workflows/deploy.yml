@@ -28,11 +28,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Set manual run variables
+        shell: pwsh
         id: set-variables
         if: github.event.pull_request.merged == true
         run: |
-          if (${{ github.event.pull_request.merged }}) { echo "isMajorPatch=${{ toJSON(github.event.inputs.isMajorPatch) }}" >> "$GITHUB_OUTPUT" }
-          else { echo "isMajorPatch=${{ toJSON(startsWith( github.head_ref, 'feature' )) }}" >> "$GITHUB_OUTPUT" }
+          if (${{ github.event.pull_request.merged }}) { echo "isMajorPatch=${{ toJSON(github.event.inputs.isMajorPatch) }}" >> $env:GITHUB_OUTPUT }
+          else { echo "isMajorPatch=${{ toJSON(startsWith( github.head_ref, 'feature' )) }}" >> $env:GITHUB_OUTPUT }
       
   deploy:
     needs: setup-variables
@@ -66,7 +67,7 @@ jobs:
       - name: Get version number
         run: |
           $version = dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
-          echo "versionNum='$version'" >> $GITHUB_OUTPUT
+          echo "versionNum='$version'" >> $env:GITHUB_OUTPUT
           echo "versionNum='$version'"
           if (!$version){ throw("Invalid version extracted") }
         id: get-project-version
@@ -92,7 +93,7 @@ jobs:
       
       - name: NuGet
         run: Start-Process "$env:USERPROFILE\.nuget\packages\nuget.commandline\6.7.0\tools\NuGet.exe" -ArgumentList "pack AccountManager.UI/ReleaseSpec.nuspec -Version ${{ steps.get-project-version.outputs.versionNum }} -Properties Configuration=Release -OutputDirectory Deployment/GeneratedNugets" -NoNewWindow -Wait
- 
+     
       - name: Squirrelify
         run: Start-Process "$env:USERPROFILE\.nuget\packages\squirrel.windows\1.9.0\tools\Squirrel.exe" -ArgumentList "--releasify Deployment/GeneratedNugets/OmniAccountManager.${{ steps.get-project-version.outputs.versionNum }}.nupkg --releaseDir=Deployment/Releases" -NoNewWindow -Wait
       
