@@ -71,7 +71,12 @@ jobs:
           if (!$version){ throw("Invalid version extracted") }
         id: get-project-version
         shell: pwsh
-        
+
+      - name: Debug version number
+        run: |
+          echo "Extracted version number is ${{ steps.get-project-version.outputs.versionNum }}"
+        shell: pwsh
+
       - name: Publish solution
         run: dotnet publish -c Release
       
