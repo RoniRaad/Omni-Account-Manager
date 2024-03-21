@@ -67,8 +67,8 @@ jobs:
       - name: Get version number
         run: |
           $version = dotnet version -s -o text -f ./AccountManager.UI/AccountManager.UI.csproj | select -last 1 | foreach-object { $_.Trim() }
-          echo "versionNum='$version'" >> $env:GITHUB_OUTPUT
-          echo "versionNum='$version'"
+          echo "versionNum=$version" >> $env:GITHUB_OUTPUT
+          echo "versionNum=$version"
           if (!$version){ throw("Invalid version extracted") }
         id: get-project-version
         shell: pwsh
