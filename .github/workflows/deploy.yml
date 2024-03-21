@@ -22,14 +22,7 @@ on:
             default: 'master'
 
 jobs:
-  setup-variables:
-    outputs:
-      isMajorPatch: ${{ (github.event.pull_request.merged == true && github.event.inputs.isMajorPatch) || (github.event.pull_request.merged == false && startsWith( github.head_ref, 'feature' )) }}
-    runs-on: windows-latest
-    steps:
-      - name: Do nothing
   deploy:
-    needs: setup-variables
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -49,13 +42,17 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       
-      - name: Bump version number minor
-        if:  ${{ needs.setup-variables.outputs.isMajorPatch }}
-        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
-      
-      - name: Bump version number patch
-        if: ${{ !needs.setup-variables.outputs.isMajorPatch }}
-        run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch
+      - name: Bump version number
+        run: |
+          if ( $${{ (github.event.pull_request.merged == true && github.event.inputs.isMajorPatch) ||
+               (github.event.pull_request.merged == false && startsWith( github.head_ref, 'feature' )) }}) 
+          { 
+            dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
+          }
+          else 
+          { 
+            dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch 
+          }
       
       - name: Get version number
         run: |
