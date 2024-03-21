@@ -35,7 +35,7 @@ jobs:
           else { echo "isMajorPatch=${{ toJSON(startsWith( github.head_ref, 'feature' )) }}" >> "$GITHUB_OUTPUT" }
       
   deploy:
-    if: github.event.pull_request.merged == true
+    needs: setup-variables
     # The type of runner that the job will run on
     runs-on: windows-latest
 
@@ -56,11 +56,11 @@ jobs:
         run: dotnet restore
       
       - name: Bump version number minor
-        if: jobs.outputs.isMajorPatch
+        if: needs.setup-variables.outputs.isMajorPatch
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
       
       - name: Bump version number patch
-        if: ${{ !jobs.outputs.isMajorPatch }}
+        if: ${{ !needs.setup-variables.outputs.isMajorPatch }}
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj patch
       
       - name: Get version number
