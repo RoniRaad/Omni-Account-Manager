@@ -57,7 +57,7 @@ jobs:
         run: dotnet restore
       
       - name: Bump version number minor
-        if: needs.setup-variables.outputs.isMajorPatch
+        if:  ${{ needs.setup-variables.outputs.isMajorPatch }}
         run: dotnet version -s -f ./AccountManager.UI/AccountManager.UI.csproj minor
       
       - name: Bump version number patch
