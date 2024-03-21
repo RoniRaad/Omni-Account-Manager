@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
         id: set-variables
         run: |
-          if (${{ github.event.pull_request.merged == true }}) { echo "isMajorPatch=${{ toJSON(github.event.inputs.isMajorPatch) }}" >> $env:GITHUB_OUTPUT }
+          if ($${{ github.event.pull_request.merged == true }}) { echo "isMajorPatch=${{ toJSON(github.event.inputs.isMajorPatch) }}" >> $env:GITHUB_OUTPUT }
           else { echo "isMajorPatch=${{ toJSON(startsWith( github.head_ref, 'feature' )) }}" >> $env:GITHUB_OUTPUT }
       
   deploy:
