@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -12,8 +12,13 @@
 		<Title>Omni Account Manager</Title>
 		<Version>1.91.2</Version>
 	</PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>bin\OmniAccountManager\app-1.91.2\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.0" />
 		<PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.5.0" />
 		<PackageReference Include="LazyCache.AspNetCore" Version="2.4.0" />
@@ -30,6 +35,7 @@
 		<NugetTools>$(PkgNuGet_CommandLine)\tools</NugetTools>
 		<SquirrelTools>$(Pkgsquirrel_windows)\tools</SquirrelTools>
 		<NuspecFile>$(SolutionDir)AccountManager.UI\ReleaseSpec.nuspec</NuspecFile>
+		<BaseOutputPath>bin\app-1.91.2</BaseOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
