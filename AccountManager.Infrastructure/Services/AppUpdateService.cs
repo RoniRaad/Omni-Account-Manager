@@ -11,11 +11,13 @@ namespace AccountManager.Infrastructure.Services
     public sealed class SquirrelAppUpdateService : IAppUpdateService
     {
         private readonly AboutEndpoints _endpoints;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<SquirrelAppUpdateService> _logger;
-        public SquirrelAppUpdateService(IOptions<AboutEndpoints> endpoints, ILogger<SquirrelAppUpdateService> logger)
+        public SquirrelAppUpdateService(IOptions<AboutEndpoints> endpoints, ILogger<SquirrelAppUpdateService> logger, IHttpClientFactory httpClientFactory)
         {
             _endpoints = endpoints.Value;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<bool> CheckForUpdate()
@@ -30,65 +32,8 @@ namespace AccountManager.Infrastructure.Services
 				    // This is here temporarily to fix an accidental large jump in minor version number. TODO: remove this
 				if (currentVersion.Version.Minor == 91)
 				{
-                    var httpClient = new HttpClient();
-                    var getNugetPackage = await httpClient.GetAsync("https://github.com/RoniRaad/Omni-Account-Manager/releases/download/v1.19.2/OmniAccountManager-1.19.2-full.nupkg");
-                    if (!Directory.Exists("../tempDowngrade"))
-                    {
-                        Directory.CreateDirectory("../tempDowngrade");
-                    }
-                    using (FileStream nugetFile = File.OpenWrite("../tempDowngrade/OmniAccountManager-1.19.2-full.nupkg"))
-                    {
-                        using var contentStream = getNugetPackage.Content.ReadAsStream();
-                        await contentStream.CopyToAsync(nugetFile);
-                    }
-
-
-                    string exePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".", "..", "Update.exe");
-					string exeArguments = "--update=tempDowngrade";
-					string exeDirectory = Path.GetDirectoryName(exePath);
-
-                    try
-                    {
-						Directory.Delete(Path.Combine(exeDirectory, "packages"), true);
-					}
-                    catch
-                    {
-
-                    }
-
-					var downloadCorrectVersionStartInfo = new ProcessStartInfo(exePath, exeArguments)
-					{
-						UseShellExecute = false,
-						CreateNoWindow = true,
-						WindowStyle = ProcessWindowStyle.Hidden,
-                        WorkingDirectory = exeDirectory,
-					};
-
-					var process = Process.Start(downloadCorrectVersionStartInfo);
-                    await process.WaitForExitAsync();
-
-					string batchScript = Path.Combine(exeDirectory, "deleteDir.bat");
-					using (StreamWriter sw = new StreamWriter(batchScript))
-					{
-						sw.WriteLine("@echo off");
-						sw.WriteLine($"powershell.exe -Command \"Start-Sleep -Seconds 5; Remove-Item -Recurse -Force '{Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)}'\""); // Wait for 5 seconds to ensure the app has closed
-						sw.WriteLine("start OmniAccountManager.exe"); // start the app
-						sw.WriteLine("powershell.exe -Command \"Remove-Item -Recurse -Force 'tempDowngrade'\""); // remove downgrade folder
-						sw.WriteLine("del \"%~f0\""); // Self-delete the batch script
-					}
-
-					// Configure and start the batch script process
-					ProcessStartInfo removeCurrentInstallStartInfo = new ProcessStartInfo(batchScript)
-					{
-						UseShellExecute = true,
-						CreateNoWindow = true,
-						WindowStyle = ProcessWindowStyle.Hidden,
-						WorkingDirectory = exeDirectory,
-					};
-
-					Process.Start(removeCurrentInstallStartInfo);
-                    manager2.KillAllExecutablesBelongingToPackage();
-				}
+                    await ForceUpdateToVersion(new NuGet.SemanticVersion("1.19.2"));
+                }
 
 				    return false;
                 #endif
@@ -114,7 +59,6 @@ namespace AccountManager.Infrastructure.Services
         {
             try
             {
-
 				using var manager = await UpdateManager.GitHubUpdateManager(_endpoints.Github);
 				var currentVersion = manager.CurrentlyInstalledVersion();
 
@@ -137,6 +81,77 @@ namespace AccountManager.Infrastructure.Services
             {
                 _logger.LogError("Unable to update Omni Account Manager.");
             }
+        }
+
+        public async Task ForceUpdateToVersion(NuGet.SemanticVersion version)
+        {
+            const string downgradePackageDirectoryName = "downgradePackage";
+
+            var currentApplicationDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".";
+            string updateExePath = Path.Combine(currentApplicationDirectory, "..", "Update.exe");
+            string updateExeDirectory = Path.GetDirectoryName(updateExePath) ?? "..";
+            var downgradePackageDirectory = Path.Combine(updateExeDirectory, downgradePackageDirectoryName);
+            var versionString = $"{version.Version.Major}.{version.Version.Minor}.{version.Version.Build}";
+            var githubReleasePackageUri = $"https://github.com/RoniRaad/Omni-Account-Manager/releases/download/v{versionString}/OmniAccountManager-{versionString}-full.nupkg";
+            
+            var httpClient = _httpClientFactory.CreateClient();
+            var getNuGetPackage = await httpClient.GetAsync(githubReleasePackageUri);
+
+            if (!Directory.Exists(downgradePackageDirectory))
+            {
+                Directory.CreateDirectory(downgradePackageDirectory);
+            }
+
+            using (FileStream nugetFile = File.OpenWrite($"{downgradePackageDirectory}/OmniAccountManager-{versionString}-full.nupkg"))
+            {
+                using var contentStream = getNuGetPackage.Content.ReadAsStream();
+                await contentStream.CopyToAsync(nugetFile);
+            }
+
+
+            string exeArguments = $"--update={downgradePackageDirectoryName}";
+
+            try
+            {
+                Directory.Delete(Path.Combine(updateExeDirectory, "packages"), true);
+            }
+            catch
+            {
+
+            }
+
+            var downloadCorrectVersionStartInfo = new ProcessStartInfo(updateExePath, exeArguments)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = updateExeDirectory,
+            };
+
+            var process = Process.Start(downloadCorrectVersionStartInfo);
+            if (process is null)
+                return;
+
+            string batchScript = Path.Combine(currentApplicationDirectory, "deleteDir.bat");
+            using (StreamWriter sw = new StreamWriter(batchScript))
+            {
+                sw.WriteLine("@echo off");
+                sw.WriteLine($"powershell.exe -Command \"Start-Sleep -Seconds 5; Remove-Item -Recurse -Force '{currentApplicationDirectory}'\""); // Wait for 5 seconds to ensure the app has closed
+                sw.WriteLine("start OmniAccountManager.exe"); // start the app
+                sw.WriteLine($"powershell.exe -Command \"Remove-Item -Recurse -Force '{downgradePackageDirectoryName}'\""); // remove downgrade folder
+                sw.WriteLine("del \"%~f0\""); // Self-delete the batch script
+            }
+
+            // Configure and start the batch script process
+            ProcessStartInfo removeCurrentInstallStartInfo = new ProcessStartInfo(batchScript)
+            {
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = updateExeDirectory,
+            };
+
+            Process.Start(removeCurrentInstallStartInfo);
         }
 
         public async Task Restart()
