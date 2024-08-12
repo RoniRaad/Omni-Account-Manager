@@ -15,6 +15,7 @@ using KeyedSemaphores;
 using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using LazyCache;
+using System;
 
 namespace AccountManager.Infrastructure.Clients
 {
@@ -28,7 +29,7 @@ namespace AccountManager.Infrastructure.Clients
         private readonly RiotApiUri _riotApiUri;
         private readonly IRiotThirdPartyClient _riot3rdPartyClient;
         private readonly IMapper _autoMapper;
-        private readonly IHttpRequestBuilder _curlRequestBuilder;
+        private readonly IHttpRequestBuilder _httpRequestBuilder;
         public static readonly ImmutableDictionary<string, string> RiotAuthRegionMapping = new Dictionary<string, string>()
                         {
                             {"na", "usw" },
@@ -39,7 +40,7 @@ namespace AccountManager.Infrastructure.Clients
                             {"kr", "apse" }
                         }.ToImmutableDictionary();
         public RiotTokenClient(IHttpClientFactory httpClientFactory, IAlertService alertService, IAppCache memoryCache,
-            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder curlRequestBuilder, 
+            IDistributedCache persistantCache, IOptions<RiotApiUri> riotApiOptions, IMapper autoMapper, IHttpRequestBuilder httpRequestBuilder, 
             ILogger<RiotTokenClient> logger, IRiotThirdPartyClient riot3rdPartyClient)
         {
             _httpClientFactory = httpClientFactory;
@@ -48,7 +49,7 @@ namespace AccountManager.Infrastructure.Clients
             _persistantCache = persistantCache;
             _riotApiUri = riotApiOptions.Value;
             _autoMapper = autoMapper;
-            _curlRequestBuilder = curlRequestBuilder;
+            _httpRequestBuilder = httpRequestBuilder;
             _logger = logger;
             _riot3rdPartyClient = riot3rdPartyClient;
         }
@@ -67,7 +68,7 @@ namespace AccountManager.Infrastructure.Clients
             if (sessionCookie is not null)
                 cookieCollection.Add(sessionCookie);
 
-            var authResponse = await _curlRequestBuilder.CreateBuilder()
+            var authResponse = await _httpRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                 .SetContent(request)
                 .AddCookies(cookieCollection)
@@ -88,11 +89,11 @@ namespace AccountManager.Infrastructure.Clients
             return authResponseContent;
         }
 
-        private async Task<RiotAuthResponse?> RiotAuthenticate(RiotTokenRequest request, Account account)
+		private async Task<RiotAuthResponse?> RiotAuthenticate(RiotTokenRequest request, Account account)
         {
-            var cacheKey = $"{account.Username}.{request.GetHashId()}.{nameof(RiotAuthenticate)}";
-            RiotAuthCookies responseCookies;
-            RiotAuthResponse? response;
+			RiotAuthCookies responseCookies;
+			RiotAuthResponse? response;
+			var cacheKey = $"{account.Username}.{request.GetHashId()}.{nameof(RiotAuthenticate)}";
 
             using (await KeyedSemaphore.LockAsync(account.Username))
             {
@@ -129,7 +130,7 @@ namespace AccountManager.Infrastructure.Clients
                         return initialAuth;
                     }
 
-                    var authResponse = await _curlRequestBuilder.CreateBuilder()
+                    var authResponse = await _httpRequestBuilder.CreateBuilder()
                     .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                     .SetContent(new AuthRequest
                     {
@@ -161,7 +162,7 @@ namespace AccountManager.Infrastructure.Clients
                             return null;
                         }
 
-                        authResponse = await _curlRequestBuilder.CreateBuilder()
+                        authResponse = await _httpRequestBuilder.CreateBuilder()
                         .SetUri($"{_riotApiUri.Auth}/api/v1/authorization/")
                         .SetContent(new MultifactorRequest()
                         {
@@ -207,7 +208,7 @@ namespace AccountManager.Infrastructure.Clients
         public async Task<RiotAuthResponse?> RefreshToken(RiotTokenRequest request, RiotAuthCookies cookies)
         {
             var uriParameters = $"redirect_uri={HttpUtility.UrlEncode(request.RedirectUri)}&client_id={HttpUtility.UrlEncode(request.Id)}&response_type={HttpUtility.UrlEncode(request.ResponseType)}&nonce={HttpUtility.UrlEncode(request.Nonce)}&scope={HttpUtility.UrlEncode(request.Scope)}";
-            var tokenResponse = await _curlRequestBuilder.CreateBuilder()
+            var tokenResponse = await _httpRequestBuilder.CreateBuilder()
                 .SetUri($"{_riotApiUri.Auth}/authorize?{uriParameters}/")
                 .AddHeader("X-Riot-ClientVersion", await GetExpectedClientVersion() ?? "")
                 .SetUserAgent("Rito") // This is a bypass for riot blocking our useragent.
@@ -269,7 +270,7 @@ namespace AccountManager.Infrastructure.Clients
 
         public async Task<string?> GetEntitlementToken(string accessToken)
         {
-            var response = await _curlRequestBuilder.CreateBuilder()
+            var response = await _httpRequestBuilder.CreateBuilder()
             .SetUri($"{_riotApiUri.Entitlement}/api/token/v1/")
             .SetContent(new { })
             .SetBearerToken(accessToken)

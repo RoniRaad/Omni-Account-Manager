@@ -9,17 +9,21 @@ using System.Text.Json;
 
 namespace AccountManager.Infrastructure.Clients
 {
-    public sealed class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
+    public class CurlRequestBuilder : IHttpRequestBuilder, IHttpRequestBuilderInitialize, IHttpRequestBuilderReadyToExecute
     {
+        private string? contentString;
         private string uri = "";
-        private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
+		private readonly Command _cliWrapper = Cli.Wrap(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? ".","curl","curl.exe"))
             .WithWorkingDirectory(Directory.GetCurrentDirectory());
         private readonly CookieContainer _requestCookies = new();
         private readonly ArgumentsBuilder _argumentsBuilder = new();
-        private readonly IDistributedCache _persistantCache; 
-        public CurlRequestBuilder(IDistributedCache persistantCache) 
+        private readonly List<PreRequestMiddlewareDelegate> _preRequestMiddlewares = new();
+        private readonly List<PostRequestMiddlewareDelegate> _postRequestMiddlewares = new();
+		public delegate Task<bool> PreRequestMiddlewareDelegate(string uri, CookieContainer cookies);
+		public delegate Task PostRequestMiddlewareDelegate(string uriString, CookieContainer requestCookies, string requestContentString, CurlResponse<string> response);
+
+		public CurlRequestBuilder() 
         {
-            _persistantCache = persistantCache;
             _argumentsBuilder.Add("--tlsv1.3")
                 .Add("--tls13-ciphers")
                 .Add("TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
@@ -27,14 +31,14 @@ namespace AccountManager.Infrastructure.Clients
                 .Add("Accept-Language: *");
         }
 
-        public IHttpRequestBuilderInitialize CreateBuilder()
+        public virtual IHttpRequestBuilderInitialize CreateBuilder()
         {
-            return new CurlRequestBuilder(_persistantCache);
+            return new CurlRequestBuilder();
         }
 
-        public IHttpRequestBuilderReadyToExecute CreateBuilder(string uri)
+        public virtual IHttpRequestBuilderReadyToExecute CreateBuilder(string uri)
         {
-            var builder = new CurlRequestBuilder(_persistantCache);
+            var builder = new CurlRequestBuilder();
             return builder.SetUri(uri);
         }
 
@@ -95,60 +99,53 @@ namespace AccountManager.Infrastructure.Clients
             _requestCookies.Add(cookie);
             return this;
         }
+
         public IHttpRequestBuilderReadyToExecute SetContent<T>(T content)
         {
-            _argumentsBuilder.Add("-H").Add("Content-Type: application/json");
-            _argumentsBuilder.Add("-d").Add(JsonSerializer.Serialize(content));
-            return this;
+			contentString = JsonSerializer.Serialize(content);
+
+			_argumentsBuilder.Add("-H").Add("Content-Type: application/json");
+            _argumentsBuilder.Add("-d").Add(contentString);
+
+			return this;
         }
 
-        private CookieContainer ParseCookies(IEnumerable<string> setCookieHeaders)
-        {
-            var cookieContainer = new CookieContainer();
+		public IHttpRequestBuilderReadyToExecute AddPreRequestMiddleware(PreRequestMiddlewareDelegate middleware)
+		{
+			_preRequestMiddlewares.Add(middleware);
+			return this;
+		}
 
-            foreach (var responseCookieHeader in setCookieHeaders)
-            {
-                var trimmedCookieHeader = responseCookieHeader[12..];
-                var tempContainer = new CookieContainer();
-                tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
-                cookieContainer.Add(tempContainer.GetAllCookies());
-            }
+		public IHttpRequestBuilderReadyToExecute AddPostRequestMiddleware(PostRequestMiddlewareDelegate middleware)
+		{
+			_postRequestMiddlewares.Add(middleware);
+			return this;
+		}
 
-            return cookieContainer;
-        }
-
-        public async Task<CurlResponse<string>> ExecuteAsync()
+		public async Task<CurlResponse<string>?> ExecuteAsync()
         {
             try
             {
-                var tdidCacheKey = $"riot.auth.tdid";
-                var tdidCookie = await _persistantCache.GetAsync<Cookie>(tdidCacheKey);
-
-                if (tdidCookie is not null)
-                    _requestCookies.Add(tdidCookie);
-
-                var cookieHeader = _requestCookies.GetCookieHeader(new Uri(uri));
-
-                if (!cookieHeader.Contains("tdid"))
+                foreach (var middleware in _preRequestMiddlewares)
                 {
-                    if (!string.IsNullOrEmpty(cookieHeader))
-                        cookieHeader += $";tdid={Guid.NewGuid()}";
-                    else
-                        cookieHeader = $"tdid={Guid.NewGuid()}";
+                    if (!await middleware(uri, _requestCookies))
+                    {
+                        return null;
+                    }
                 }
 
-
+                var cookieHeader = _requestCookies.GetCookieHeader(new Uri(uri));
 
                 _argumentsBuilder.Add("-H").Add($"Cookie: {cookieHeader}");
                 _argumentsBuilder.Add($"{uri.TrimEnd('\\').TrimEnd('/')}");
 
                 var argumentsString = _argumentsBuilder.Build();
 
-                var response = await _cliWrapper.WithArguments(argumentsString)
+                var cliResponse = await _cliWrapper.WithArguments(argumentsString)
                 .WithValidation(CliWrap.CommandResultValidation.None)
                 .ExecuteBufferedAsync();
 
-                var responseLines = response.StandardOutput.Split("\n");
+                var responseLines = cliResponse.StandardOutput.Split("\n");
                 var cookieHeaders = responseLines.Where((header) => header.ToLower().StartsWith("set-cookie"))
                     .Select((cookieHeader) => cookieHeader[cookieHeader.ToLower().IndexOf("set-cookie:")..]);
 
@@ -165,13 +162,7 @@ namespace AccountManager.Infrastructure.Clients
 
                 var cookieContainer = ParseCookies(cookieHeaders);
 
-                var responseCookieCollection = cookieContainer.GetAllCookies();
-                var tdidResponseCookie = responseCookieCollection.FirstOrDefault((cookie) => cookie?.Name?.ToLower() == "tdid", null);
-
-                if (tdidResponseCookie is not null)
-                    await _persistantCache.SetAsync(tdidCacheKey, tdidResponseCookie);
-
-                return new CurlResponse<string>
+                var response = new CurlResponse<string>
                 {
                     ResponseContent = responseJson,
                     Headers = new(),
@@ -179,6 +170,12 @@ namespace AccountManager.Infrastructure.Clients
                     Cookies = cookieContainer.GetAllCookies(),
                     Location = locationValue
                 };
+
+                var postRequestMiddlewareTasks = _postRequestMiddlewares.Select(async x => await x(uri, _requestCookies, contentString, response));
+
+                await Task.WhenAll(postRequestMiddlewareTasks);
+
+                return response;
             }
             catch
             {
@@ -262,7 +259,22 @@ namespace AccountManager.Infrastructure.Clients
             return await ExecuteAsync<T>();
         }
 
-        public sealed class CurlResponse<T> : IHttpRequestBuilderResponse<T>
+		private CookieContainer ParseCookies(IEnumerable<string> setCookieHeaders)
+		{
+			var cookieContainer = new CookieContainer();
+
+			foreach (var responseCookieHeader in setCookieHeaders)
+			{
+				var trimmedCookieHeader = responseCookieHeader[12..];
+				var tempContainer = new CookieContainer();
+				tempContainer.SetCookies(new Uri(uri), trimmedCookieHeader);
+				cookieContainer.Add(tempContainer.GetAllCookies());
+			}
+
+			return cookieContainer;
+		}
+
+		public sealed class CurlResponse<T> : IHttpRequestBuilderResponse<T>
         {
             public HttpStatusCode StatusCode { get; set; }
             public Dictionary<string, string>? Headers { get; set; }
@@ -270,5 +282,6 @@ namespace AccountManager.Infrastructure.Clients
             public T? ResponseContent { get; set; }
             public string? Location { get; set; }
         }
+
     }
 }
